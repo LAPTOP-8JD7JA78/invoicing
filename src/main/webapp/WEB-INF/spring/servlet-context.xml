@@ -91,6 +91,6 @@
 		</property>
 	</bean>
 
-	<bean
-		class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
+	<bean id="schedulerService" class="com.smartech.invoicing.scheduler.SchedulerService"/>
 </beans>
