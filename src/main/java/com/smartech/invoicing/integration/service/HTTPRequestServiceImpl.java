@@ -6,13 +6,29 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.apache.commons.codec.binary.Base64;
+import org.json.JSONObject;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.google.gson.Gson;
+import com.smartech.invoicing.integration.dto.HeadersRestDTO;
+import com.smartech.invoicing.integration.dto.ParamsRestDTO;
+import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
+import com.smartech.invoicing.integration.util.AppConstants;
+
 
 @Service("hTTPRequestService")
 public class HTTPRequestServiceImpl implements HTTPRequestService {
@@ -107,8 +123,9 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 
 			if(!"".equals(auth)) {
 				byte[] authBytes = auth.getBytes("UTF-8");
-				String authBasic = Base64.getEncoder().encodeToString(authBytes);
-				conn.setRequestProperty("Authorization", "Basic " + authBasic);
+				byte[] base64Creds  = Base64.encodeBase64(authBytes);
+				String base64CredsStr = new String(base64Creds);
+				conn.setRequestProperty("Authorization", "Basic " + base64CredsStr);
 			}
 
 			OutputStream out = conn.getOutputStream();
@@ -150,5 +167,74 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			modelMap.put("httpResponse", e.getCause());
 			return modelMap;
 		}
+	}
+
+	@Override
+	public String getPlainCreds(String user, String pass) {
+		String plainCreds = user + ":" + pass;
+		byte[] plainCredsBytes = plainCreds.getBytes();
+		byte[] base64Creds  = Base64.encodeBase64(plainCredsBytes);
+		String base64CredsStr = new String(base64Creds);
+		return base64CredsStr;
+	}
+	
+	private RestTemplate restTemplateFactory() {
+		RestTemplate rt = new RestTemplate();
+		rt.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+		rt.getMessageConverters().add(new StringHttpMessageConverter());
+		return rt;
+	}
+
+	@Override
+	public Map<String, Object> httpRESTRequest(String user, String pass, String url, HttpMethod method, List<HeadersRestDTO> headers,
+			List<ParamsRestDTO> params, Object body, String service) {
+
+		Map<String, Object> map = new HashMap<String, Object>(3);
+		RestTemplate rt = restTemplateFactory();
+		
+		HttpHeaders h = new HttpHeaders();
+		if(user != null && pass != null) {
+			h.add("Authorization", "Basic " + getPlainCreds(user, pass));
+		}
+		if(headers != null && !headers.isEmpty()) {
+			for(HeadersRestDTO head: headers) {
+				h.add(head.getHeaderName(), head.getHeaderValue());
+			}
+		}
+		
+		if(params != null && !params.isEmpty()) {
+			url = url + "?";
+			for(ParamsRestDTO param: params) {
+				url = url + param.getParamName() + "=" + param.getParamValue() + "&";
+			}
+			url = url.substring(0, url.length() - 1);
+		}
+	
+		HttpEntity<String> re ;
+		
+		if(body != null) {
+			String jsonInString = new Gson().toJson(body);
+			JSONObject mJSONObject = new JSONObject(jsonInString);
+			
+			re = new HttpEntity<String>(mJSONObject.toString(), h);
+		}else {
+			re = new HttpEntity<String>(h);
+		}
+					
+		try {
+			switch(service) {
+				case AppConstants.SERVICE_REST_TEST1:
+					ResponseEntity<InventoryOrganization> resp = rt.exchange(url, method, re, InventoryOrganization.class);
+					map.put("code", resp.getStatusCode().value());
+					map.put("response", resp.hasBody()?resp.getBody():"");
+					map.put("httpResponse", resp.getHeaders());
+			}		
+		}catch(Exception e) {
+			e.printStackTrace();
+			map.put("code", 400);
+			map.put("response", null);
+			map.put("httpResponse", e.getCause());
+		}
+		return map;
 	}
 }
