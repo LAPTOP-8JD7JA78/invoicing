@@ -1,6 +1,7 @@
 package com.smartech.invoicing.integration;
 
 import java.io.StringReader;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -38,23 +39,30 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 			JsonElement result;	
 			//getSessionId--------------------------------------------------------
 			try {
-				String request1 = httpRequestService.httpXmlRequest(AppConstants.URL_ANALYTICS_SESSION, 
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_ANALYTICS_SESSION, 
 																	PayloadProducer.getSessionIdSOAPXmlContent(user, pass), 
 																	"");
-				if(request1 != null && !"".contains(request1)) {
-					xmlJSONObj = XML.toJSONObject(request1, true);
-					jelement = new JsonParser().parse(xmlJSONObj.toString());
-					jobject = jelement.getAsJsonObject();
-					result = jobject.get("soap:Envelope").getAsJsonObject().get("soap:Body").getAsJsonObject()
-							.get("sawsoap:logonResult").getAsJsonObject();
-					String contentId = result.getAsJsonObject().get("sawsoap:sessionID").toString();
-					json = new JSONObject(contentId);
-					sessionId = json.getString("content");
-				}
 				
-				httpRequestService.httpXmlRequest(AppConstants.URL_ANALYTICS_SESSION, 
-												  PayloadProducer.keepSessionIdSOAPXmlContent(sessionId), 
-												  "");
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						result = jobject.get("soap:Envelope").getAsJsonObject().get("soap:Body").getAsJsonObject()
+								.get("sawsoap:logonResult").getAsJsonObject();
+						String contentId = result.getAsJsonObject().get("sawsoap:sessionID").toString();
+						json = new JSONObject(contentId);
+						sessionId = json.getString("content");
+					}
+				
+					httpRequestService.httpXMLRequest(AppConstants.URL_ANALYTICS_SESSION, 
+													  PayloadProducer.keepSessionIdSOAPXmlContent(sessionId), 
+													  "");
+				}
 				
 				if("".contains(sessionId)) {
 					return null;
@@ -76,30 +84,37 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 			if(!"".contains(request)) {
 				//ejecutar 
 				try {
-					String request2 = httpRequestService.httpXmlRequest(AppConstants.URL_ANALYTICS,
-																		request, 
-																		"");
-					if(request2 != null && !"".contains(request2)) {
-						xmlJSONObj = XML.toJSONObject(request2, true);
-						jelement = new JsonParser().parse(xmlJSONObj.toString());
-						jobject = jelement.getAsJsonObject();
-						
-						result = jobject.get("soap:Envelope").getAsJsonObject().get("soap:Body").getAsJsonObject()
-								.get("sawsoap:executeSQLQueryResult").getAsJsonObject().get("sawsoap:return").getAsJsonObject();
-						String rowSet = result.getAsJsonObject().get("sawsoap:rowset").toString();
-						rowSet = rowSet.replace("\\\"", "\"");
-						rowSet = rowSet.replace("\"<", "<");
-						rowSet = rowSet.replace(">\"", ">");
-						rowSet = rowSet.replace("xmlns=\"urn:schemas-microsoft-com:xml-analysis:rowset\"", "");
-				
-						StringReader sr = new StringReader(rowSet);
-						JAXBContext jaxbContext = JAXBContext.newInstance(Rowset.class);
-						Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-						Rowset rsList = (Rowset) unmarshaller.unmarshal(sr);
-						response = rsList;
+					Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_ANALYTICS,
+																					request, 
+																					"");
+					
+					String strResponse2 = (String) request2.get("response");
+					int codeResponse2 = (int) request2.get("code");
+					String strHttpResponse2 = (String) request2.get("httpResponse");
+					
+					if(codeResponse2 >= 200 && codeResponse2 < 300) {
+						if(strResponse2 != null && !"".contains(strResponse2)) {
+							xmlJSONObj = XML.toJSONObject(strResponse2, true);
+							jelement = new JsonParser().parse(xmlJSONObj.toString());
+							jobject = jelement.getAsJsonObject();
+							
+							result = jobject.get("soap:Envelope").getAsJsonObject().get("soap:Body").getAsJsonObject()
+									.get("sawsoap:executeSQLQueryResult").getAsJsonObject().get("sawsoap:return").getAsJsonObject();
+							String rowSet = result.getAsJsonObject().get("sawsoap:rowset").toString();
+							rowSet = rowSet.replace("\\\"", "\"");
+							rowSet = rowSet.replace("\"<", "<");
+							rowSet = rowSet.replace(">\"", ">");
+							rowSet = rowSet.replace("xmlns=\"urn:schemas-microsoft-com:xml-analysis:rowset\"", "");
+					
+							StringReader sr = new StringReader(rowSet);
+							JAXBContext jaxbContext = JAXBContext.newInstance(Rowset.class);
+							Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+							Rowset rsList = (Rowset) unmarshaller.unmarshal(sr);
+							response = rsList;
+						}
 					}
 					
-					httpRequestService.httpXmlRequest(AppConstants.URL_ANALYTICS_SESSION,
+					httpRequestService.httpXMLRequest(AppConstants.URL_ANALYTICS_SESSION,
 													  PayloadProducer.getSessionLogOffSOAPXmlContent(sessionId), 
 													  "");
 					
