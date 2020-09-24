@@ -3,6 +3,7 @@ package com.smartech.invoicing.dto;
 public class InvoicesByReportsDTO {
 	private String transactionNumber;
 	private String bussinessUnitName;
+	
 	public String getTransactionNumber() {
 		return transactionNumber;
 	}
