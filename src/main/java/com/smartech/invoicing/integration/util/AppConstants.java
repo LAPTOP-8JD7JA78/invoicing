@@ -17,5 +17,6 @@ public class AppConstants {
 	
 	//Servicios
 	public static final String SERVICE_TEST1 = "TEST1";
+	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
 	
 }

@@ -78,6 +78,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 			switch(service) {
 				case AppConstants.SERVICE_TEST1:
 					request = PayloadProducer.getTestAnalytics1(sessionId);
+					break;					
+				case AppConstants.SERVICE_AR_REPORT_INVOICES:
+					request = PayloadProducer.getArReportInvoice(sessionId, dto.getAr_Report_date());
 					break;
 			}
 

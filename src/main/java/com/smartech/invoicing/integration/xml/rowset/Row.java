@@ -21,6 +21,22 @@ public class Row {
      protected String column14;
      protected String column15;
      
+     protected String column16;
+     protected String column17;
+     protected String column18;
+     protected String column19;
+     protected String column20;
+     protected String column21;
+     protected String column22;
+     protected String column23;
+     protected String column24;
+     protected String column25;
+     protected String column26;
+     protected String column27;
+     protected String column28;
+     protected String column29;
+     protected String column30;
+     
 	public String getColumn0() {
 		return column0;
 	}
@@ -148,6 +164,141 @@ public class Row {
 	}	
 	public String getColumn15() {
 		return column15;
+	}
+
+	public String getColumn16() {
+		return column16;
+	}
+	
+	@XmlElement(name = "Column16", required = true)
+	public void setColumn16(String column16) {
+		this.column16 = column16;
+	}
+
+	public String getColumn17() {
+		return column17;
+	}
+
+	@XmlElement(name = "Column17", required = true)
+	public void setColumn17(String column17) {
+		this.column17 = column17;
+	}
+
+	public String getColumn18() {
+		return column18;
+	}
+
+	@XmlElement(name = "Column18", required = true)
+	public void setColumn18(String column18) {
+		this.column18 = column18;
+	}
+
+	public String getColumn19() {
+		return column19;
+	}
+
+	@XmlElement(name = "Column19", required = true)
+	public void setColumn19(String column19) {
+		this.column19 = column19;
+	}
+
+	public String getColumn20() {
+		return column20;
+	}
+
+	@XmlElement(name = "Column20", required = true)
+	public void setColumn20(String column20) {
+		this.column20 = column20;
+	}
+
+	public String getColumn21() {
+		return column21;
+	}
+
+	@XmlElement(name = "Column21", required = true)
+	public void setColumn21(String column21) {
+		this.column21 = column21;
+	}
+
+	public String getColumn22() {
+		return column22;
+	}
+
+	@XmlElement(name = "Column22", required = true)
+	public void setColumn22(String column22) {
+		this.column22 = column22;
+	}
+
+	public String getColumn23() {
+		return column23;
+	}
+
+	@XmlElement(name = "Column23", required = true)
+	public void setColumn23(String column23) {
+		this.column23 = column23;
+	}
+
+	public String getColumn24() {
+		return column24;
+	}
+
+	@XmlElement(name = "Column24", required = true)
+	public void setColumn24(String column24) {
+		this.column24 = column24;
+	}
+
+	public String getColumn25() {
+		return column25;
+	}
+
+	@XmlElement(name = "Column25", required = true)
+	public void setColumn25(String column25) {
+		this.column25 = column25;
+	}
+
+	public String getColumn26() {
+		return column26;
+	}
+
+	@XmlElement(name = "Column26", required = true)
+	public void setColumn26(String column26) {
+		this.column26 = column26;
+	}
+
+	public String getColumn27() {
+		return column27;
+	}
+
+	@XmlElement(name = "Column27", required = true)
+	public void setColumn27(String column27) {
+		this.column27 = column27;
+	}
+
+	public String getColumn28() {
+		return column28;
+	}
+
+	@XmlElement(name = "Column28", required = true)
+	public void setColumn28(String column28) {
+		this.column28 = column28;
+	}
+
+	public String getColumn29() {
+		return column29;
+	}
+
+	@XmlElement(name = "Column29", required = true)
+	public void setColumn29(String column29) {
+		this.column29 = column29;
+	}
+
+	public String getColumn30() {
+		return column30;
+	}
+
+	@XmlElement(name = "Column30", required = true)
+	public void setColumn30(String column30) {
+		this.column30 = column30;
 	}
 
 }
