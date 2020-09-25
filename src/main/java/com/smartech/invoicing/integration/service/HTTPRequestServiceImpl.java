@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,9 +30,10 @@ import com.smartech.invoicing.integration.dto.ParamsRestDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.util.AppConstants;
 
-
 @Service("hTTPRequestService")
 public class HTTPRequestServiceImpl implements HTTPRequestService {
+	
+	static Logger log = Logger.getLogger(HTTPRequestServiceImpl.class.getName());
 
 //	@Override
 //	@SuppressWarnings({ "restriction", "static-access" })
@@ -154,6 +156,7 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			
 			return modelMap;
 		}catch(IOException io) {
+			log.error("XML REQUEST FAIL - " + url, io);
 			io.printStackTrace();
 			modelMap.put("code", 406);
 			modelMap.put("response", io.getMessage());
@@ -161,6 +164,7 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			return modelMap;
 			
 		}catch(Exception e) {
+			log.error("XML REQUEST FAIL - " + url, e);
 			e.printStackTrace();
 			modelMap.put("code", 500);
 			modelMap.put("response", e.getMessage());

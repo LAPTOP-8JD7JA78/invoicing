@@ -1,5 +1,6 @@
 package com.smartech.invoicing.scheduler;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -7,6 +8,7 @@ import com.smartech.invoicing.integration.AnalyticsService;
 import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
+import com.smartech.invoicing.integration.service.HTTPRequestServiceImpl;
 import com.smartech.invoicing.integration.service.InvoicingService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
@@ -21,19 +23,22 @@ public class SchedulerService {
 	@Autowired
 	InvoicingService invoicingService;
 	
-	//@Scheduled(fixedDelay=1000, initialDelay=1000)
+	static Logger log = Logger.getLogger(SchedulerService.class.getName());
+	
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testSchedule() {
+		log.info("\'testSchedule\' is started*******");
 		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 				AppConstants.SERVICE_TEST1, null);
-		if(!r.getRow().isEmpty()) {
+		if(r != null && !r.getRow().isEmpty()) {
 			for(Row row : r.getRow()) {
 				System.out.println(row.getColumn0());
 			}
 		}
-		
+		log.info("\'testSchedule\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		AnalyticsDTO analytics = new AnalyticsDTO();
 		analytics.setAr_Report_date("2020-09-21 21:00:00");;
