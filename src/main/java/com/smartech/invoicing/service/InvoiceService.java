@@ -18,4 +18,5 @@ public interface InvoiceService {
 	public void downloadFilesPDFInvoice(long invoiceNumber, HttpServletResponse response);
 	public void downloadFilesXmlInvoice(long invoiceNumber, HttpServletResponse response);
 	public void generatePayments(InvoicesByReportsDTO so, double payment, int numberPayment, HttpServletRequest request, String user);
+	public boolean createInvoice(InvoicesByReportsDTO inv);
 }

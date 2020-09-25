@@ -8,7 +8,6 @@ import com.smartech.invoicing.integration.AnalyticsService;
 import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
-import com.smartech.invoicing.integration.service.HTTPRequestServiceImpl;
 import com.smartech.invoicing.integration.service.InvoicingService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
@@ -38,18 +37,19 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		AnalyticsDTO analytics = new AnalyticsDTO();
-		analytics.setAr_Report_date("2020-09-21 21:00:00");;
+		analytics.setAr_Report_date("2020-09-01 14:30:30");;
 		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 				AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
 		if(!r.getRow().isEmpty()) {
-			for(Row ro: r.getRow()) {
+			invoicingService.createStampInvoice(r.getRow());
+			/*for(Row ro: r.getRow()) {
 				if(!invoicingService.createStampInvoice(ro)) {
 					System.out.println(false);
 				}
-			}
+			}*/
 		}
 		
 	}

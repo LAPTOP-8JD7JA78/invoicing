@@ -1,24 +1,46 @@
 package com.smartech.invoicing.integration.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
 import com.smartech.invoicing.integration.xml.rowset.Row;
+import com.smartech.invoicing.service.InvoiceService;
 import com.smartech.invoicing.util.NullValidator;
 
 @Service("invoicingService")
 public class InvoicingServiceImpl implements InvoicingService{
-
+	
+	@Autowired
+	InvoiceService invoiceService;
 	@Override
-	public boolean createStampInvoice(Row r) {
+	public boolean createStampInvoice(List<Row> r) {
 		try {
 			//Llenado de objeto DTO de la respuesta del reporte
-			InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
-			invReports = fullDTO(r);
-			if(invReports != null) {
-				System.out.println(invReports.getTransactionNumber());
-				return true;
+			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
+			for(Row ro: r) {
+				InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
+				invReports = fullDTO(ro);
+				if(invReports != null) {
+					System.out.println(invReports.getTransactionNumber());				
+					invlist.add(invReports);
+				}			
 			}
+			
+			for(InvoicesByReportsDTO inv: invlist) {
+				/*Invoice invo = new Invoice();
+				InvoiceDetails invD = new InvoiceDetails();
+				List<InvoiceDetails> invDList = new ArrayList<InvoiceDetails>();*/
+				if(!invoiceService.createInvoice(inv)) {
+					System.out.println(false);
+				}
+				
+			}
+			
+			return true;
 		}catch(Exception e) {
 			e.printStackTrace();
 		}

@@ -103,7 +103,7 @@ public class PayloadProducer {
 				"   \"Receivables - Transactions Real Time\".\"- Transaction Amounts\".\"Transaction Entered Amount\" s_27\r\n" + 
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
 				"WHERE\r\n" + 
-				"((\"- Line Information\".\"Sales Order Number\" IS NOT NULL) AND (\"- Reference Information\".\"Creation Date\" > timestamp '2020-09-21 21:00:00'))\r\n" + 
+				"((\"- Line Information\".\"Sales Order Number\" IS NOT NULL) AND (\"- Reference Information\".\"Creation Date\" > timestamp '" + date + "'))\r\n" + 
 				"ORDER BY 1, 23 ASC NULLS LAST, 22 ASC NULLS LAST, 21 ASC NULLS LAST, 24 ASC NULLS LAST, 16 ASC NULLS LAST, 19 ASC NULLS LAST, 15 ASC NULLS LAST, 14 ASC NULLS LAST, 13 ASC NULLS LAST, 12 ASC NULLS LAST, 10 ASC NULLS LAST, 11 ASC NULLS LAST, 9 ASC NULLS LAST, 8 ASC NULLS LAST, 7 ASC NULLS LAST, 6 ASC NULLS LAST, 5 ASC NULLS LAST, 4 ASC NULLS LAST, 3 ASC NULLS LAST, 2 ASC NULLS LAST, 20 ASC NULLS LAST, 18 ASC NULLS LAST, 17 ASC NULLS LAST" + 
 				"         </v7:sql>\r\n" + 
 				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
