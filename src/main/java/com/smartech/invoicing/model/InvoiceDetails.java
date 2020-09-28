@@ -66,7 +66,16 @@ public class InvoiceDetails implements Serializable{
 	private String currency;
 
 	@Column(name = "status", nullable=true)
-	private String status; 	
+	private String status; 
+	
+	@Column(name = "lineType", nullable=true)
+	private String lineType;
+	
+	@Column(name = "itemSerial", nullable=true)
+	private String itemSerial;
+	
+	@Column(name = "itemLot", nullable=true)
+	private String itemLot;
 	
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private List<TaxCodes> taxCodes;
@@ -189,6 +198,30 @@ public class InvoiceDetails implements Serializable{
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getLineType() {
+		return lineType;
+	}
+
+	public void setLineType(String lineType) {
+		this.lineType = lineType;
+	}
+
+	public String getItemSerial() {
+		return itemSerial;
+	}
+
+	public void setItemSerial(String itemSerial) {
+		this.itemSerial = itemSerial;
+	}
+
+	public String getItemLot() {
+		return itemLot;
+	}
+
+	public void setItemLot(String itemLot) {
+		this.itemLot = itemLot;
 	}
 
 	public List<TaxCodes> getTaxCodes() {

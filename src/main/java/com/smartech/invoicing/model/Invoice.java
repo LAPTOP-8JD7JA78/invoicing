@@ -105,6 +105,11 @@ public class Invoice implements Serializable{
 	@Column(name = "errorMsg", nullable=true)
 	private String errorMsg;
 	
+	@Column(name = "customerTaxIdentifier", nullable=true)
+	private String customerTaxIdentifier;
+	
+	@Column(name = "invoiceReferenceTransactionNumber", nullable=true)
+	private String invoiceReferenceTransactionNumber;
 	
 	@OneToOne
 	private Branch branch;
@@ -322,6 +327,22 @@ public class Invoice implements Serializable{
 
 	public void setErrorMsg(String errorMsg) {
 		this.errorMsg = errorMsg;
+	}
+
+	public String getCustomerTaxIdentifier() {
+		return customerTaxIdentifier;
+	}
+
+	public void setCustomerTaxIdentifier(String customerTaxIdentifier) {
+		this.customerTaxIdentifier = customerTaxIdentifier;
+	}
+
+	public String getInvoiceReferenceTransactionNumber() {
+		return invoiceReferenceTransactionNumber;
+	}
+
+	public void setInvoiceReferenceTransactionNumber(String invoiceReferenceTransactionNumber) {
+		this.invoiceReferenceTransactionNumber = invoiceReferenceTransactionNumber;
 	}
 
 	public Branch getBranch() {

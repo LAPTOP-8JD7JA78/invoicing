@@ -1,13 +1,18 @@
 package com.smartech.invoicing.integration.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
+import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
+import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.service.InvoiceService;
 import com.smartech.invoicing.util.NullValidator;
 
@@ -16,30 +21,84 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	InvoiceService invoiceService;
+	
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
+	
 	@Override
 	public boolean createStampInvoice(List<Row> r) {
 		try {
 			//Llenado de objeto DTO de la respuesta del reporte
+			List<String> arr = new ArrayList<String>();
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
+			List<Invoice> invList = new ArrayList<Invoice>();
 			for(Row ro: r) {
 				InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
 				invReports = fullDTO(ro);
 				if(invReports != null) {
 					System.out.println(invReports.getTransactionNumber());				
 					invlist.add(invReports);
+					
 				}			
 			}
 			
-			for(InvoicesByReportsDTO inv: invlist) {
-				/*Invoice invo = new Invoice();
-				InvoiceDetails invD = new InvoiceDetails();
-				List<InvoiceDetails> invDList = new ArrayList<InvoiceDetails>();*/
-				if(!invoiceService.createInvoice(inv)) {
-					System.out.println(false);
+			//llenar header---------------------------------------------------------------------------------------------------
+			for(InvoicesByReportsDTO inv: invlist) {				
+				if(!arr.contains(inv.getTransactionNumber())) {
+					Invoice invoice = new Invoice();
+					//Datos del cliente---------------------------------------------------------------------------------------
+					invoice.setCustomerName(inv.getCustomerName());
+					invoice.setCustomerZip(inv.getCustomerPostalCode());
+					invoice.setAddress1(inv.getCustomerAddress1());
+					invoice.setCountry(inv.getCustomerCountry());
+					invoice.setCustomerTaxIdentifier(inv.getCustomerTaxIdentifier());
+					invoice.setCustomerEmail("llopez@smartech.com.mx");
+					
+					//Datos de la unidad de negocio---------------------------------------------------------------------------
+					invoice.setCompany(null);
+					invoice.setBranch(null);
+					invoice.setSerial(NullValidator.isNull(invoice.getBranch().getInvOrganizationCode()));
+					
+					//Datos generales---------------------------------------------------------------------------------------
+					invoice.setFolio(inv.getTransactionNumber());
+					invoice.setInvoiceDetails(null);
+					invoice.setStatus(AppConstants.STATUS_START);
+					invoice.setInvoice(true);
+					if(!inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ESP)//Es nota de credito
+						&& !inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ING)) {
+						invoice.setInvoice(false);
+						invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
+						
+					}
+					invoice.setOrderType(inv.getTransactionTypeName());
+					
+					//Datos extras-------------------------------------------------------------------------------------------------
+					invoice.setCreatedBy("llopez");
+					invoice.setCreationDate(sdfNoTime.parse(inv.getTransactionDate()));
+					invoice.setUpdatedBy("llopez");
+					invoice.setUpdatedDate(new Date());
+					
+					//Añadir registro a la lista facturas
+					invList.add(invoice);
 				}
 				
+				arr.add(inv.getTransactionNumber());
 			}
 			
+			//Llenado de líneas---------------------------------------------------------------------------------------
+			for(Invoice i: invList) {
+				List<InvoiceDetails> invDList = new ArrayList<InvoiceDetails>();
+				
+				for(InvoicesByReportsDTO in : invlist) {
+					if(i.getFolio().equals(in.getTransactionNumber())) {
+						InvoiceDetails invDetails = new InvoiceDetails();
+						
+						invDList.add(invDetails);
+					}					
+				}
+				
+				i.setInvoiceDetails(invDList);
+			}
 			return true;
 		}catch(Exception e) {
 			e.printStackTrace();

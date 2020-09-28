@@ -37,19 +37,16 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	//@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		AnalyticsDTO analytics = new AnalyticsDTO();
 		analytics.setAr_Report_date("2020-09-01 14:30:30");;
 		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 				AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
 		if(!r.getRow().isEmpty()) {
-			invoicingService.createStampInvoice(r.getRow());
-			/*for(Row ro: r.getRow()) {
-				if(!invoicingService.createStampInvoice(ro)) {
-					System.out.println(false);
-				}
-			}*/
+			if(!invoicingService.createStampInvoice(r.getRow())) {
+				System.out.println(false);
+			}
 		}
 		
 	}
