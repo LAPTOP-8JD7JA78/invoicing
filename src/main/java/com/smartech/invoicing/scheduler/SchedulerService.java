@@ -4,10 +4,13 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.integration.AnalyticsService;
 import com.smartech.invoicing.integration.RESTService;
+import com.smartech.invoicing.integration.SOAPService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
+import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicing.integration.service.InvoicingService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
@@ -20,11 +23,13 @@ public class SchedulerService {
 	@Autowired
 	RESTService restService;
 	@Autowired
+	SOAPService soapService;
+	@Autowired
 	InvoicingService invoicingService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testSchedule() {
 		log.info("\'testSchedule\' is started*******");
 		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
@@ -37,7 +42,7 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-	//@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		AnalyticsDTO analytics = new AnalyticsDTO();
 		analytics.setAr_Report_date("2020-09-01 14:30:30");;
@@ -60,6 +65,13 @@ public class SchedulerService {
 				System.out.println(item.getOrganizationCode() + "-" + item.getOrganizationId());
 			}
 		}
+	}
+	
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	public void getDataForNewOrders() {
+		log.info("\'getDataForNewOrders\' is started*******");
+		
+		log.info("\'getDataForNewOrders\' is finished*******");
 	}
     
 }

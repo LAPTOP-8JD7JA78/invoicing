@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.smartech.invoicing.integration.dto.HeadersRestDTO;
 import com.smartech.invoicing.integration.dto.ParamsRestDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
+import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicing.integration.util.AppConstants;
 
 @Service("hTTPRequestService")
@@ -232,8 +233,17 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 					map.put("code", resp.getStatusCode().value());
 					map.put("response", resp.hasBody()?resp.getBody():"");
 					map.put("httpResponse", resp.getHeaders());
+					break;
+				case AppConstants.SERVICE_SALES_ORDER_1:
+					ResponseEntity<SalesOrder> respSO1 = rt.exchange(url, method, re, SalesOrder.class);
+					map.put("code", respSO1.getStatusCode().value());
+					map.put("response", respSO1.hasBody()?respSO1.getBody():"");
+					map.put("httpResponse", respSO1.getHeaders());
+					break;
 			}		
 		}catch(Exception e) {
+			log.error("REST REQUEST FAIL - " + service + "********************");
+			log.error("REST REQUEST FAIL - " + url, e);
 			e.printStackTrace();
 			map.put("code", 400);
 			map.put("response", null);

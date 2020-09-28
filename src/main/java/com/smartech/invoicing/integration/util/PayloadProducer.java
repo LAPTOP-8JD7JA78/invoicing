@@ -67,6 +67,59 @@ public class PayloadProducer {
 		return SOAPRequest;
 	}
 	
+	public static String getItemDataByItemNumberOrgCode(String itemNumber, String orgCode) {
+		String SOAPRequest = 
+				"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/scm/productModel/items/itemServiceV2/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">" + 
+				"<soapenv:Header/>" + 
+					"<soapenv:Body>" + 
+						"<typ:findItem>" + 
+							"<typ:findCriteria>" + 
+								"<typ1:fetchStart>0</typ1:fetchStart>" + 
+								"<typ1:fetchSize>1</typ1:fetchSize>" + 
+								"<typ1:filter>" + 
+									"<typ1:group>" + 
+										"<typ1:item>" + 
+											"<typ1:conjunction>And</typ1:conjunction>" + 
+											"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
+											"<typ1:attribute>ItemNumber</typ1:attribute>" + 
+											"<typ1:operator>=</typ1:operator>" + 
+											"<typ1:value>" + itemNumber + "</typ1:value>" + 
+										"</typ1:item>" + 
+										"<typ1:item>" + 
+											"<typ1:conjunction>And</typ1:conjunction>" + 
+											"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
+											"<typ1:attribute>OrganizationCode</typ1:attribute>" + 
+											"<typ1:operator>=</typ1:operator>" + 
+											"<typ1:value>" + orgCode + "</typ1:value>" + 
+										"</typ1:item>" + 
+									"</typ1:group>" + 
+								"</typ1:filter>" + 
+								"<typ1:findAttribute>ItemNumber</typ1:findAttribute>" + 
+								"<typ1:findAttribute>ItemDescription</typ1:findAttribute>" + 
+								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
+								"<typ1:childFindCriteria>" + 
+									"<typ1:filter>" + 
+										"<typ1:group>" + 
+											"<typ1:item>" + 
+												"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
+												"<typ1:attribute>ItemCatalog</typ1:attribute>" + 
+												"<typ1:operator>=</typ1:operator>" + 
+												"<typ1:value>IMEMSA_CATALOGO</typ1:value>" + 
+											"</typ1:item>" + 
+										"</typ1:group>" + 
+									"</typ1:filter>" + 
+									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
+									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
+									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
+								"</typ1:childFindCriteria>" + 
+							"</typ:findCriteria>" + 
+						"</typ:findItem>" + 
+					"</soapenv:Body>" + 
+				"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
+	
 	public static String getArReportInvoice(String sessionId, String date) {
 		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
 				"   <soapenv:Header/>\r\n" + 
