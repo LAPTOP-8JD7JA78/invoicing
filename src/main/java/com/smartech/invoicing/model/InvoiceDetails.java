@@ -77,6 +77,9 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "itemLot", nullable=true)
 	private String itemLot;
 	
+	@Column(name = "transactionLineNumber", nullable=true)
+	private String transactionLineNumber;
+	
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private List<TaxCodes> taxCodes;
 
@@ -222,6 +225,14 @@ public class InvoiceDetails implements Serializable{
 
 	public void setItemLot(String itemLot) {
 		this.itemLot = itemLot;
+	}
+
+	public String getTransactionLineNumber() {
+		return transactionLineNumber;
+	}
+
+	public void setTransactionLineNumber(String transactionLineNumber) {
+		this.transactionLineNumber = transactionLineNumber;
 	}
 
 	public List<TaxCodes> getTaxCodes() {

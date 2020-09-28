@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
 import com.smartech.invoicing.model.Invoice;
-import com.smartech.invoicing.model.InvoiceDetails;
 
 @Service("invoiceService")
 public class InvoiceServiceImpl implements InvoiceService{
@@ -56,24 +55,16 @@ public class InvoiceServiceImpl implements InvoiceService{
 	}
 
 	@Override
-	public boolean createInvoice(InvoicesByReportsDTO inv) {
-		Invoice in = new Invoice();
-		Invoice getInv = new Invoice();
-		InvoiceDetails inD = new InvoiceDetails();
+	public boolean createInvoice(Invoice inv) {
+//		Invoice in = new Invoice();
 		try {			
-			getInv = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber());
-			if(getInv != null) {
-				//crear factura y linea de detalle
-				in.setCustomerName(inv.getCustomerName());
-				inD.setItemNumber(inv.getItemName());
-			}else {
-				//actualizar lineas 
-				
+			if(!invoiceDao.saveInvoice(inv)) {
+				return false;
 			}
+			return true;
 		}catch(Exception e){
 			e.printStackTrace();
 			return false;
 		}
-		return false;
 	}
 }

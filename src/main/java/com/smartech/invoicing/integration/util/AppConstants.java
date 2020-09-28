@@ -36,11 +36,11 @@ public class AppConstants {
 	public static final String STATUS_INVOICED = "INVOICED";
 	public static final String STATUS_ERROR = "ERROR";
 	public static final String STATUS_FINISHED = "FINISHED";
-	
+
 	//Estados de reportes
 	public static final String STATUS_REPORTS_ING = "Invoice";
 	public static final String STATUS_REPORTS_ESP = "Factura";
 	//Lineas del reporte
-	public static final String STATUS_REPORT_LINE_INV = "INVOICE";
-	public static final String STATUS_REPORT_LINE_DIS = "DISCOUNT";
+	public static final String REPORT_LINE_TYPE_NOR = "NORMAL";
+	public static final String REPORT_LINE_TYPE_DIS = "DISCOUNT";
 }

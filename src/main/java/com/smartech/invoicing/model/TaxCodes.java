@@ -31,8 +31,8 @@ public class TaxCodes implements Serializable {
 	@Column(name = "taxValue", nullable=true)
 	private double taxValue;
 	
-	@Column(name = "taxAmount", nullable=true)
-	private double taxAmount;
+	@Column(name = "taxName", nullable=true)
+	private String taxName;
 
 	public long getId() {
 		return id;
@@ -66,11 +66,13 @@ public class TaxCodes implements Serializable {
 		this.taxValue = taxValue;
 	}
 
-	public double getTaxAmount() {
-		return taxAmount;
+	public String getTaxName() {
+		return taxName;
 	}
 
-	public void setTaxAmount(double taxAmount) {
-		this.taxAmount = taxAmount;
+	public void setTaxName(String taxName) {
+		this.taxName = taxName;
 	}
+
+
 }

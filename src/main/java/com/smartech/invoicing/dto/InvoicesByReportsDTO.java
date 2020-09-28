@@ -16,6 +16,7 @@ public class InvoicesByReportsDTO {
 	private String uomCode;
 	private String transactionLineUnitSellingPrice;
 	private String itemName;
+	private String itemDescription;
 	private String creationDate;
 	private String previousTransactionNumber;
 	private String journalLineDescriptor;
@@ -117,6 +118,14 @@ public class InvoicesByReportsDTO {
 	}
 	public void setItemName(String itemName) {
 		this.itemName = itemName;
+	}
+	
+	public String getItemDescription() {
+		return itemDescription;
+	}
+	
+	public void setItemDescription(String itemDescription) {
+		this.itemDescription = itemDescription;
 	}
 	public String getCreationDate() {
 		return creationDate;

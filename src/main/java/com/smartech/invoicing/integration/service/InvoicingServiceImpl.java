@@ -11,9 +11,13 @@ import org.springframework.stereotype.Service;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
+import com.smartech.invoicing.model.Company;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
+import com.smartech.invoicing.model.TaxCodes;
+import com.smartech.invoicing.service.CompanyService;
 import com.smartech.invoicing.service.InvoiceService;
+import com.smartech.invoicing.service.TaxCodesService;
 import com.smartech.invoicing.util.NullValidator;
 
 @Service("invoicingService")
@@ -21,6 +25,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	InvoiceService invoiceService;
+	
+	@Autowired
+	CompanyService companyService;
+	
+	@Autowired
+	TaxCodesService taxCodesService;
 	
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
@@ -46,6 +56,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			for(InvoicesByReportsDTO inv: invlist) {				
 				if(!arr.contains(inv.getTransactionNumber())) {
 					Invoice invoice = new Invoice();
+					Company com = new Company();
 					//Datos del cliente---------------------------------------------------------------------------------------
 					invoice.setCustomerName(inv.getCustomerName());
 					invoice.setCustomerZip(inv.getCustomerPostalCode());
@@ -55,9 +66,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoice.setCustomerEmail("llopez@smartech.com.mx");
 					
 					//Datos de la unidad de negocio---------------------------------------------------------------------------
-					invoice.setCompany(null);
+					invoice.setCompany(companyService.getCompanyByName(inv.getBusisinesUnitName()));
 					invoice.setBranch(null);
-					invoice.setSerial(NullValidator.isNull(invoice.getBranch().getInvOrganizationCode()));
+					invoice.setSerial(null);
+//					invoice.setSerial(NullValidator.isNull(invoice.getBranch().getInvOrganizationCode()));
 					
 					//Datos generales---------------------------------------------------------------------------------------
 					invoice.setFolio(inv.getTransactionNumber());
@@ -80,9 +92,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					
 					//Añadir registro a la lista facturas
 					invList.add(invoice);
+					arr.add(inv.getTransactionNumber());
 				}
-				
-				arr.add(inv.getTransactionNumber());
 			}
 			
 			//Llenado de líneas---------------------------------------------------------------------------------------
@@ -92,12 +103,47 @@ public class InvoicingServiceImpl implements InvoicingService{
 				for(InvoicesByReportsDTO in : invlist) {
 					if(i.getFolio().equals(in.getTransactionNumber())) {
 						InvoiceDetails invDetails = new InvoiceDetails();
+						List<TaxCodes> tcList = new ArrayList<TaxCodes>();
 						
+						invDetails.setItemNumber(in.getItemName());
+						invDetails.setItemDescription(in.getItemDescription());
+						if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) > 0) {
+							invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())));
+							invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+						}else {
+							invDetails.setUnitPrice(Math.abs(Double.parseDouble(in.getTransactionLineUnitSellingPrice())));
+							invDetails.setLineType("");
+						}
+						
+						invDetails.setTransactionLineNumber(in.getTransactionLineNumber());
+						if(i.isInvoice()) {
+							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(in.getQuantityInvoiced())));
+						}else {
+							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(in.getQuantityCredited())));
+						}
+						invDetails.setUomName(in.getUomCode());
+						if(in.getTaxRecoverableAmount().isEmpty()) {
+							invDetails.setTotalTaxAmount(0.00);
+						}else {
+							invDetails.setTotalTaxAmount(NullValidator.isNull(Double.parseDouble(in.getTaxRecoverableAmount())));
+						}						
+						invDetails.setTotalAmount(invDetails.getQuantity()*invDetails.getUnitPrice());
+						
+						List<TaxCodes> tcL = taxCodesService.getTCList(0, 100);
+						for(TaxCodes tc: tcL) {
+							if(tc.getTaxName().equals(in.getTaxClassificationCode())) {
+								tcList.add(tc);
+							}
+						}
+						invDetails.setTaxCodes(tcList);
 						invDList.add(invDetails);
 					}					
 				}
 				
 				i.setInvoiceDetails(invDList);
+				if(!invoiceService.createInvoice(i)) {
+					System.out.println(false);
+				}
 			}
 			return true;
 		}catch(Exception e) {
