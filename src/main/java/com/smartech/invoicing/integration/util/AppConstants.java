@@ -43,4 +43,6 @@ public class AppConstants {
 	//Lineas del reporte
 	public static final String REPORT_LINE_TYPE_NOR = "NORMAL";
 	public static final String REPORT_LINE_TYPE_DIS = "DISCOUNT";
+	//TIPO DE ORDEN
+	public static final String ORDER_TYPE_FACTURA = "FACTURA";
 }

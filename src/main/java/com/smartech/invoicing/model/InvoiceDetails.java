@@ -10,7 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity(name = "InvoiceDetails")
@@ -80,7 +80,7 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "transactionLineNumber", nullable=true)
 	private String transactionLineNumber;
 	
-	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	@ManyToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private List<TaxCodes> taxCodes;
 
 	public long getId() {
