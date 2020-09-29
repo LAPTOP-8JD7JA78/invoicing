@@ -128,6 +128,15 @@ public class Invoice implements Serializable{
 	
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private List<InvoiceDetails> invoiceDetails;
+	
+	@Column(name = "setName", nullable=false)
+	private String setName;
+	
+	@Column(name = "fromSalesOrder", nullable=false)
+	private String fromSalesOrder;
+	
+	@Column(name = "paymentTerms", nullable=false)
+	private String paymentTerms;
 
 	public long getId() {
 		return id;
@@ -392,5 +401,30 @@ public class Invoice implements Serializable{
 	public void setInvoiceDetails(List<InvoiceDetails> invoiceDetails) {
 		this.invoiceDetails = invoiceDetails;
 	}
+
+	public String getSetName() {
+		return setName;
+	}
+
+	public void setSetName(String setName) {
+		this.setName = setName;
+	}
+
+	public String getFromSalesOrder() {
+		return fromSalesOrder;
+	}
+
+	public void setFromSalesOrder(String fromSalesOrder) {
+		this.fromSalesOrder = fromSalesOrder;
+	}
+
+	public String getPaymentTerms() {
+		return paymentTerms;
+	}
+
+	public void setPaymentTerms(String paymentTerms) {
+		this.paymentTerms = paymentTerms;
+	}
+	
 }
 

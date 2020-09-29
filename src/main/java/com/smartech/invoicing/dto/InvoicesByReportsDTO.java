@@ -29,6 +29,8 @@ public class InvoicesByReportsDTO {
 	private String quantityInvoiced;
 	private String taxRecoverableAmount;
 	private String transactionEnteredAmouny;
+	private String paymentTerms;
+	private String setName;
 	public String getCustomerName() {
 		return customerName;
 	}
@@ -198,6 +200,18 @@ public class InvoicesByReportsDTO {
 	}
 	public void setTransactionEnteredAmouny(String transactionEnteredAmouny) {
 		this.transactionEnteredAmouny = transactionEnteredAmouny;
+	}
+	public String getPaymentTerms() {
+		return paymentTerms;
+	}
+	public void setPaymentTerms(String paymentTerms) {
+		this.paymentTerms = paymentTerms;
+	}
+	public String getSetName() {
+		return setName;
+	}
+	public void setSetName(String setName) {
+		this.setName = setName;
 	}
 	
 }

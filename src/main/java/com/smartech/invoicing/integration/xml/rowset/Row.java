@@ -36,7 +36,11 @@ public class Row {
      protected String column28;
      protected String column29;
      protected String column30;
-     
+     protected String column31;
+     protected String column32;
+     protected String column33;
+     protected String column34;
+     protected String column35;
 	public String getColumn0() {
 		return column0;
 	}
@@ -299,6 +303,51 @@ public class Row {
 	@XmlElement(name = "Column30", required = true)
 	public void setColumn30(String column30) {
 		this.column30 = column30;
+	}
+
+	public String getColumn31() {
+		return column31;
+	}
+
+	@XmlElement(name = "Column31", required = true)
+	public void setColumn31(String column31) {
+		this.column31 = column31;
+	}
+
+	public String getColumn32() {
+		return column32;
+	}
+
+	@XmlElement(name = "Column32", required = true)
+	public void setColumn32(String column32) {
+		this.column32 = column32;
+	}
+
+	public String getColumn33() {
+		return column33;
+	}
+
+	@XmlElement(name = "Column33", required = true)
+	public void setColumn33(String column33) {
+		this.column33 = column33;
+	}
+
+	public String getColumn34() {
+		return column34;
+	}
+
+	@XmlElement(name = "Column34", required = true)
+	public void setColumn34(String column34) {
+		this.column34 = column34;
+	}
+
+	public String getColumn35() {
+		return column35;
+	}
+
+	@XmlElement(name = "Column35", required = true)
+	public void setColumn35(String column35) {
+		this.column35 = column35;
 	}
 
 }
