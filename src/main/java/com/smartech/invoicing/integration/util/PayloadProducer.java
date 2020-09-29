@@ -173,4 +173,26 @@ public class PayloadProducer {
 				"</soapenv:Envelope>";
 		return SOAPRequest;
 	}
+	
+	public static String setARRegionalFlexfield(String transNumber, String UUID, String serie, String folio, String transactionSource, String setName) {
+		
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">" + 
+				"<soapenv:Header/>" + 
+					"<soapenv:Body>" + 
+						"<typ:updateDffEntityDetails>" + 
+							"<typ:operationMode>SINGLE</typ:operationMode>" + 
+							"<typ:object>" + 
+								"<erp:EntityName>Receivables Invoice</erp:EntityName>" + 
+								"<erp:ContextValue>JLxMXReceivablesInformation</erp:ContextValue>" + 
+								"<erp:UserKeyA>"+ transNumber +"</erp:UserKeyA>" +
+								"<erp:UserKeyB>"+ transactionSource +"</erp:UserKeyB>" +
+								"<erp:UserKeyC>"+ setName +"</erp:UserKeyC>" +
+								"<erp:DFFAttributes>{\"GLOBAL_ATTRIBUTE1\":\"" + UUID + "\",\"GLOBAL_ATTRIBUTE2\":\"" + serie +"\",\"GLOBAL_ATTRIBUTE3\":\"" + folio +"\"}</erp:DFFAttributes>" + 
+							"</typ:object>" + 
+						"</typ:updateDffEntityDetails>" + 
+					"</soapenv:Body>" + 
+				"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
 }
