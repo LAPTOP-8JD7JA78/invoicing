@@ -1,6 +1,7 @@
 package com.smartech.invoicing.integration;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.integration.service.HTTPRequestService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.util.PayloadProducer;
+import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.util.NullValidator;
 
 @Service("soapService")
@@ -94,6 +96,55 @@ public class SOAPServiceImpl implements SOAPService {
 			}
 		}
 		return item;
+	}
+
+	@Override
+	public Invoice updateUUIDToOracleERP(Invoice inv) {
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if(inv != null) {
+			if((inv.getUUID() != null && !"".contains(inv.getUUID())) && (inv.getSerial() != null && !"".contains(inv.getSerial())) 
+					&& (inv.getFolio() != null && !"".contains(inv.getFolio()))) {
+				try {
+					Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_ITEMSV2, 
+																		PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getUUID(), inv.getSerial(), inv.getFolio(), "", ""), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+					String strResponse1 = (String) request1.get("response");
+					int codeResponse1 = (int) request1.get("code");
+					String strHttpResponse1 = (String) request1.get("httpResponse");
+					
+					if(codeResponse1 >= 200 && codeResponse1 < 300) {
+						if(strResponse1 != null && !"".contains(strResponse1)) {
+							xmlJSONObj = XML.toJSONObject(strResponse1, true);
+							jelement = new JsonParser().parse(xmlJSONObj.toString());
+							jobject = jelement.getAsJsonObject();
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("ns2:result")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("ns2:result").getAsJsonObject();
+									
+									if(!result.isJsonNull()) {
+										if(result.getAsInt() == 1) {
+											inv.setStatus(AppConstants.STATUS_FINISHED);
+											inv.setUpdatedDate(new Date());
+										}else {
+											log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
+										}
+									}
+								}
+																 
+							}
+						}
+					}
+				}catch(Exception e) {
+					e.printStackTrace();
+					log.error("ERROR AL EJECUTAR WS DE ERPDDF - updateUUIDToOracleERP***************************", e);
+				}
+			}
+		}
+		return inv;
 	}
 
 	

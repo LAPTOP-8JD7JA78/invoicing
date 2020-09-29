@@ -26,8 +26,8 @@ public class AppConstants {
 	public static final String URL_REST_SALESORDER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
 	
 	//SOAP SERVICE
-
 	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + "/fscmService/ItemServiceV2?invoke=";
+	public static final String URL_SOAP_DFFFIN =  ORACLE_URL + "/fscmService/ErpObjectDFFUpdateService?invoke=";
 	
 	//Estado de facturacion
 	public static final String STATUS_START = "START";

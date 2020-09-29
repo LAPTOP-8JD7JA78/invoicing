@@ -15,4 +15,5 @@ public interface InvoiceDao {
 									 int start, int limit,
 									 String customer, String branch,
 									 String orderType);
+	List<Invoice> getInvoiceListByStatusCode(String status, String orderType);
 }

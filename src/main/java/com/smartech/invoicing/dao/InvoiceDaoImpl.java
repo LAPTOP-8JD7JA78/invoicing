@@ -109,4 +109,16 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}		
 		return (List<Invoice>) criteria.list();
 	}
+
+	@SuppressWarnings({ "unchecked" })
+	@Override
+	public List<Invoice> getInvoiceListByStatusCode(String status, String orderType) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Invoice.class);
+		
+		criteria.add(Restrictions.eq("status", status))
+				.add(Restrictions.eq("orderType",orderType));
+		
+		return  criteria.list();
+	}
 }
