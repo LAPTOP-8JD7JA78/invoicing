@@ -83,8 +83,7 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "transactionLineNumber", nullable=true)
 	private String transactionLineNumber;
 	
-	@ManyToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-	@Fetch(value = FetchMode.SUBSELECT)
+	@ManyToMany(fetch=FetchType.EAGER)
 	private List<TaxCodes> taxCodes;
 
 	public long getId() {
