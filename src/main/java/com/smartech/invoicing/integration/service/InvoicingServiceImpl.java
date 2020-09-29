@@ -135,7 +135,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 								tcList.add(tc);
 							}
 						}
-						invDetails.setTaxCodes(tcList);
+						if(tcList.size() == 0) {
+							invDetails.setTaxCodes(null);
+						}else {
+							invDetails.setTaxCodes(tcList);
+						}
+						
 						invDList.add(invDetails);
 					}					
 				}

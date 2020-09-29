@@ -13,6 +13,9 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 @Entity(name = "InvoiceDetails")
 @Table(name = "invoiceDetails")
 public class InvoiceDetails implements Serializable{
@@ -81,6 +84,7 @@ public class InvoiceDetails implements Serializable{
 	private String transactionLineNumber;
 	
 	@ManyToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	@Fetch(value = FetchMode.SUBSELECT)
 	private List<TaxCodes> taxCodes;
 
 	public long getId() {
