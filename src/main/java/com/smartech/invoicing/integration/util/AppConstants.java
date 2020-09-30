@@ -47,4 +47,6 @@ public class AppConstants {
 	public static final String REPORT_LINE_TYPE_DIS = "DISCOUNT";
 	//TIPO DE ORDEN
 	public static final String ORDER_TYPE_FACTURA = "FACTURA";
+	//TIPO DE CAMBIO ESTANDAR
+	public static final double INVOICE_EXCHANGE_RATE= 1.00;
 }

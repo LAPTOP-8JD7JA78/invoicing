@@ -93,6 +93,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 						invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
 						
 					}
+					invoice.setInvoiceCurrency(inv.getCurrency());
+					if(inv.getExchangeRate().isEmpty()) {
+						invoice.setInvoiceExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
+					}else {
+						invoice.setInvoiceExchangeRate(Double.parseDouble(inv.getExchangeRate()));
+					}
+					
+					invoice.setOrderSource(inv.getTransactionSource());
 					invoice.setOrderType(inv.getTransactionTypeName());
 					
 					//Datos extras-------------------------------------------------------------------------------------------------
@@ -120,6 +128,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 						
 						invDetails.setItemNumber(in.getItemName());
 						invDetails.setItemDescription(in.getItemDescription());
+						invDetails.setCurrency(in.getCurrency());
+						if(in.getExchangeRate().isEmpty()) {
+							invDetails.setExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
+						}else {
+							invDetails.setExchangeRate(Double.parseDouble(in.getExchangeRate()));
+						}
 						if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) > 0) {
 							invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())));
 							invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
@@ -208,31 +222,33 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setCustomerTaxIdentifier(NullValidator.isNull(r.getColumn2()));
 			invoice.setCustomerCountry(NullValidator.isNull(r.getColumn3()));
 			invoice.setCustomerPostalCode(NullValidator.isNull(r.getColumn4()));
-			invoice.setCustomerAddress1(NullValidator.isNull(r.getColumn5()));
+			invoice.setCustomerAddress1(NullValidator.isNull(r.getColumn5()));			
 			invoice.setPaymentTerms(NullValidator.isNull(r.getColumn6()));			
 			invoice.setTransactionDate(NullValidator.isNull(r.getColumn7()));
-			invoice.setTransactionNumber(NullValidator.isNull(r.getColumn8()));
-			invoice.setTransactionSource(NullValidator.isNull(r.getColumn9()));
-			invoice.setTransactionTypeName(NullValidator.isNull(r.getColumn10()));
-			invoice.setSalesOrderNumber(NullValidator.isNull(r.getColumn11()));
-			invoice.setTransactionLineNumber(NullValidator.isNull(r.getColumn12()));
-			invoice.setUomCode(NullValidator.isNull(r.getColumn13()));
-			invoice.setTransactionLineUnitSellingPrice(NullValidator.isNull(r.getColumn14()));
-			invoice.setItemDescription(NullValidator.isNull(r.getColumn15()));
-			invoice.setItemName(NullValidator.isNull(r.getColumn16()));
-			invoice.setCreationDate(NullValidator.isNull(r.getColumn17()));
-			invoice.setPreviousTransactionNumber(NullValidator.isNull(r.getColumn18()));
-			invoice.setJournalLineDescriptor(NullValidator.isNull(r.getColumn19()));			
-			invoice.setTaxClassificationCode(NullValidator.isNull(r.getColumn20()));
-			invoice.setBusisinesUnitName(NullValidator.isNull(r.getColumn21()));
-			invoice.setLegalEntityName(NullValidator.isNull(r.getColumn22()));
-			invoice.setSetName(NullValidator.isNull(r.getColumn23()));			
-			invoice.setLegalEntityAddress(NullValidator.isNull(r.getColumn24()));			
-			invoice.setLegalEntityId(NullValidator.isNull(r.getColumn26()));			
-			invoice.setQuantityCredited(NullValidator.isNull(r.getColumn27()));
-			invoice.setQuantityInvoiced(NullValidator.isNull(r.getColumn28()));
-			invoice.setTaxRecoverableAmount(NullValidator.isNull(r.getColumn29()));
-			invoice.setTransactionEnteredAmouny(NullValidator.isNull(r.getColumn30()));
+			invoice.setExchangeRate(NullValidator.isNull(r.getColumn8()));
+			invoice.setTransactionNumber(NullValidator.isNull(r.getColumn9()));
+			invoice.setTransactionSource(NullValidator.isNull(r.getColumn10()));
+			invoice.setTransactionTypeName(NullValidator.isNull(r.getColumn11()));	
+			invoice.setSalesOrderNumber(NullValidator.isNull(r.getColumn12()));
+			invoice.setTransactionLineNumber(NullValidator.isNull(r.getColumn13()));
+			invoice.setUomCode(NullValidator.isNull(r.getColumn14()));
+			invoice.setTransactionLineUnitSellingPrice(NullValidator.isNull(r.getColumn15()));
+			invoice.setItemDescription(NullValidator.isNull(r.getColumn16()));
+			invoice.setItemName(NullValidator.isNull(r.getColumn17()));
+			invoice.setCreationDate(NullValidator.isNull(r.getColumn18()));
+			invoice.setPreviousTransactionNumber(NullValidator.isNull(r.getColumn19()));
+			invoice.setJournalLineDescriptor(NullValidator.isNull(r.getColumn20()));			
+			invoice.setTaxClassificationCode(NullValidator.isNull(r.getColumn21()));
+			invoice.setBusisinesUnitName(NullValidator.isNull(r.getColumn22()));			
+			invoice.setLegalEntityName(NullValidator.isNull(r.getColumn24()));
+			invoice.setSetName(NullValidator.isNull(r.getColumn25()));				
+			invoice.setLegalEntityAddress(NullValidator.isNull(r.getColumn26()));
+			invoice.setCurrency(NullValidator.isNull(r.getColumn28()));
+			invoice.setLegalEntityId(NullValidator.isNull(r.getColumn29()));			
+			invoice.setQuantityCredited(NullValidator.isNull(r.getColumn30()));
+			invoice.setQuantityInvoiced(NullValidator.isNull(r.getColumn31()));
+			invoice.setTaxRecoverableAmount(NullValidator.isNull(r.getColumn32()));
+			invoice.setTransactionEnteredAmouny(NullValidator.isNull(r.getColumn33()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;

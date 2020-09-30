@@ -31,6 +31,9 @@ public class InvoicesByReportsDTO {
 	private String transactionEnteredAmouny;
 	private String paymentTerms;
 	private String setName;
+	private String currency;
+	private String exchangeRate;
+	
 	public String getCustomerName() {
 		return customerName;
 	}
@@ -212,6 +215,18 @@ public class InvoicesByReportsDTO {
 	}
 	public void setSetName(String setName) {
 		this.setName = setName;
+	}
+	public String getCurrency() {
+		return currency;
+	}
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+	public String getExchangeRate() {
+		return exchangeRate;
+	}
+	public void setExchangeRate(String exchangeRate) {
+		this.exchangeRate = exchangeRate;
 	}
 	
 }

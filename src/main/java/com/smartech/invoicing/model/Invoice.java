@@ -135,6 +135,9 @@ public class Invoice implements Serializable{
 	@Column(name = "orderType", nullable=false)
 	private String orderType;
 	
+	@Column(name = "orderSource", nullable=false)
+	private String orderSource;
+		
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private Set<InvoiceDetails> invoiceDetails;
 	
@@ -146,6 +149,15 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "paymentTerms", nullable=false)
 	private String paymentTerms;
+	
+	@Column(name = "invoiceCurrency", nullable=false)
+	private String invoiceCurrency;
+	
+	@Column(name = "invoiceExchangeRate", nullable=false)
+	private double invoiceExchangeRate;
+	
+	@Column(name = "invoiceType", nullable=false)
+	private String invoiceType;
 
 	public long getId() {
 		return id;
@@ -427,6 +439,14 @@ public class Invoice implements Serializable{
 		this.orderType = orderType;
 	}
 
+	public String getOrderSource() {
+		return orderSource;
+	}
+
+	public void setOrderSource(String orderSource) {
+		this.orderSource = orderSource;
+	}
+
 	public Set<InvoiceDetails> getInvoiceDetails() {
 		return invoiceDetails;
 	}
@@ -457,6 +477,30 @@ public class Invoice implements Serializable{
 
 	public void setPaymentTerms(String paymentTerms) {
 		this.paymentTerms = paymentTerms;
+	}
+
+	public String getInvoiceCurrency() {
+		return invoiceCurrency;
+	}
+
+	public void setInvoiceCurrency(String invoiceCurrency) {
+		this.invoiceCurrency = invoiceCurrency;
+	}
+
+	public double getInvoiceExchangeRate() {
+		return invoiceExchangeRate;
+	}
+
+	public void setInvoiceExchangeRate(double invoiceExchangeRate) {
+		this.invoiceExchangeRate = invoiceExchangeRate;
+	}
+
+	public String getInvoiceType() {
+		return invoiceType;
+	}
+
+	public void setInvoiceType(String invoiceType) {
+		this.invoiceType = invoiceType;
 	}
 	
 }
