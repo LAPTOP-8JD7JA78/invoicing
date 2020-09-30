@@ -158,6 +158,9 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "invoiceType", nullable=true)
 	private String invoiceType;
+	
+	@Column(name = "invoiceRelationType", nullable=true)
+	private String invoiceRelationType;
 
 	public long getId() {
 		return id;
@@ -502,6 +505,14 @@ public class Invoice implements Serializable{
 	public void setInvoiceType(String invoiceType) {
 		this.invoiceType = invoiceType;
 	}
-	
+
+	public String getInvoiceRelationType() {
+		return invoiceRelationType;
+	}
+
+	public void setInvoiceRelationType(String invoiceRelationType) {
+		this.invoiceRelationType = invoiceRelationType;
+	}
+		
 }
 

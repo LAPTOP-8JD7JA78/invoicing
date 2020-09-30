@@ -134,9 +134,17 @@ public class InvoiceDaoImpl implements InvoiceDao{
 	public List<Invoice> getInvoiceListByStatusCode(String status, String orderType) {
 		Session session = this.sessionFactory.getCurrentSession();
 		Criteria criteria = session.createCriteria(Invoice.class);
-		
-		criteria.add(Restrictions.eq("status", status))
-				.add(Restrictions.eq("orderType",orderType));
+		try {
+			if(StringUtils.isNotBlank(status)) {
+				criteria.add(Restrictions.eq("status", status));
+			}
+			if(StringUtils.isNotBlank(orderType)) {
+				criteria.add(Restrictions.eq("orderType",orderType));
+			}			
+			criteria.addOrder(Order.desc("folio"));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 		return  criteria.list();
 	}

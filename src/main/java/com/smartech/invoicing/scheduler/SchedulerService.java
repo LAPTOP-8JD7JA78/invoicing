@@ -1,11 +1,13 @@
 package com.smartech.invoicing.scheduler;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
 import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.SOAPService;
@@ -17,6 +19,8 @@ import com.smartech.invoicing.integration.service.InvoicingService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.integration.xml.rowset.Rowset;
+import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicing.service.InvoiceService;
 
 public class SchedulerService {
 	
@@ -28,6 +32,10 @@ public class SchedulerService {
 	SOAPService soapService;
 	@Autowired
 	InvoicingService invoicingService;
+	@Autowired
+	InvoiceService invoiceService;
+	@Autowired
+	InvoiceDao invoiceDao;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -45,8 +53,9 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
+		log.info("\'InvoicesSchedule\' is started*******");
 		AnalyticsDTO analytics = new AnalyticsDTO();
 //		Calendar calendar = Calendar.getInstance();
 //		calendar.setTime(new Date());
@@ -61,8 +70,10 @@ public class SchedulerService {
 			if(!invoicingService.createStampInvoice(r.getRow())) {
 				System.out.println(false);
 			}
+		}else {
+			log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
 		}
-		
+		log.info("\'InvoicesSchedule\' is finished*******");
 	}
 
 	
@@ -91,6 +102,20 @@ public class SchedulerService {
 			}
 		}	
 		log.info("\'getDataForNewOrders\' is finished*******");
+	}
+	
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	public void getPendingData() {
+		log.info("\'getPendingData\' is started*******");
+		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_START, "");
+//		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING, "");
+		if(!inv.isEmpty()) {
+			System.out.println(true);
+		}else {
+			log.warn("PENDING STATUS " + inv + "DON´T HAVA ANY DATA");
+		}
+		log.info("\'getPendingData\': is finished********");
+		
 	}
     
 }
