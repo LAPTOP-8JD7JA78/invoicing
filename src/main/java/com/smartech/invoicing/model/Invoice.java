@@ -144,19 +144,19 @@ public class Invoice implements Serializable{
 	@Column(name = "setName", nullable=false)
 	private String setName;
 	
-	@Column(name = "fromSalesOrder", nullable=false)
+	@Column(name = "fromSalesOrder", nullable=true)
 	private String fromSalesOrder;
 	
-	@Column(name = "paymentTerms", nullable=false)
+	@Column(name = "paymentTerms", nullable=true)
 	private String paymentTerms;
 	
-	@Column(name = "invoiceCurrency", nullable=false)
+	@Column(name = "invoiceCurrency", nullable=true)
 	private String invoiceCurrency;
 	
-	@Column(name = "invoiceExchangeRate", nullable=false)
+	@Column(name = "invoiceExchangeRate", nullable=true)
 	private double invoiceExchangeRate;
 	
-	@Column(name = "invoiceType", nullable=false)
+	@Column(name = "invoiceType", nullable=true)
 	private String invoiceType;
 
 	public long getId() {
