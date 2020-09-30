@@ -47,6 +47,11 @@ public class AppConstants {
 	public static final String REPORT_LINE_TYPE_DIS = "DISCOUNT";
 	//TIPO DE ORDEN
 	public static final String ORDER_TYPE_FACTURA = "FACTURA";
+	public static final String ORDER_TYPE_NC = "NOTA CREDITO";
+	public static final String ORDER_TYPE_CPAGO = "COMPLEMENTO DE PAGO";
+	public static final String ORDER_TYPE_EXP = "EXPORTACION";
+	public static final String ORDER_TYPE_LIV = "LIVERPOOL";
+	public static final String ORDER_TYPE_MAR = "MARINA";
 	//TIPO DE CAMBIO ESTANDAR
 	public static final double INVOICE_EXCHANGE_RATE= 1.00;
 }

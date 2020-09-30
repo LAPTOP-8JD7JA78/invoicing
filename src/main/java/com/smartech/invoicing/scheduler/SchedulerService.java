@@ -1,10 +1,11 @@
 package com.smartech.invoicing.scheduler;
 
+import java.text.SimpleDateFormat;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.integration.AnalyticsService;
 import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.SOAPService;
@@ -29,6 +30,7 @@ public class SchedulerService {
 	InvoicingService invoicingService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testSchedule() {
@@ -43,9 +45,15 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		AnalyticsDTO analytics = new AnalyticsDTO();
+//		Calendar calendar = Calendar.getInstance();
+//		calendar.setTime(new Date());
+//		calendar.add(Calendar.HOUR, 5);
+//		calendar.add(Calendar.MINUTE, -6);	
+//		String fecha = sdf.format(calendar.getTime());
+//		System.out.println(sdf.format(calendar.getTime()));
 		analytics.setAr_Report_date("2020-09-01 14:30:30");;
 		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 				AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
