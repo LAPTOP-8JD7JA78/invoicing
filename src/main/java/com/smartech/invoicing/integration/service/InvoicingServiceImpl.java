@@ -178,7 +178,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					subtotal = subtotal + id.getTotalAmount();
 					discount = discount + id.getTotalDiscount();
 				}
-				i.setInvoiceTaxAmount(taxAmount);
+				i.setInvoiceTaxAmount(taxAmount); 
 				i.setInvoiceTotal(subtotal + taxAmount);
 				i.setInvoiceSubTotal(subtotal);
 				i.setInvoiceDiscount(discount);
