@@ -20,10 +20,12 @@ public class AppConstants {
 	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
 	public static final String SERVICE_REST_TEST1 = "REST_TEST1";
 	public static final String SERVICE_SALES_ORDER_1 = "SALES_ORDER_1";
+	public static final String SERVICE_SALES_ORDER_AI_1 = "SALES_ORDER_AI_1";
 	
 	//REST API
 	public static final String URL_REST_INVORG = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryOrganizations";
 	public static final String URL_REST_SALESORDER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
+	public static final String URL_REST_SALESORDER_ADDINF = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub/ORDER_ID/child/additionalInformation";
 	
 	//SOAP SERVICE
 	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + "/fscmService/ItemServiceV2?invoke=";

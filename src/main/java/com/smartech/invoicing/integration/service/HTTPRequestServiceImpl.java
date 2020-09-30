@@ -29,6 +29,7 @@ import com.smartech.invoicing.integration.dto.HeadersRestDTO;
 import com.smartech.invoicing.integration.dto.ParamsRestDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
+import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.util.AppConstants;
 
 @Service("hTTPRequestService")
@@ -231,15 +232,22 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 				case AppConstants.SERVICE_REST_TEST1:
 					ResponseEntity<InventoryOrganization> resp = rt.exchange(url, method, re, InventoryOrganization.class);
 					map.put("code", resp.getStatusCode().value());
-					map.put("response", resp.hasBody()?resp.getBody():"");
+					map.put("response", resp.hasBody()?resp.getBody():null);
 					map.put("httpResponse", resp.getHeaders());
 					break;
 				case AppConstants.SERVICE_SALES_ORDER_1:
 					ResponseEntity<SalesOrder> respSO1 = rt.exchange(url, method, re, SalesOrder.class);
 					map.put("code", respSO1.getStatusCode().value());
-					map.put("response", respSO1.hasBody()?respSO1.getBody():"");
+					map.put("response", respSO1.hasBody()?respSO1.getBody():null);
 					map.put("httpResponse", respSO1.getHeaders());
 					break;
+				case AppConstants.SERVICE_SALES_ORDER_AI_1:
+					ResponseEntity<SalesOrderAI> respSO2 = rt.exchange(url, method, re, SalesOrderAI.class);
+					map.put("code", respSO2.getStatusCode().value());
+					map.put("response", respSO2.hasBody()?respSO2.getBody():null);
+					map.put("httpResponse", respSO2.getHeaders());
+					break;
+				
 			}		
 		}catch(Exception e) {
 			log.error("REST REQUEST FAIL - " + service + "********************");

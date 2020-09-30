@@ -11,6 +11,7 @@ import com.smartech.invoicing.integration.SOAPService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
+import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.service.InvoicingService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
@@ -67,10 +68,20 @@ public class SchedulerService {
 		}
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
-		
+		SalesOrder so = restService.getSalesOrderByOrderNumber("81");
+		if(so != null) {
+			SalesOrderAI soai = restService.getAddInfoBySalesNumber(so);
+			if(soai != null && !soai.getItems().isEmpty()) {
+				System.out.println(soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().get(0).getUsocfdi());
+				System.out.println(soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().get(0).getMetodopago());
+				System.out.println(soai.getItems().get(0).getHeaderEffBFORMAPAGOprivateVO().get(0).getFormapago());
+			}else {
+				log.warn("SALES ORDER " + so.getItems().get(0).getOrderNumber() + "DOESN'T HAVE ADDITIONAL INFORMATION");
+			}
+		}	
 		log.info("\'getDataForNewOrders\' is finished*******");
 	}
     
