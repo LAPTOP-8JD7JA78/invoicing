@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "HeaderId",
     "OrderNumber",
     "SourceTransactionNumber",
+    "SourceTransactionSystem",
     "BusinessUnitId",
     "BusinessUnitName",
     "RequestedFulfillmentOrganizationId",
@@ -38,6 +39,8 @@ public class Item {
     private String orderNumber;
     @JsonProperty("SourceTransactionNumber")
     private String sourceTransactionNumber;
+    @JsonProperty("SourceTransactionSystem")
+    private String sourceTransactionSystem;
     @JsonProperty("BusinessUnitId")
     private Long businessUnitId;
     @JsonProperty("BusinessUnitName")
@@ -95,6 +98,16 @@ public class Item {
     @JsonProperty("SourceTransactionNumber")
     public void setSourceTransactionNumber(String sourceTransactionNumber) {
         this.sourceTransactionNumber = sourceTransactionNumber;
+    }
+    
+    @JsonProperty("SourceTransactionSystem")
+    public String getSourceTransactionSystem() {
+        return sourceTransactionSystem;
+    }
+
+    @JsonProperty("SourceTransactionSystem")
+    public void setSourceTransactionSystem(String sourceTransactionSystem) {
+        this.sourceTransactionSystem = sourceTransactionSystem;
     }
 
     @JsonProperty("BusinessUnitId")

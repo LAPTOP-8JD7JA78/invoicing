@@ -13,6 +13,7 @@ import com.smartech.invoicing.integration.dto.HeadersRestDTO;
 import com.smartech.invoicing.integration.dto.ParamsRestDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
+import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.service.HTTPRequestService;
 import com.smartech.invoicing.integration.util.AppConstants;
 
@@ -69,9 +70,9 @@ public class RESTServiceImpl implements RESTService {
 				headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
 				List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
 				params.add(new ParamsRestDTO("finder", "findByOrderNumber;OrderNumber=" + orderNumber));
-				params.add(new ParamsRestDTO("q", "StatusCode=CLOSED"));
-				params.add(new ParamsRestDTO("expand", "lines,lines.lotSerials,lines.charges.chargeComponents,totals"));
-				params.add(new ParamsRestDTO("fields", "HeaderId,OrderNumber,SourceTransactionNumber,BusinessUnitId,BusinessUnitName,RequestedFulfillmentOrganizationId,RequestedFulfillmentOrganizationCode,PaymentTermsCode,PaymentTerms,TransactionalCurrencyCode,TransactionalCurrencyName,CurrencyConversionRate,CurrencyConversionType,StatusCode;totals:TotalCode,TotalAmount,CurrencyCode;lines:SourceTransactionLineNumber,AssessableValue,FulfilledQuantity,ProductId,ProductNumber,ProductDescription,InventoryOrganizationCode,OrderedQuantity,OrderedUOMCode,OrderedUOM,StatusCode,TaxClassificationCode,TaxClassification,LineNumber;lines.charges:ChargeTypeCode;lines.charges.chargeComponents:PriceElementCode,PriceElement,HeaderCurrencyUnitPrice,HeaderCurrencyExtendedAmount,PercentOfComparisonElement;lines.lotSerials:ItemSerialNumberFrom,ItemSerialNumberTo,LotNumber"));
+//				params.add(new ParamsRestDTO("q", "StatusCode=CLOSED"));
+				params.add(new ParamsRestDTO("expand", "lines,lines.lotSerials"));
+				params.add(new ParamsRestDTO("fields", "HeaderId,OrderNumber,SourceTransactionNumber,SourceTransactionSystem,BusinessUnitId,BusinessUnitName,RequestedFulfillmentOrganizationId,RequestedFulfillmentOrganizationCode,PaymentTermsCode,PaymentTerms,TransactionalCurrencyCode,TransactionalCurrencyName,CurrencyConversionRate,CurrencyConversionType,StatusCode;lines:SourceTransactionLineNumber,AssessableValue,FulfilledQuantity,ProductId,ProductNumber,ProductDescription,InventoryOrganizationCode,OrderedQuantity,OrderedUOMCode,OrderedUOM,StatusCode,TaxClassificationCode,TaxClassification,LineNumber;lines.lotSerials:ItemSerialNumberFrom,ItemSerialNumberTo,LotNumber"));
 				params.add(new ParamsRestDTO("onlyData", true));
 				params.add(new ParamsRestDTO("offset", 0));
 				params.add(new ParamsRestDTO("limit", 1));
@@ -95,6 +96,45 @@ public class RESTServiceImpl implements RESTService {
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("REST API SERVICE FAIL getSalesOrderByOrderNumber ****************************", e);
+			return null;
+		}
+	}
+
+	@Override
+	public SalesOrderAI getAddInfoBySalesNumber(SalesOrder salesOrder) {
+		try {
+			if(salesOrder != null && !salesOrder.getItems().isEmpty()) {
+				List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+				headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+				headers.add(new HeadersRestDTO("Accept", "*/*"));
+				headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+				List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+				params.add(new ParamsRestDTO("expand", "all"));
+				params.add(new ParamsRestDTO("onlyData", true));
+				params.add(new ParamsRestDTO("offset", 0));
+				params.add(new ParamsRestDTO("limit", 1));
+				
+				String url = AppConstants.URL_REST_SALESORDER_ADDINF.replaceAll("ORDER_ID", salesOrder.getItems().get(0).getSourceTransactionSystem() + ":" + salesOrder.getItems().get(0).getHeaderId());
+				
+				Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+						url, HttpMethod.GET, headers, params, null, AppConstants.SERVICE_SALES_ORDER_AI_1);
+				
+				int statusCode;
+				SalesOrderAI responseRest;
+				
+				if(response != null) {
+					statusCode = (int) response.get("code");
+					responseRest = (SalesOrderAI) response.get("response");
+					if(statusCode >= 200 && statusCode < 300) {
+						return responseRest;
+					}
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getAddInfoBySalesNumber ****************************", e);
 			return null;
 		}
 	}
