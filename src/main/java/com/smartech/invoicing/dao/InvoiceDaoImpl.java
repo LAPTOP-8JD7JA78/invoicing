@@ -30,14 +30,33 @@ public class InvoiceDaoImpl implements InvoiceDao{
 	@SuppressWarnings("unchecked")
 	@Override
 	public Invoice getSingleInvoiceByFolio(String folio) {
-		Session session = this.sessionFactory.getCurrentSession();
-		Criteria criteria = session.createCriteria(Invoice.class);	
-		criteria.add(Restrictions.eq("folio", folio));	
-		List<Invoice> list =  criteria.list();
-		if(!list.isEmpty()){
-			return list.get(0);
+		try {
+//			SQLQuery query;
+//			String sql;
+//			Session session = sessionFactory.getCurrentSession();	
+//			
+//			sql = "SELECT * FROM invoice where folio = '" + folio + "'";
+//			query = session.createSQLQuery(sql);
+//			query.setResultTransformer(Transformers.aliasToBean(Invoice.class));
+//			query.addScalar("id", new IntegerType());
+//			List<Invoice> invL = query.list();
+//			if(!invL.isEmpty()) {
+//				return invL.get(0);
+//			}
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.eq("folio", folio));	
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		return new Invoice();
+
+		
 	}
 
 	@Override
@@ -107,7 +126,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
-		return (List<Invoice>) criteria.list();
+		return criteria.list();
 	}
 
 	@SuppressWarnings({ "unchecked" })

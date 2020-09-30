@@ -1,9 +1,8 @@
 package com.smartech.invoicing.model;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,9 +11,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity(name = "InvoiceDetails")
 @Table(name = "invoiceDetails")
@@ -43,6 +39,9 @@ public class InvoiceDetails implements Serializable{
 	
 	@Column(name = "totalAmount", nullable=true)
 	private double totalAmount;
+	
+	@Column(name = "totalDiscount", nullable=true)
+	private double totalDiscount;
 	
 	@Column(name = "exchangeRate", nullable=true)
 	private double exchangeRate;
@@ -84,7 +83,7 @@ public class InvoiceDetails implements Serializable{
 	private String transactionLineNumber;
 	
 	@ManyToMany(fetch=FetchType.EAGER)
-	private List<TaxCodes> taxCodes;
+	private Set<TaxCodes> taxCodes;
 
 	public long getId() {
 		return id;
@@ -132,6 +131,14 @@ public class InvoiceDetails implements Serializable{
 
 	public void setTotalAmount(double totalAmount) {
 		this.totalAmount = totalAmount;
+	}
+
+	public double getTotalDiscount() {
+		return totalDiscount;
+	}
+
+	public void setTotalDiscount(double totalDiscount) {
+		this.totalDiscount = totalDiscount;
 	}
 
 	public double getExchangeRate() {
@@ -238,11 +245,13 @@ public class InvoiceDetails implements Serializable{
 		this.transactionLineNumber = transactionLineNumber;
 	}
 
-	public List<TaxCodes> getTaxCodes() {
+	public Set<TaxCodes> getTaxCodes() {
 		return taxCodes;
 	}
 
-	public void setTaxCodes(List<TaxCodes> taxCodes) {
+	public void setTaxCodes(Set<TaxCodes> taxCodes) {
 		this.taxCodes = taxCodes;
 	}
+
+
 }

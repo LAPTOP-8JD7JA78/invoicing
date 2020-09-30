@@ -2,7 +2,7 @@ package com.smartech.invoicing.model;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -80,6 +80,15 @@ public class Invoice implements Serializable{
 	@Column(name = "invoiceTotal", nullable=true)
 	private double invoiceTotal;
 	
+	@Column(name = "invoiceSubTotal", nullable=true)
+	private double invoiceSubTotal;
+	
+	@Column(name = "invoiceDiscount", nullable=true)
+	private double invoiceDiscount;
+	
+	@Column(name = "invoiceTaxAmount", nullable=true)
+	private double invoiceTaxAmount;
+	
 	@Column(name = "isInvoice", nullable=true)
 	private boolean isInvoice;
 	
@@ -127,7 +136,7 @@ public class Invoice implements Serializable{
 	private String orderType;
 	
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-	private List<InvoiceDetails> invoiceDetails;
+	private Set<InvoiceDetails> invoiceDetails;
 	
 	@Column(name = "setName", nullable=false)
 	private String setName;
@@ -274,6 +283,30 @@ public class Invoice implements Serializable{
 		this.invoiceTotal = invoiceTotal;
 	}
 
+	public double getInvoiceSubTotal() {
+		return invoiceSubTotal;
+	}
+
+	public void setInvoiceSubTotal(double invoiceSubTotal) {
+		this.invoiceSubTotal = invoiceSubTotal;
+	}
+
+	public double getInvoiceDiscount() {
+		return invoiceDiscount;
+	}
+
+	public void setInvoiceDiscount(double invoiceDiscount) {
+		this.invoiceDiscount = invoiceDiscount;
+	}
+
+	public double getInvoiceTaxAmount() {
+		return invoiceTaxAmount;
+	}
+
+	public void setInvoiceTaxAmount(double invoiceTaxAmount) {
+		this.invoiceTaxAmount = invoiceTaxAmount;
+	}
+
 	public boolean isInvoice() {
 		return isInvoice;
 	}
@@ -394,11 +427,11 @@ public class Invoice implements Serializable{
 		this.orderType = orderType;
 	}
 
-	public List<InvoiceDetails> getInvoiceDetails() {
+	public Set<InvoiceDetails> getInvoiceDetails() {
 		return invoiceDetails;
 	}
 
-	public void setInvoiceDetails(List<InvoiceDetails> invoiceDetails) {
+	public void setInvoiceDetails(Set<InvoiceDetails> invoiceDetails) {
 		this.invoiceDetails = invoiceDetails;
 	}
 
