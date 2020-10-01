@@ -331,7 +331,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}else {
 							invStatus = false;
 							msgError = msgError + ";BRANCH-Error al obtener la sucursal";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA SUCURSAL");
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA SUCURSAL");
 						}
 						//Uso CFDI
 						if(!soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().isEmpty()) {
@@ -339,7 +339,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}else {
 							invStatus = false;
 							msgError = msgError + ";USOCFDI-Error al obtener el Uso CFDI";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER EL USO CFDI");
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL USO CFDI");
 						}
 						//Método de pago
 						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
@@ -347,7 +347,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}else {
 							invStatus = false;
 							msgError = msgError + ";METODOPAGO-Error al obtener el Método de Pago";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER EL MÉTODO DE PAGO");
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL MÉTODO DE PAGO");
 						}
 						//Forma de pago
 						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
@@ -355,7 +355,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}else {
 							invStatus = false;
 							msgError = msgError + ";FORMAPAGO-Error al obtener la Forma de Pago";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA FORMA DE PAGO");
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FORMA DE PAGO");
 						}
 						//SI ES NC
 						if(!inv.isInvoice()) {
@@ -365,7 +365,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}else {
 								invStatus = false;
 								msgError = msgError + ";DATOSREF-Error al obtener la Factura de referencia";
-								log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA FACTURA DE REFEENCIA");
+								log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FACTURA DE REFEENCIA");
 							}
 						}
 						
@@ -410,12 +410,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}else {
 						invStatus = false;
 						msgError = msgError + ";OMSALESORDER-AI-Error al obtener la inf. add. Order en OM (La factura puede no tener DFF asignados)";
-						log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA INFO. ADI. ORDEN EN OM");
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA INFO. ADI. ORDEN EN OM");
 					}
 				}else {
 					invStatus = false;
 					msgError = msgError + ";OMSALESORDER-Error al obtener la Order en OM (La factura puede no haberse cerrado)";
-					log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA ORDEN EN OM");
+					log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA ORDEN EN OM");
 				}
 				
 				if(invStatus) {

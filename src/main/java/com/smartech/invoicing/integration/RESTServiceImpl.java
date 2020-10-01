@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -69,8 +70,11 @@ public class RESTServiceImpl implements RESTService {
 				headers.add(new HeadersRestDTO("Accept", "*/*"));
 				headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
 				List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
-//				params.add(new ParamsRestDTO("finder", "findByOrderNumber;OrderNumber=" + orderNumber));
-				params.add(new ParamsRestDTO("finder", "findBySourceOrderNumberAndSystem;SourceTransactionSystem=OPS,SourceTransactionNumber=" + orderNumber));
+				if(StringUtils.isNumeric(orderNumber)) {
+					params.add(new ParamsRestDTO("finder", "findByOrderNumber;OrderNumber=" + orderNumber));
+				}else {
+					params.add(new ParamsRestDTO("finder", "findBySourceOrderNumberAndSystem;SourceTransactionSystem=OPS,SourceTransactionNumber=" + orderNumber));
+				}		
 //				params.add(new ParamsRestDTO("q", "StatusCode=CLOSED"));
 				params.add(new ParamsRestDTO("expand", "lines,lines.lotSerials"));
 				params.add(new ParamsRestDTO("fields", "HeaderId,OrderNumber,SourceTransactionNumber,SourceTransactionSystem,BusinessUnitId,BusinessUnitName,RequestedFulfillmentOrganizationId,RequestedFulfillmentOrganizationCode,PaymentTermsCode,PaymentTerms,TransactionalCurrencyCode,TransactionalCurrencyName,CurrencyConversionRate,CurrencyConversionType,StatusCode;lines:SourceTransactionLineNumber,AssessableValue,FulfilledQuantity,ProductId,ProductNumber,ProductDescription,InventoryOrganizationCode,OrderedQuantity,OrderedUOMCode,OrderedUOM,StatusCode,TaxClassificationCode,TaxClassification,LineNumber;lines.lotSerials:ItemSerialNumberFrom,ItemSerialNumberTo,LotNumber"));
