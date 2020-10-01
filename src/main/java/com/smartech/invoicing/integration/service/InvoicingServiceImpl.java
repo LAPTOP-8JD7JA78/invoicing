@@ -343,7 +343,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 						//Método de pago
 						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
-							inv.setCFDIUse(soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().get(0).getMetodopago());
+							inv.setPaymentMethod(soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().get(0).getMetodopago());
 						}else {
 							invStatus = false;
 							msgError = msgError + ";METODOPAGO-Error al obtener el Método de Pago";
@@ -351,7 +351,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 						//Forma de pago
 						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
-							inv.setCFDIUse(soai.getItems().get(0).getHeaderEffBFORMAPAGOprivateVO().get(0).getFormapago());
+							inv.setPaymentType(soai.getItems().get(0).getHeaderEffBFORMAPAGOprivateVO().get(0).getFormapago());
 						}else {
 							invStatus = false;
 							msgError = msgError + ";FORMAPAGO-Error al obtener la Forma de Pago";
