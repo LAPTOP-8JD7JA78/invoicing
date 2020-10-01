@@ -6,6 +6,7 @@ import com.smartech.invoicing.model.Branch;
 
 public interface BranchService {
 	public List<Branch> searchBranchList(int start, int limit);
+	public Branch getBranchByCode(String code);
 	public Branch getBranchById(long l);
 	public List<Branch> searchBranchList(int start, int limit, String query);
 	public boolean createBranch(Branch branch, String user);

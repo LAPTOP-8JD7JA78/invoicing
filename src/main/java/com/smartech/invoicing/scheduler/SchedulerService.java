@@ -53,7 +53,7 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		log.info("\'InvoicesSchedule\' is started*******");
 		AnalyticsDTO analytics = new AnalyticsDTO();
@@ -63,7 +63,7 @@ public class SchedulerService {
 //		calendar.add(Calendar.MINUTE, -6);	
 //		String fecha = sdf.format(calendar.getTime());
 //		System.out.println(sdf.format(calendar.getTime()));
-		analytics.setAr_Report_date("2020-09-01 14:30:30");;
+		analytics.setAr_Report_date("2020-10-01 00:00:00");;
 		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 				AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
 		if(!r.getRow().isEmpty()) {
@@ -87,24 +87,18 @@ public class SchedulerService {
 		}
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
-		SalesOrder so = restService.getSalesOrderByOrderNumber("81");
-		if(so != null) {
-			SalesOrderAI soai = restService.getAddInfoBySalesNumber(so);
-			if(soai != null && !soai.getItems().isEmpty()) {
-				System.out.println(soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().get(0).getUsocfdi());
-				System.out.println(soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().get(0).getMetodopago());
-				System.out.println(soai.getItems().get(0).getHeaderEffBFORMAPAGOprivateVO().get(0).getFormapago());
-			}else {
-				log.warn("SALES ORDER " + so.getItems().get(0).getOrderNumber() + "DOESN'T HAVE ADDITIONAL INFORMATION");
-			}
-		}	
+		try {
+			invoicingService.updateStartInvoiceList();
+		}catch(Exception e) {
+			log.error("ERROR DURANTE EL PROCESO DE \'getDataForNewOrders\'-----------------------------", e);
+		}
 		log.info("\'getDataForNewOrders\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void getPendingData() {
 		log.info("\'getPendingData\' is started*******");
 		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_START, "");

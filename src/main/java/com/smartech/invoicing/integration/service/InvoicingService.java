@@ -6,4 +6,5 @@ import com.smartech.invoicing.integration.xml.rowset.Row;
 
 public interface InvoicingService {
 	boolean createStampInvoice(List<Row> r);
+	void updateStartInvoiceList();
 }

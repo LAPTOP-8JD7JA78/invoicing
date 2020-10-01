@@ -106,4 +106,17 @@ public class BranchDaoImpl implements BranchDao{
 			return false;
 		}
 	}
+
+	@Override
+	public Branch getBranchByCode(String code) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Branch.class);
+		
+		criteria.add(Restrictions.eq("code", code));
+		
+		if(!criteria.list().isEmpty()) {
+			return (Branch) criteria.list().get(0);
+		}
+		return null;
+	}
 }

@@ -47,7 +47,7 @@ public class Line {
     @JsonProperty("InventoryOrganizationCode")
     private String inventoryOrganizationCode;
     @JsonProperty("OrderedQuantity")
-    private Integer orderedQuantity;
+    private Double orderedQuantity;
     @JsonProperty("OrderedUOMCode")
     private String orderedUOMCode;
     @JsonProperty("OrderedUOM")
@@ -63,7 +63,7 @@ public class Line {
     @JsonProperty("charges")
     private List<Charge> charges = null;
     @JsonProperty("lotSerials")
-    private List<Object> lotSerials = null;
+    private List<LotSerials> lotSerials = null;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -138,12 +138,12 @@ public class Line {
     }
 
     @JsonProperty("OrderedQuantity")
-    public Integer getOrderedQuantity() {
+    public Double getOrderedQuantity() {
         return orderedQuantity;
     }
 
     @JsonProperty("OrderedQuantity")
-    public void setOrderedQuantity(Integer orderedQuantity) {
+    public void setOrderedQuantity(Double orderedQuantity) {
         this.orderedQuantity = orderedQuantity;
     }
 
@@ -218,12 +218,12 @@ public class Line {
     }
 
     @JsonProperty("lotSerials")
-    public List<Object> getLotSerials() {
+    public List<LotSerials> getLotSerials() {
         return lotSerials;
     }
 
     @JsonProperty("lotSerials")
-    public void setLotSerials(List<Object> lotSerials) {
+    public void setLotSerials(List<LotSerials> lotSerials) {
         this.lotSerials = lotSerials;
     }
 

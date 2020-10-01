@@ -69,10 +69,12 @@ public class RESTServiceImpl implements RESTService {
 				headers.add(new HeadersRestDTO("Accept", "*/*"));
 				headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
 				List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
-				params.add(new ParamsRestDTO("finder", "findByOrderNumber;OrderNumber=" + orderNumber));
+//				params.add(new ParamsRestDTO("finder", "findByOrderNumber;OrderNumber=" + orderNumber));
+				params.add(new ParamsRestDTO("finder", "findBySourceOrderNumberAndSystem;SourceTransactionSystem=OPS,SourceTransactionNumber=" + orderNumber));
 //				params.add(new ParamsRestDTO("q", "StatusCode=CLOSED"));
 				params.add(new ParamsRestDTO("expand", "lines,lines.lotSerials"));
 				params.add(new ParamsRestDTO("fields", "HeaderId,OrderNumber,SourceTransactionNumber,SourceTransactionSystem,BusinessUnitId,BusinessUnitName,RequestedFulfillmentOrganizationId,RequestedFulfillmentOrganizationCode,PaymentTermsCode,PaymentTerms,TransactionalCurrencyCode,TransactionalCurrencyName,CurrencyConversionRate,CurrencyConversionType,StatusCode;lines:SourceTransactionLineNumber,AssessableValue,FulfilledQuantity,ProductId,ProductNumber,ProductDescription,InventoryOrganizationCode,OrderedQuantity,OrderedUOMCode,OrderedUOM,StatusCode,TaxClassificationCode,TaxClassification,LineNumber;lines.lotSerials:ItemSerialNumberFrom,ItemSerialNumberTo,LotNumber"));
+				params.add(new ParamsRestDTO("orderBy", "LastUpdateDate:desc"));
 				params.add(new ParamsRestDTO("onlyData", true));
 				params.add(new ParamsRestDTO("offset", 0));
 				params.add(new ParamsRestDTO("limit", 1));

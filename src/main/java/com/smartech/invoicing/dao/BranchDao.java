@@ -12,4 +12,5 @@ public interface BranchDao {
 	public boolean createBranch(Branch branch, String user);
 	public boolean isAvaiableBranch(String orgCode);
 	public boolean updateBranch(Branch branch);
+	public Branch getBranchByCode(String code);
 }

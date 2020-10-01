@@ -51,4 +51,9 @@ public class BranchServiceImpl implements BranchService{
 		}
 		return false;
 	}
+
+	@Override
+	public Branch getBranchByCode(String code) {
+		return branchDao.getBranchByCode(code);
+	}
 }

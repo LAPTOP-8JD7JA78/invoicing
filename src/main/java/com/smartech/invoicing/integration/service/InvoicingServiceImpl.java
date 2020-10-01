@@ -13,11 +13,16 @@ import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
+import com.smartech.invoicing.integration.RESTService;
+import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
+import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
+import com.smartech.invoicing.model.Branch;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.model.TaxCodes;
+import com.smartech.invoicing.service.BranchService;
 import com.smartech.invoicing.service.CompanyService;
 import com.smartech.invoicing.service.InvoiceService;
 import com.smartech.invoicing.service.TaxCodesService;
@@ -33,10 +38,16 @@ public class InvoicingServiceImpl implements InvoicingService{
 	CompanyService companyService;
 	
 	@Autowired
+	BranchService branchService;
+	
+	@Autowired
 	TaxCodesService taxCodesService;
 	
 	@Autowired
 	InvoiceDao invoiceDao;
+	
+	@Autowired
+	RESTService restService;
 	
 	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());
 	
@@ -55,7 +66,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
 				invReports = fullDTO(ro);
 				if(invReports != null) {
-					System.out.println(invReports.getTransactionNumber());				
+//					System.out.println(invReports.getTransactionNumber());				
 					invlist.add(invReports);
 					
 				}			
@@ -289,4 +300,138 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
+	
+	@Override
+	public void updateStartInvoiceList() {
+		List<String> otList = new ArrayList<String>();
+		otList.add(AppConstants.STATUS_REPORTS_ING);
+		otList.add(AppConstants.STATUS_REPORTS_ESP);
+		otList.add("Credit Memo");
+		otList.add("Nota de Crédito");
+		
+		List<String> sList = new ArrayList<String>();
+		otList.add(AppConstants.STATUS_START);
+		otList.add(AppConstants.STATUS_ERROR_DATA);
+		
+		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
+		if(invoiceList != null && !invoiceList.isEmpty()) {
+			for(Invoice inv : invoiceList) {
+				String msgError = "";
+				boolean invStatus = true;
+				//Obtención de Datos de OM
+				SalesOrder so = restService.getSalesOrderByOrderNumber(inv.getFromSalesOrder());
+				if(so != null && !so.getItems().isEmpty()) {
+					SalesOrderAI soai = restService.getAddInfoBySalesNumber(so);
+					if(soai != null && !soai.getItems().isEmpty()) {
+						//Proceso de llenado con los datos de OM
+						//CABECERO
+						Branch br = branchService.getBranchByCode(so.getItems().get(0).getRequestedFulfillmentOrganizationCode());
+						if(br != null) {
+							inv.setBranch(br);
+						}else {
+							invStatus = false;
+							msgError = msgError + ";BRANCH-Error al obtener la sucursal";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA SUCURSAL");
+						}
+						//Uso CFDI
+						if(!soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().isEmpty()) {
+							inv.setCFDIUse(soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().get(0).getUsocfdi());
+						}else {
+							invStatus = false;
+							msgError = msgError + ";USOCFDI-Error al obtener el Uso CFDI";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER EL USO CFDI");
+						}
+						//Método de pago
+						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
+							inv.setCFDIUse(soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().get(0).getMetodopago());
+						}else {
+							invStatus = false;
+							msgError = msgError + ";METODOPAGO-Error al obtener el Método de Pago";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER EL MÉTODO DE PAGO");
+						}
+						//Forma de pago
+						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
+							inv.setCFDIUse(soai.getItems().get(0).getHeaderEffBFORMAPAGOprivateVO().get(0).getFormapago());
+						}else {
+							invStatus = false;
+							msgError = msgError + ";FORMAPAGO-Error al obtener la Forma de Pago";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA FORMA DE PAGO");
+						}
+						//SI ES NC
+						if(!inv.isInvoice()) {
+							Invoice invRef = invoiceDao.getSingleInvoiceById(inv.getId());
+							if(invRef != null) {
+								inv.setUUIDReference(invRef.getUUID());
+							}else {
+								invStatus = false;
+								msgError = msgError + ";DATOSREF-Error al obtener la Factura de referencia";
+								log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA FACTURA DE REFEENCIA");
+							}
+						}
+						
+						//Revisar las lineas
+						for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
+							for(com.smartech.invoicing.integration.json.salesorder.Line line: so.getItems().get(0).getLines()) {
+								if(line.getProductNumber().contains(invLine.getItemNumber()) 
+										&& line.getOrderedQuantity().equals(invLine.getQuantity()) && line.getOrderedUOMCode().contains(invLine.getUomName())) {
+									//Clave ProdSer
+									//obtener
+									invLine.setUnitProdServ("25111802");
+									invLine.setUomCode("H87");
+									
+									//Serie y lote (Datos Opcionales)
+									if(!line.getLotSerials().isEmpty()) {
+										String lots = "";
+										String serials = "";
+										for(com.smartech.invoicing.integration.json.salesorder.LotSerials lotSer : line.getLotSerials()) {
+											if(lotSer.getLotNumber() != null && !"".contains(lotSer.getLotNumber())) {
+												lots = lots + invLine.getItemLot() + ",";
+											}
+											
+											if(lotSer.getItemSerialNumberFrom() != null && !"".contains(lotSer.getItemSerialNumberFrom())) {
+												if(lotSer.getItemSerialNumberFrom().contains(lotSer.getItemSerialNumberTo())) {
+													serials = serials + lotSer.getItemSerialNumberFrom() + ",";
+												}else {
+													serials = serials + lotSer.getItemSerialNumberFrom() + "-" + lotSer.getItemSerialNumberTo() + ",";
+												}
+											}
+										}
+										lots=lots!=""?lots.substring(0, lots.length() - 1):"";
+										serials=serials!=""?serials.substring(0, serials.length() - 1):"";
+										
+										invLine.setItemLot(lots);
+										invLine.setItemSerial(serials);
+									}
+									
+									break;
+								}
+							}
+						}
+					}else {
+						invStatus = false;
+						msgError = msgError + ";OMSALESORDER-AI-Error al obtener la inf. add. Order en OM (La factura puede no tener DFF asignados)";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA INFO. ADI. ORDEN EN OM");
+					}
+				}else {
+					invStatus = false;
+					msgError = msgError + ";OMSALESORDER-Error al obtener la Order en OM (La factura puede no haberse cerrado)";
+					log.warn("PARA LA ORDEN " + inv.getFolio() + "ERROR AL TRAER LA ORDEN EN OM");
+				}
+				
+				if(invStatus) {
+					inv.setStatus(AppConstants.STATUS_PENDING);
+					inv.setUpdatedBy("SYSTEM");
+					inv.setUpdatedDate(new Date());
+					inv.setErrorMsg("");
+					invoiceDao.updateInvoice(inv);
+				}else {
+					inv.setStatus(AppConstants.STATUS_ERROR_DATA);
+					inv.setUpdatedBy("SYSTEM");
+					inv.setUpdatedDate(new Date());
+					inv.setErrorMsg(msgError);
+					invoiceDao.updateInvoice(inv);
+				}
+			}
+		}
+	}
 }

@@ -36,7 +36,8 @@ public class AppConstants {
 	public static final String STATUS_GETRESTDATA = "DATA";
 	public static final String STATUS_PENDING = "PENDING";
 	public static final String STATUS_INVOICED = "INVOICED";
-	public static final String STATUS_ERROR = "ERROR";
+	public static final String STATUS_ERROR_DATA = "ERROR DATA";
+	public static final String STATUS_ERROR_PAC = "ERROR PAC";
 	public static final String STATUS_FINISHED = "FINISHED";
 
 	//Estados de reportes
