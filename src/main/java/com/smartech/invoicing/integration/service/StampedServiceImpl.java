@@ -32,7 +32,8 @@ public class StampedServiceImpl implements StampedService{
 	
 	static Logger log = Logger.getLogger(StampedServiceImpl.class.getName());
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-	public String[ ] impH = new String[30];
+	public String[ ] impH = new String[10];
+	public String[ ] impD = new String[10];
 	
 	@Override
 	public boolean createFileFac(Invoice i) {
@@ -58,6 +59,7 @@ public class StampedServiceImpl implements StampedService{
 			if (!file.exists()) {
              	file.createNewFile();
             }
+			//Saber tipo de factura
 			if(i.isInvoice()) {
 				voucherType = AppConstantsUtil.VOUCHER_I;
 				relationType = "";
@@ -65,12 +67,15 @@ public class StampedServiceImpl implements StampedService{
 				voucherType = AppConstantsUtil.VOUCHER_E;
 				relationType = i.getInvoiceRelationType();
 			}
+			//Terminos de pago
 			if(i.getPaymentMethod().equals(AppConstantsUtil.PAYMENT_METHOD)) {
 				paymentTerms = i.getPaymentTerms();
 			}else {
 				paymentTerms = "";
 			}
-			String taxes = getTaxes(i.getInvoiceDetails());
+			//Llenar los impuestos
+			getTaxes(i.getInvoiceDetails());
+			//Formato de fecha
 			String date = dateFormat.format(i.getCreationDate());
 			//Cabecero txt
 			content = AppConstantsUtil.FILES_HEADER + AppConstantsUtil.FILES_SEPARATOR +
@@ -131,12 +136,11 @@ public class StampedServiceImpl implements StampedService{
 					i.getCountry() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR;//57
 		            //Valores de los impuestos
-		            /*for(int h=0; h<impH.length; h++)
-		            {
+		            for(int h=0; h<impH.length; h++){
 		            	content = content + NullValidator.isNull(impH[h]) + "|";
-		            }*/
+		            }
 					content = content +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//58
+					/*"" + AppConstantsUtil.FILES_SEPARATOR +//58
 					"" + AppConstantsUtil.FILES_SEPARATOR +//59
 					"" + AppConstantsUtil.FILES_SEPARATOR +//60
 					"" + AppConstantsUtil.FILES_SEPARATOR +//61
@@ -145,7 +149,7 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//64
 					"" + AppConstantsUtil.FILES_SEPARATOR +//65
 					"" + AppConstantsUtil.FILES_SEPARATOR +//66
-					"" + AppConstantsUtil.FILES_SEPARATOR +//67
+					"" + AppConstantsUtil.FILES_SEPARATOR +//67  */
 					relationType + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getUUIDReference()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getSerial()) + AppConstantsUtil.FILES_SEPARATOR +
@@ -158,6 +162,7 @@ public class StampedServiceImpl implements StampedService{
 				if(id != null) {
 					String lines = this.dataLines(id, i, n);
 					content = content + lines;
+					impD = new String[10];
 					n=+1;
 				}
 			}
@@ -191,28 +196,9 @@ public class StampedServiceImpl implements StampedService{
 		}
 	}
 	
-	public String getTaxes(Set<InvoiceDetails> set) {
-		String t = "";
-		String factor = "";
-		try {
-			for(InvoiceDetails id: set) {
-				Set<TaxCodes> tc = new HashSet<TaxCodes>(id.getTaxCodes());
-				for(TaxCodes tax: tc) {
-					
-				}
-			}
-			if(t != null) {
-				return t;
-			}
-			return null;
-		}catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
 	public String dataLines(InvoiceDetails idet, Invoice i, int nL) {
 		String detail = "";
+		getTaxesDetails(idet);
 		try {
 			detail = AppConstantsUtil.FILES_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
@@ -230,7 +216,12 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Número de pedimento
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Fecha caducidad lote
 					NullValidator.isNull(idet.getUnitProdServ()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(idet.getUomCode()) + AppConstantsUtil.FILES_SEPARATOR +//17
+					NullValidator.isNull(idet.getUomCode()) + AppConstantsUtil.FILES_SEPARATOR;//17
+		        	for(int j=0; j < impD.length; j++) {
+		        		detail = detail + NullValidator.isNull(impD[j]) + "|";
+		        	}
+		        	detail = detail +
+					/*"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
@@ -239,8 +230,7 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +*/
 					idet.getTotalDiscount() + AppConstantsUtil.FILES_SEPARATOR +//28
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Notes				
 					"\n";
@@ -250,5 +240,105 @@ public class StampedServiceImpl implements StampedService{
 			return null;
 		}
 	}
+	
+	public void getTaxes(Set<InvoiceDetails> set) {
+		int op = 0;
+		try {
+			for(InvoiceDetails id: set) {
+				Set<TaxCodes> tc = new HashSet<TaxCodes>(id.getTaxCodes());
+				for(TaxCodes tax: tc) {
+					op = Integer.parseInt(tax.getPosition());
+					if(tax.getTax().equals(AppConstantsUtil.TAX_CODE)) {
+						switch(op) {
+							case 1:
+								impH[0] = tax.getTax();	
+								impH[1] = tax.getFactor();
+								if(impH[2] != null) {
+									impH[2] = String.valueOf(id.getTotalTaxAmount() + Double.parseDouble(impH[2])) ;
+								}else {
+									impH[2] = String.valueOf(id.getTotalTaxAmount());	
+								}
+								if(impH[3] != null) {
+									impH[3] = String.valueOf(id.getTotalAmount() + Double.parseDouble(impH[3]));
+								}else {
+									impH[3] = String.valueOf(id.getTotalAmount());									
+								}
+								impH[4] = String.valueOf(tax.getTaxValue());
+								break;
+							case 2:
+								impH[5] = tax.getTax();	
+								impH[6] = tax.getFactor();
+								if(impH[7] != null) {
+									impH[7] = String.valueOf(id.getTotalTaxAmount() + Double.parseDouble(impH[7])) ;
+								}else {
+									impH[7] = String.valueOf(id.getTotalTaxAmount());	
+								}
+								if(impH[8] != null) {
+									impH[8] = String.valueOf(id.getTotalAmount() + Double.parseDouble(impH[8]));
+								}else {
+									impH[8] = String.valueOf(id.getTotalAmount());									
+								}
+								impH[9] = String.valueOf(tax.getTaxValue());
+								break;
+							default:
+								break;
+						}
+					}
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getTaxesDetails(InvoiceDetails set) {
+		int op = 0;
+		try {
+			Set<TaxCodes> tc = new HashSet<TaxCodes>(set.getTaxCodes());
+			for(TaxCodes tax: tc) {
+				op = Integer.parseInt(tax.getPosition());
+				if(tax.getTax().equals(AppConstantsUtil.TAX_CODE)) {
+					switch(op) {
+						case 1:
+							impD[0] = tax.getTax();
+							if(impD[1] != null) {
+								impD[1] = String.valueOf(set.getTotalAmount() + Double.parseDouble(impD[1]));
+							}else {
+								impD[1] = String.valueOf(set.getTotalAmount());									
+							}
+							impD[2] = tax.getFactor();
+							impD[3] = String.valueOf(tax.getTaxValue());
+							if(impD[4] != null) {
+								impD[4] = String.valueOf(set.getTotalTaxAmount() + Double.parseDouble(impD[4]));
+							}else {
+								impD[4] = String.valueOf(set.getTotalTaxAmount());	
+							}
+							break;
+						case 2:
+							impD[5] = tax.getTax();
+							if(impD[6] != null) {
+								impD[6] = String.valueOf(set.getTotalAmount() + Double.parseDouble(impD[6]));
+							}else {
+								impD[6] = String.valueOf(set.getTotalAmount());									
+							}
+							impD[7] = tax.getFactor();
+							impD[8] = String.valueOf(tax.getTaxValue());
+							if(impD[9] != null) {
+								impD[9] = String.valueOf(set.getTotalTaxAmount() + Double.parseDouble(impD[9]));
+							}else {
+								impD[9] = String.valueOf(set.getTotalTaxAmount());	
+							}
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 
 }

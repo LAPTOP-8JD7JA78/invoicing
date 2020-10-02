@@ -33,6 +33,9 @@ public class TaxCodes implements Serializable {
 	
 	@Column(name = "taxName", nullable=true)
 	private String taxName;
+	
+	@Column(name = "position", nullable=true)
+	private String position;
 
 	public long getId() {
 		return id;
@@ -72,6 +75,14 @@ public class TaxCodes implements Serializable {
 
 	public void setTaxName(String taxName) {
 		this.taxName = taxName;
+	}
+
+	public String getPosition() {
+		return position;
+	}
+
+	public void setPosition(String position) {
+		this.position = position;
 	}
 
 

@@ -14,5 +14,6 @@ public class AppConstantsUtil {
 	public static final String VOUCHER_E = "E";
 	public static final String VOUCHER_P = "P";
 	public static final String PAYMENT_METHOD = "PUE";
+	public static final String TAX_CODE = "002";
 	
 }
