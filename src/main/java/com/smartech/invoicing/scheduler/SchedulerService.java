@@ -1,11 +1,11 @@
 package com.smartech.invoicing.scheduler;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -13,9 +13,8 @@ import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.SOAPService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
-import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
-import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.service.InvoicingService;
+import com.smartech.invoicing.integration.service.StampedService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.integration.xml.rowset.Rowset;
@@ -36,6 +35,8 @@ public class SchedulerService {
 	InvoiceService invoiceService;
 	@Autowired
 	InvoiceDao invoiceDao;
+	@Autowired
+	StampedService stampedService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -53,7 +54,7 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() {
 		log.info("\'InvoicesSchedule\' is started*******");
 		AnalyticsDTO analytics = new AnalyticsDTO();
@@ -87,7 +88,7 @@ public class SchedulerService {
 		}
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
 		try {
@@ -101,12 +102,25 @@ public class SchedulerService {
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void getPendingData() {
 		log.info("\'getPendingData\' is started*******");
-		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_START, "");
-//		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING, "");
-		if(!inv.isEmpty()) {
+		List<String> arr = new ArrayList<String>();
+		List<Invoice> cinv = new ArrayList<Invoice>();
+//		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_START, "");
+		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING, "");
+		for(Invoice i: inv) {
+			if(!arr.contains(i.getFolio())) {				
+				cinv.add(i);
+				arr.add(i.getFolio());
+			}
+		}
+		if(!cinv.isEmpty()) {
 			System.out.println(true);
+			for(Invoice in: cinv) {
+				if(!stampedService.createFileFac(in)) {
+					log.error("PENDING STATUS" + in);
+				}	
+			}
 		}else {
-			log.warn("PENDING STATUS " + inv + "DON´T HAVA ANY DATA");
+			log.warn("PENDING STATUS " + cinv + "DON´T HAVA ANY DATA");
 		}
 		log.info("\'getPendingData\': is finished********");
 		
