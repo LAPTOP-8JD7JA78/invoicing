@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -92,8 +93,10 @@ public class SchedulerService {
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
 		try {
-			invoicingService.updateStartInvoiceList();
+//			invoicingService.updateStartInvoiceList();
+			invoicingService.updateStartInvoiceSOAPList();
 		}catch(Exception e) {
+			e.printStackTrace();
 			log.error("ERROR DURANTE EL PROCESO DE \'getDataForNewOrders\'-----------------------------", e);
 		}
 		log.info("\'getDataForNewOrders\' is finished*******");

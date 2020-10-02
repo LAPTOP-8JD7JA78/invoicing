@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
+import com.smartech.invoicing.dto.SalesLineLotSerDTO;
+import com.smartech.invoicing.dto.SalesOrderDTO;
+import com.smartech.invoicing.dto.SalesOrderLinesDTO;
 import com.smartech.invoicing.integration.RESTService;
+import com.smartech.invoicing.integration.SOAPService;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.util.AppConstants;
@@ -48,6 +52,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	RESTService restService;
+	
+	@Autowired
+	SOAPService soapService;
 	
 	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());
 	
@@ -310,8 +317,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 		otList.add("Nota de Crédito");
 		
 		List<String> sList = new ArrayList<String>();
-		otList.add(AppConstants.STATUS_START);
-		otList.add(AppConstants.STATUS_ERROR_DATA);
+		sList.add(AppConstants.STATUS_START);
+		sList.add(AppConstants.STATUS_ERROR_DATA);
 		
 		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
 		if(invoiceList != null && !invoiceList.isEmpty()) {
@@ -369,11 +376,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}
 						}
 						
+						int count = 0;
+						
 						//Revisar las lineas
 						for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
 							for(com.smartech.invoicing.integration.json.salesorder.Line line: so.getItems().get(0).getLines()) {
 								if(line.getProductNumber().contains(invLine.getItemNumber()) 
 										&& line.getOrderedQuantity().equals(invLine.getQuantity()) && line.getOrderedUOMCode().contains(invLine.getUomName())) {
+									count++;
 									//Clave ProdSer
 									//obtener
 									invLine.setUnitProdServ("25111802");
@@ -407,11 +417,153 @@ public class InvoicingServiceImpl implements InvoicingService{
 								}
 							}
 						}
+						
+						if(count != inv.getInvoiceDetails().size()) {
+							invStatus = false;
+							msgError = msgError + ";OMSALESORDERLINES-Error al actualizar las lineas, puede que alguna falte información.";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA INFO. DE LAS LINEAS DE LA ORDEN EN OM");
+						}
 					}else {
 						invStatus = false;
 						msgError = msgError + ";OMSALESORDER-AI-Error al obtener la inf. add. Order en OM (La factura puede no tener DFF asignados)";
 						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA INFO. ADI. ORDEN EN OM");
 					}
+				}else {
+					invStatus = false;
+					msgError = msgError + ";OMSALESORDER-Error al obtener la Order en OM (La factura puede no haberse cerrado)";
+					log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA ORDEN EN OM");
+				}
+				
+				if(invStatus) {
+					inv.setStatus(AppConstants.STATUS_PENDING);
+					inv.setUpdatedBy("SYSTEM");
+					inv.setUpdatedDate(new Date());
+					inv.setErrorMsg("");
+					invoiceDao.updateInvoice(inv);
+				}else {
+					inv.setStatus(AppConstants.STATUS_ERROR_DATA);
+					inv.setUpdatedBy("SYSTEM");
+					inv.setUpdatedDate(new Date());
+					inv.setErrorMsg(msgError);
+					invoiceDao.updateInvoice(inv);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void updateStartInvoiceSOAPList() {
+		List<String> otList = new ArrayList<String>();
+		otList.add(AppConstants.STATUS_REPORTS_ING);
+		otList.add(AppConstants.STATUS_REPORTS_ESP);
+		otList.add("Credit Memo");
+		otList.add("Nota de Crédito");
+		
+		List<String> sList = new ArrayList<String>();
+		sList.add(AppConstants.STATUS_START);
+		sList.add(AppConstants.STATUS_ERROR_DATA);
+		
+		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
+		if(invoiceList != null && !invoiceList.isEmpty()) {
+			for(Invoice inv : invoiceList) {
+				String msgError = "";
+				boolean invStatus = true;
+				//Obtención de Datos de OM
+				SalesOrderDTO so = soapService.getSalesOrderInformation(inv.getFromSalesOrder());
+				if(so != null && !so.getLines().isEmpty()) {
+					//Proceso de llenado con los datos de OM
+					//CABECERO
+					Branch br = branchService.getBranchByCode(so.getRequestedFulfillmentOrganizationCode());
+					if(br != null) {
+						inv.setBranch(br);
+					}else {
+						invStatus = false;
+						msgError = msgError + ";BRANCH-Error al obtener la sucursal";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA SUCURSAL");
+					}
+					//Uso CFDI
+					if(so.getUsoCFDI() != null && !"".contains(so.getUsoCFDI())) {
+						inv.setCFDIUse(so.getUsoCFDI());
+					}else {
+						invStatus = false;
+						msgError = msgError + ";USOCFDI-Error al obtener el Uso CFDI";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL USO CFDI");
+					}
+					//Método de pago
+					if(so.getMetodoPago() != null && !"".contains(so.getMetodoPago())) {
+						inv.setPaymentMethod(so.getMetodoPago());
+					}else {
+						invStatus = false;
+						msgError = msgError + ";METODOPAGO-Error al obtener el Método de Pago";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL MÉTODO DE PAGO");
+					}
+					//Forma de pago
+					if(so.getFormaPago() != null && !"".contains(so.getFormaPago())) {
+						inv.setPaymentType(so.getFormaPago());
+					}else {
+						invStatus = false;
+						msgError = msgError + ";FORMAPAGO-Error al obtener la Forma de Pago";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FORMA DE PAGO");
+					}
+					//SI ES NC
+					if(!inv.isInvoice()) {
+						Invoice invRef = invoiceDao.getSingleInvoiceById(inv.getId());
+						if(invRef != null) {
+							inv.setUUIDReference(invRef.getUUID());
+						}else {
+							invStatus = false;
+							msgError = msgError + ";DATOSREF-Error al obtener la Factura de referencia";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FACTURA DE REFEENCIA");
+						}
+					}
+					
+					int count = 0;
+					
+					//Revisar las lineas
+					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
+						for(SalesOrderLinesDTO line: so.getLines()) {
+							if(line.getProductNumber().contains(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
+									&& line.getOrderedUOMCode().contains(invLine.getUomName()) && "CLOSED".contains(line.getStatusCode())) {
+								count++;
+								//Clave ProdSer
+								//obtener
+								invLine.setUnitProdServ("25111802");
+								invLine.setUomCode("H87");
+								
+								//Serie y lote (Datos Opcionales)
+								if(line.getLotSerials() != null) {
+									String lots = "";
+									String serials = "";
+									for(SalesLineLotSerDTO lotSer: line.getLotSerials()) {
+										if(lotSer.getLotNumber() != null && !"".contains(lotSer.getLotNumber())) {
+											lots = lots + invLine.getItemLot() + ",";
+										}
+										
+										if(lotSer.getSerialNumberFrom() != null && !"".contains(lotSer.getSerialNumberFrom())) {
+											if(lotSer.getSerialNumberFrom().contains(lotSer.getSerialNumberTo())) {
+												serials = serials + lotSer.getSerialNumberFrom() + ",";
+											}else {
+												serials = serials + lotSer.getSerialNumberFrom() + "-" + lotSer.getSerialNumberTo() + ",";
+											}
+										}
+									}
+									lots=lots!=""?lots.substring(0, lots.length() - 1):"";
+									serials=serials!=""?serials.substring(0, serials.length() - 1):"";
+									
+									invLine.setItemLot(lots);
+									invLine.setItemSerial(serials);
+								}
+								
+								break;
+							}
+						}
+					}
+					if(count != inv.getInvoiceDetails().size()) {
+						invStatus = false;
+						msgError = msgError + ";OMSALESORDERLINES-Error al actualizar las lineas, puede que alguna falte información.";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA INFO. DE LAS LINEAS DE LA ORDEN EN OM");
+					}
+					
 				}else {
 					invStatus = false;
 					msgError = msgError + ";OMSALESORDER-Error al obtener la Order en OM (La factura puede no haberse cerrado)";

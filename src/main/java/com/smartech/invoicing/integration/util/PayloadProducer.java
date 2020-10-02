@@ -205,4 +205,19 @@ public class PayloadProducer {
 		
 		return SOAPRequest;
 	}
+	
+	public static String getSalesOrderInfoBySalesNumber(String so) {
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/scm/doo/decomposition/orderDetailServices/orderInformationService/types/\" xmlns:ord=\"http://xmlns.oracle.com/apps/scm/doo/decomposition/orderDetailServices/orderInformationService/\">" + 
+				"<soapenv:Header/>" + 
+					"<soapenv:Body>" + 
+						"<typ:GetOrderDetails>" + 
+							"<typ:Order>" + 
+								"<ord:SourceTransactionNumber>" + so + "</ord:SourceTransactionNumber>" + 
+							"</typ:Order>" + 
+						"</typ:GetOrderDetails>" + 
+					"</soapenv:Body>" + 
+				"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
 }

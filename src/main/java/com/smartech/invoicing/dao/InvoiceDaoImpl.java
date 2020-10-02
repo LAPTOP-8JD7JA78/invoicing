@@ -173,7 +173,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 	@Override
 	public List<Invoice> getInvoiceListByStatusCode(List<String> status, List<String> orderType) {
 		Session session = this.sessionFactory.getCurrentSession();
-		Criteria criteria = session.createCriteria(Invoice.class);
+		Criteria criteria = session.createCriteria(Invoice.class).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 		try {
 			if(status != null && !status.isEmpty()) {
 				criteria.add(Restrictions.in("status", status));
