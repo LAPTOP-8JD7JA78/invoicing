@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -128,5 +127,13 @@ public class SchedulerService {
 		log.info("\'getPendingData\': is finished********");
 		
 	}
-    
+	
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	public void readDataPac() {
+		log.info("\'readDataPac\' is started*******");
+		if(!stampedService.readDataFromTxt()) {
+			log.warn("READ DATA PAC: ERROR WHEN READ DATA FROM PAC");
+		}
+		log.info("\'readDataPac\': is finished********");
+	}
 }

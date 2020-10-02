@@ -1,7 +1,9 @@
 package com.smartech.invoicing.integration.service;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
@@ -340,5 +342,43 @@ public class StampedServiceImpl implements StampedService{
 		}
 	}
 
-
+	@Override
+	public boolean readDataFromTxt() {
+		String filePathResponse = "";
+		String filePathSuccess = "";
+		String fileName = "";
+		String contentFile = "";
+		try{
+			//Ruta donde estan guardados los archivos timbrados
+			List<Udc> success = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
+			for(Udc u: success) {
+				if(u.getStrValue1().equals(AppConstantsUtil.FILE_RESPONSE)) {
+					filePathResponse = u.getUdcKey();
+				}
+				if(u.getStrValue1().equals(AppConstantsUtil.FILE_SUCCESS)) {
+					filePathSuccess = u.getUdcKey();
+				}
+			}
+			File f = new File(filePathResponse);
+			if(f.isDirectory()) {
+				File[] resFiles = f.listFiles();
+				for(File file: resFiles) {
+					fileName = file.getName().substring(0, file.getName().length()-4);
+					BufferedReader objReader = new BufferedReader(new FileReader(file));  
+		            while ((contentFile = objReader.readLine()) != null) {    
+		                System.out.println(contentFile);  
+		            }
+					System.out.println(file.getName());
+				}
+			}
+			/*for(String fi: files) {
+				
+				fi.getBytes();
+			}*/
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 }
