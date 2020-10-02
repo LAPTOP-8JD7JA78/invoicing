@@ -26,10 +26,12 @@ import com.smartech.invoicing.model.Branch;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.model.TaxCodes;
+import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.BranchService;
 import com.smartech.invoicing.service.CompanyService;
 import com.smartech.invoicing.service.InvoiceService;
 import com.smartech.invoicing.service.TaxCodesService;
+import com.smartech.invoicing.service.UdcService;
 import com.smartech.invoicing.util.NullValidator;
 
 @Service("invoicingService")
@@ -37,6 +39,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	InvoiceService invoiceService;
+	
+	@Autowired
+	UdcService udcService;
 	
 	@Autowired
 	CompanyService companyService;
@@ -528,7 +533,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 								//Clave ProdSer
 								//obtener
 								invLine.setUnitProdServ("25111802");
-								invLine.setUomCode("H87");
+								
+								Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, invLine.getUomName());
+								if(satUOM != null) {
+									invLine.setUomCode(satUOM.getStrValue1());
+								}else {
+									invStatus = false;
+									msgError = msgError + ";UOMSAT-No existe la Unidad de Medida SAT -" + invLine.getUomName() + " en UDC";
+									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER UDC UOMSAT de la linea "+ invLine.getUomName() + ":" + inv.getFolio());
+								}
 								
 								//Serie y lote (Datos Opcionales)
 								if(line.getLotSerials() != null) {

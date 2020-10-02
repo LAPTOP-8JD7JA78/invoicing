@@ -56,4 +56,7 @@ public class AppConstants {
 	public static final String ORDER_TYPE_MAR = "MARINA";
 	//TIPO DE CAMBIO ESTANDAR
 	public static final double INVOICE_EXCHANGE_RATE= 1.00;
+	
+	//UDC
+	public static final String UDC_SYSTEM_UOMSAT = "UOMSAT";
 }
