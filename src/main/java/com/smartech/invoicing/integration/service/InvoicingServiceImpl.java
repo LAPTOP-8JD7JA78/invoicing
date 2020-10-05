@@ -25,11 +25,13 @@ import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.model.Branch;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
+import com.smartech.invoicing.model.NextNumber;
 import com.smartech.invoicing.model.TaxCodes;
 import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.BranchService;
 import com.smartech.invoicing.service.CompanyService;
 import com.smartech.invoicing.service.InvoiceService;
+import com.smartech.invoicing.service.NextNumberService;
 import com.smartech.invoicing.service.TaxCodesService;
 import com.smartech.invoicing.service.UdcService;
 import com.smartech.invoicing.util.NullValidator;
@@ -48,6 +50,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	BranchService branchService;
+	
+	@Autowired
+	NextNumberService nextNumberService;
 	
 	@Autowired
 	TaxCodesService taxCodesService;
@@ -457,10 +462,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 	@Override
 	public void updateStartInvoiceSOAPList() {
 		List<String> otList = new ArrayList<String>();
-		otList.add(AppConstants.STATUS_REPORTS_ING);
-		otList.add(AppConstants.STATUS_REPORTS_ESP);
-		otList.add("Credit Memo");
-		otList.add("Nota de Crédito");
+		otList.add(AppConstants.ORDER_TYPE_FACTURA);
+		otList.add(AppConstants.ORDER_TYPE_NC);
 		
 		List<String> sList = new ArrayList<String>();
 		sList.add(AppConstants.STATUS_START);
@@ -483,6 +486,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 						invStatus = false;
 						msgError = msgError + ";BRANCH-Error al obtener la sucursal";
 						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA SUCURSAL");
+					}
+					//Serie del NN
+					if(inv.getBranch() != null) {
+						NextNumber nn = nextNumberService.getNumber(inv.getInvoiceType(), inv.getBranch());
+						if(nn != null) {
+							inv.setSerial(nn.getSerie());
+						}else {
+							invStatus = false;
+							msgError = msgError + ";SERIAL-Error al obtener la serie de los NN";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA SERIE DE LOS NN");
+						}
+					}else {
+						invStatus = false;
+						msgError = msgError + ";SERIAL-Error al obtener la serie";
+						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA SERIE");
 					}
 					//Uso CFDI
 					if(so.getUsoCFDI() != null && !"".contains(so.getUsoCFDI())) {
@@ -601,10 +619,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 	@Override
 	public void getInvoicedListForUpdateUUID() {
 		List<String> otList = new ArrayList<String>();
-		otList.add(AppConstants.STATUS_REPORTS_ING);
-		otList.add(AppConstants.STATUS_REPORTS_ESP);
-		otList.add("Credit Memo");
-		otList.add("Nota de Crédito");
+		otList.add(AppConstants.ORDER_TYPE_FACTURA);
+		otList.add(AppConstants.ORDER_TYPE_NC);
 		
 		List<String> sList = new ArrayList<String>();
 		sList.add(AppConstants.STATUS_INVOICED);

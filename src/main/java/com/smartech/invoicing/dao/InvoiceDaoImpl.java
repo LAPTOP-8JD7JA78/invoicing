@@ -142,7 +142,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 				criteria.add(Restrictions.eq("status", status));
 			}
 			if(StringUtils.isNotBlank(orderType)) {
-				criteria.add(Restrictions.eq("orderType",orderType));
+				criteria.add(Restrictions.eq("invoiceType",orderType));
 			}			
 			criteria.addOrder(Order.desc("folio"));
 		}catch(Exception e) {
@@ -162,7 +162,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 				criteria.add(Restrictions.eq("status", status));
 			}
 			if(orderType != null && !orderType.isEmpty()) {
-				criteria.add(Restrictions.in("orderType",orderType));
+				criteria.add(Restrictions.in("invoiceType",orderType));
 			}			
 			criteria.addOrder(Order.desc("folio"));
 		}catch(Exception e) {
@@ -182,7 +182,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 				criteria.add(Restrictions.in("status", status));
 			}
 			if(orderType != null && !orderType.isEmpty()) {
-				criteria.add(Restrictions.in("orderType",orderType));
+				criteria.add(Restrictions.in("invoiceType",orderType));
 			}			
 			criteria.addOrder(Order.desc("folio"));
 		}catch(Exception e) {
