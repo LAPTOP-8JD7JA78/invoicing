@@ -18,4 +18,5 @@ public interface InvoiceDao {
 	List<Invoice> getInvoiceListByStatusCode(String status, String orderType);
 	List<Invoice> getInvoiceListByStatusCode(String status, List<String> orderType);
 	List<Invoice> getInvoiceListByStatusCode(List<String> status, List<String> orderType);
+	public Invoice getSingleInvoiceByFolioSerial(String folioSerial);
 }

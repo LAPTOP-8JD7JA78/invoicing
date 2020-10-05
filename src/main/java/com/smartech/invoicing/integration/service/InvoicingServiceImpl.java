@@ -66,7 +66,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean createStampInvoice(List<Row> r) {
 		try {
@@ -99,8 +98,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Datos de la unidad de negocio---------------------------------------------------------------------------
 					invoice.setCompany(companyService.getCompanyByName(inv.getBusisinesUnitName()));
 					invoice.setBranch(null);
-					invoice.setSerial(null);
-//					invoice.setSerial(NullValidator.isNull(invoice.getBranch().getInvOrganizationCode()));
 					
 					//Datos generales---------------------------------------------------------------------------------------
 					invoice.setSetName(inv.getSetName());
@@ -110,11 +107,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoice.setInvoiceDetails(null);
 					invoice.setStatus(AppConstants.STATUS_START);
 					invoice.setInvoice(true);
+					invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 					if(!inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ESP)//Es nota de credito
 						&& !inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ING)) {
 						invoice.setInvoice(false);
 						invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
-						
+						invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
 					}
 					invoice.setInvoiceCurrency(inv.getCurrency());
 					if(inv.getExchangeRate().isEmpty()) {

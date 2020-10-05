@@ -5,10 +5,13 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.transform.Transformers;
+import org.hibernate.type.IntegerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -187,5 +190,32 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}
 		
 		return criteria.list();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Invoice getSingleInvoiceByFolioSerial(String folio) {
+		SQLQuery query;
+		String sql;
+		Session session = sessionFactory.getCurrentSession();	
+		try {
+			sql = "SELECT * FROM invoice where concat_ws('', serial, folio) = '" + folio + "'";
+			query = session.createSQLQuery(sql);
+			query.setResultTransformer(Transformers.aliasToBean(Invoice.class));
+			query.addScalar("id", new IntegerType());
+			List<Invoice> invL = query.list();
+			if(!invL.isEmpty()) {
+				return invL.get(0);
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		/*Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Invoice.class);	
+		criteria.add(Restrictions.eq("folio", folio));	
+		List<Invoice> list =  criteria.list();
+		if(!list.isEmpty()){
+			return list.get(0);
+		}	*/	
+		return null;
 	}
 }

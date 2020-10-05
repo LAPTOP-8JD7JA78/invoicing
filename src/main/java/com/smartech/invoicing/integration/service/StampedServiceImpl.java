@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -348,6 +349,7 @@ public class StampedServiceImpl implements StampedService{
 		String filePathSuccess = "";
 		String fileName = "";
 		String contentFile = "";
+		String c = "";
 		try{
 			//Ruta donde estan guardados los archivos timbrados
 			List<Udc> success = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
@@ -363,18 +365,58 @@ public class StampedServiceImpl implements StampedService{
 			if(f.isDirectory()) {
 				File[] resFiles = f.listFiles();
 				for(File file: resFiles) {
+					String[] content = new String[3];
 					fileName = file.getName().substring(0, file.getName().length()-4);
 					BufferedReader objReader = new BufferedReader(new FileReader(file));  
-		            while ((contentFile = objReader.readLine()) != null) {    
-		                System.out.println(contentFile);  
+		            while ((contentFile = objReader.readLine()) != null) {
+		                c = contentFile;
 		            }
-					System.out.println(file.getName());
+		            content = c.split(Pattern.quote("|"));
+		            objReader.close();
+		            //Pasar el archivo a otra carpeta
+		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+					FileWriter fw = new FileWriter(newArrive);
+		            BufferedWriter bw = new BufferedWriter(fw);
+		            bw.write(c);
+		            bw.close();	  
+		            fw.close();
+		            if(file.exists()) {
+		            	if(file.delete()){
+		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
+			            }
+			            else {
+			            	log.info("El fichero" + file.getName() + " no ha sido borrado");
+			            }
+		            }	
+		            Invoice inv = new Invoice();
+		            //Modificar valor cuando se setean los nextNumbersCorrespondientes y se tengan los archivos reales
+		            fileName = "MEFAC10001";
+		            Invoice getId = invoiceDao.getSingleInvoiceByFolioSerial(fileName);
+		            if(getId != null) {
+			            inv = invoiceDao.getSingleInvoiceById(getId.getId());
+			            if(inv != null) {
+			            	if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
+			            		inv.setUUID(content[1]);
+			            		inv.setErrorMsg("");
+			            		if(invoiceDao.updateInvoice(inv)) {
+			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
+			            		}else {
+			            			log.info("No se actualizo la factura: " + file.getName());
+			            		}
+			            	}else {
+			            		inv.setUUID("");
+			            		inv.setErrorMsg(content[1].substring(0, 250));
+			            		if(invoiceDao.updateInvoice(inv)) {
+			            			log.info("Se obtuvo el error en la factura " + file.getName());
+			            		}else {
+			            			log.info("No se actualizo el la factura, update: " + file.getName());
+			            		}
+			            	}
+			            }
+		            }
+		            
 				}
 			}
-			/*for(String fi: files) {
-				
-				fi.getBytes();
-			}*/
 			return true;
 		}catch(Exception e) {
 			e.printStackTrace();

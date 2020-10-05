@@ -17,5 +17,6 @@ public class AppConstantsUtil {
 	public static final String TAX_CODE = "002";
 	public static final String FILE_RESPONSE = "RESPONSE";
 	public static final String FILE_SUCCESS = "SUCCESS";
+	public static final String[] STAMPED_CODES = {"100", "200", "300", "400"};
 	
 }
