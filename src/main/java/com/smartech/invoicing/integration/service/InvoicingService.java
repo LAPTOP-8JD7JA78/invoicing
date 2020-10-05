@@ -8,4 +8,5 @@ public interface InvoicingService {
 	boolean createStampInvoice(List<Row> r);
 	void updateStartInvoiceList();
 	void updateStartInvoiceSOAPList();
+	void getInvoicedListForUpdateUUID();
 }

@@ -599,4 +599,34 @@ public class InvoicingServiceImpl implements InvoicingService{
 			}
 		}
 	}
+
+	@Override
+	public void getInvoicedListForUpdateUUID() {
+		List<String> otList = new ArrayList<String>();
+		otList.add(AppConstants.STATUS_REPORTS_ING);
+		otList.add(AppConstants.STATUS_REPORTS_ESP);
+		otList.add("Credit Memo");
+		otList.add("Nota de Crédito");
+		
+		List<String> sList = new ArrayList<String>();
+		sList.add(AppConstants.STATUS_INVOICED);
+		
+		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);		
+		if(invoiceList != null && ! invoiceList.isEmpty()) {
+			for(Invoice inv: invoiceList) {
+				if(inv.getCompany() != null) {
+					if(inv.getCompany().isFusionCloud()) {
+						inv = soapService.updateUUIDToOracleERP(inv);
+					}else {
+						inv.setStatus(AppConstants.STATUS_FINISHED);
+						inv.setUpdatedBy("SYSTEM");
+						inv.setUpdatedDate(new Date());
+					}
+					invoiceDao.updateInvoice(inv);
+				}else {
+					log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA COMPAÑIA");
+				}
+			}
+		}
+	}
 }

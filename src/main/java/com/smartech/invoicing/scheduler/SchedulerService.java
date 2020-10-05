@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -135,5 +136,17 @@ public class SchedulerService {
 			log.warn("READ DATA PAC: ERROR WHEN READ DATA FROM PAC");
 		}
 		log.info("\'readDataPac\': is finished********");
+	}
+	
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	public void updateUUIDOracleERP() {
+		log.info("\'updateUUIDOracleERP\' is started*******");
+		try {
+			invoicingService.getInvoicedListForUpdateUUID();
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR DURANTE EL PROCESO DE \'updateUUIDOracleERP\'-----------------------------", e);
+		}
+		log.info("\'updateUUIDOracleERP\': is finished********");
 	}
 }

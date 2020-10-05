@@ -115,7 +115,7 @@ public class SOAPServiceImpl implements SOAPService {
 			if((inv.getUUID() != null && !"".contains(inv.getUUID())) && (inv.getSerial() != null && !"".contains(inv.getSerial())) 
 					&& (inv.getFolio() != null && !"".contains(inv.getFolio()))) {
 				try {
-					Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_ITEMSV2, 
+					Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
 																		PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getUUID(), inv.getSerial(), inv.getFolio(), "", ""), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
 					String strResponse1 = (String) request1.get("response");
 					int codeResponse1 = (int) request1.get("code");
@@ -128,20 +128,23 @@ public class SOAPServiceImpl implements SOAPService {
 							jobject = jelement.getAsJsonObject();
 							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
 								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
-										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("ns2:result")) {
+										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
 									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
-											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("ns2:result").getAsJsonObject();
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
 									
 									if(!result.isJsonNull()) {
-										if(result.getAsInt() == 1) {
+										if(result.get("content").getAsInt() == 1) {
 											inv.setStatus(AppConstants.STATUS_FINISHED);
 											inv.setUpdatedDate(new Date());
+											inv.setUpdatedBy("SYSTEM");
 										}else {
 											log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
 										}
 									}
 								}
 																 
+							}else {
+								log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
 							}
 						}
 					}
@@ -149,6 +152,8 @@ public class SOAPServiceImpl implements SOAPService {
 					e.printStackTrace();
 					log.error("ERROR AL EJECUTAR WS DE ERPDDF - updateUUIDToOracleERP***************************", e);
 				}
+			}else {
+				log.warn("LA FACTURA" + inv.getFolio() + " - " + inv.getOrderType() + " NO CUENTA CON UUID, SERIE O FOLI0 - updateUUIDToOracleERP***************************");
 			}
 		}
 		return inv;
