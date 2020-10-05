@@ -1,5 +1,6 @@
 package com.smartech.invoicing.integration.service;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,6 +71,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
+	DecimalFormat df = new DecimalFormat("#.00");
 	
 	@Override
 	public boolean createStampInvoice(List<Row> r) {
@@ -158,27 +160,27 @@ public class InvoicingServiceImpl implements InvoicingService{
 						if(in.getExchangeRate().isEmpty()) {
 							invDetails.setExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
 						}else {
-							invDetails.setExchangeRate(Double.parseDouble(in.getExchangeRate()));
+							invDetails.setExchangeRate(Double.parseDouble(df.format(Double.parseDouble(in.getExchangeRate()))));
 						}
 						if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) > 0) {
-							invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())));
+							invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
 							invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
 						}else {
-							invDetails.setUnitPrice(Math.abs(Double.parseDouble(in.getTransactionLineUnitSellingPrice())));
+							invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
 							invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
 						}
 						
 						invDetails.setTransactionLineNumber(in.getTransactionLineNumber());
 						if(i.isInvoice()) {
-							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(in.getQuantityInvoiced())));
+							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getQuantityInvoiced())))));
 						}else {
-							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(in.getQuantityCredited())));
+							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getQuantityCredited())))));
 						}
 						invDetails.setUomName(in.getUomCode());
 						if(in.getTaxRecoverableAmount().isEmpty()) {
 							invDetails.setTotalTaxAmount(0.00);
 						}else {
-							invDetails.setTotalTaxAmount(NullValidator.isNull(Double.parseDouble(in.getTaxRecoverableAmount())));
+							invDetails.setTotalTaxAmount(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTaxRecoverableAmount())))));
 						}						
 						invDetails.setTotalAmount(invDetails.getQuantity()*invDetails.getUnitPrice());
 						
