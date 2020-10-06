@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
 import com.smartech.invoicing.dto.ItemsDTO;
+import com.smartech.invoicing.dto.RESTInvoiceRespDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
 import com.smartech.invoicing.dto.SalesOrderLinesDTO;
@@ -544,7 +545,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//SI ES NC
 					if(!inv.isInvoice()) {
 						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber());
-						if(invRef != null) {
+						if(invRef != null && (invRef.getUUID() != null && !"".contains(invRef.getUUID()))) {
 							inv.setUUIDReference(invRef.getUUID());
 						}else {
 							invStatus = false;
@@ -665,8 +666,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
-//	@Override
-//	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
-//		return null;
-//	}
+	@Override
+	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
+		return null;
+	}
 }
