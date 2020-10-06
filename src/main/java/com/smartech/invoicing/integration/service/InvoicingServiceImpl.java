@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
 import com.smartech.invoicing.dto.ItemsDTO;
-import com.smartech.invoicing.dto.RESTInvoiceRespDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
 import com.smartech.invoicing.dto.SalesOrderLinesDTO;
@@ -175,7 +174,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}							
 						}else if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_NC)) {
 							if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) < 0) {
-								invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
+								invDetails.setUnitPrice(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice()))))));
 								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
 							}else {
 								invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
@@ -193,7 +192,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						if(in.getTaxRecoverableAmount().isEmpty()) {
 							invDetails.setTotalTaxAmount(0.00);
 						}else {
-							invDetails.setTotalTaxAmount(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTaxRecoverableAmount())))));
+							invDetails.setTotalTaxAmount(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTaxRecoverableAmount()))))));
 						}						
 						invDetails.setTotalAmount(invDetails.getQuantity()*invDetails.getUnitPrice());
 						
@@ -219,7 +218,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}					
 				}
 				//Valida si hay descuentos
-				if(disc > 0 && i.isInvoice()) {
+				if(disc > 0) {
 					i.setInvoiceDetails(this.getDiscount(invDListNormal, invDListDiscount));
 				}else {
 					i.setInvoiceDetails(invDListNormal);
@@ -312,7 +311,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							iD.getQuantity() == iN.getQuantity()) {
 						total = Math.abs(iN.getTotalAmount()) - Math.abs(iD.getTotalAmount());
 						tax = Math.abs(iN.getTotalTaxAmount()) - Math.abs(iD.getTotalTaxAmount());
-						unitPrice = iN.getUnitPrice() - iD.getUnitPrice();
+						unitPrice = Math.abs(iN.getUnitPrice()) - Math.abs(iD.getUnitPrice());
 						disc = iD.getTotalAmount();
 						
 						iN.setTotalAmount(total);
@@ -666,8 +665,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
-	@Override
-	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
-		return null;
-	}
+//	@Override
+//	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
+//		return null;
+//	}
 }
