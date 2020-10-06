@@ -240,7 +240,7 @@ public class SOAPServiceImpl implements SOAPService {
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
 												if(oeLine.getAsJsonObject().get("ns0:LineLotSerial").isJsonArray()) {
-													JsonArray jaSerLots = json.get("ns0:LineLotSerial").getAsJsonArray();
+													JsonArray jaSerLots = oeLine.getAsJsonObject().get("ns0:LineLotSerial").getAsJsonArray();
 													for(int j = 0; j < jaSerLots.size(); j++) {
 														JsonElement oeSerLot = jaSerLots.get(j).getAsJsonObject();
 														SalesLineLotSerDTO soSerLot = new SalesLineLotSerDTO();
@@ -251,7 +251,7 @@ public class SOAPServiceImpl implements SOAPService {
 														lotSerialsList.add(soSerLot);
 													}
 												}else {
-													JsonElement jaSerLots = json.get("ns0:LineLotSerial").getAsJsonObject();
+													JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineLotSerial").getAsJsonObject();
 													SalesLineLotSerDTO soSerLot = new SalesLineLotSerDTO();
 													soSerLot.setLotNumber(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:LotNumber").toString()));
 													soSerLot.setSerialNumberFrom(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:SerialNumberFrom").toString()));
@@ -285,7 +285,7 @@ public class SOAPServiceImpl implements SOAPService {
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
 											if(oeLine.getAsJsonObject().get("ns0:LineLotSerial").isJsonArray()) {
-												JsonArray jaSerLots = json.get("ns0:LineLotSerial").getAsJsonArray();
+												JsonArray jaSerLots = oeLine.getAsJsonObject().get("ns0:LineLotSerial").getAsJsonArray();
 												for(int j = 0; j < jaSerLots.size(); j++) {
 													JsonElement oeSerLot = jaSerLots.get(j).getAsJsonObject();
 													SalesLineLotSerDTO soSerLot = new SalesLineLotSerDTO();
@@ -296,7 +296,7 @@ public class SOAPServiceImpl implements SOAPService {
 													lotSerialsList.add(soSerLot);
 												}
 											}else {
-												JsonElement jaSerLots = json.get("ns0:LineLotSerial").getAsJsonObject();
+												JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineLotSerial").getAsJsonObject();
 												SalesLineLotSerDTO soSerLot = new SalesLineLotSerDTO();
 												soSerLot.setLotNumber(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:LotNumber").toString()));
 												soSerLot.setSerialNumberFrom(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:SerialNumberFrom").toString()));
@@ -370,7 +370,7 @@ public class SOAPServiceImpl implements SOAPService {
 														lotSerialsList.add(soSerLot);
 													}
 												}else {
-													JsonElement jaSerLots = json.get("ns0:LineLotSerial").getAsJsonObject();
+													JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineLotSerial").getAsJsonObject();
 													SalesLineLotSerDTO soSerLot = new SalesLineLotSerDTO();
 													soSerLot.setLotNumber(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:LotNumber").toString()));
 													soSerLot.setSerialNumberFrom(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:SerialNumberFrom").toString()));
@@ -413,7 +413,7 @@ public class SOAPServiceImpl implements SOAPService {
 													lotSerialsList.add(soSerLot);
 												}
 											}else {
-												JsonElement jaSerLots = json.get("ns0:LineLotSerial").getAsJsonObject();
+												JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineLotSerial").getAsJsonObject();
 												SalesLineLotSerDTO soSerLot = new SalesLineLotSerDTO();
 												soSerLot.setLotNumber(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:LotNumber").toString()));
 												soSerLot.setSerialNumberFrom(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:SerialNumberFrom").toString()));
