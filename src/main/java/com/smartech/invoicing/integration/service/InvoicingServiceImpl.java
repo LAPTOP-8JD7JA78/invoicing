@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
 import com.smartech.invoicing.dto.ItemsDTO;
-import com.smartech.invoicing.dto.RESTInvoiceRespDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
 import com.smartech.invoicing.dto.SalesOrderLinesDTO;
@@ -122,6 +121,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						invoice.setInvoice(false);
 						invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
 						invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
+						invoice.setFromSalesOrder(inv.getPreviousSalesOrder());
 					}
 					invoice.setInvoiceCurrency(inv.getCurrency());
 					if(inv.getExchangeRate().isEmpty()) {
@@ -164,12 +164,22 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}else {
 							invDetails.setExchangeRate(Double.parseDouble(df.format(Double.parseDouble(in.getExchangeRate()))));
 						}
-						if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) > 0) {
-							invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
-							invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
-						}else {
-							invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
-							invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
+						if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_FACTURA)){
+							if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) > 0) {
+								invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
+								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+							}else {
+								invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
+								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
+							}							
+						}else if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_NC)) {
+							if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) < 0) {
+								invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
+								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+							}else {
+								invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
+								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
+							}	
 						}
 						
 						invDetails.setTransactionLineNumber(in.getTransactionLineNumber());
@@ -259,7 +269,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setTransactionNumber(NullValidator.isNull(r.getColumn9()));
 			invoice.setTransactionSource(NullValidator.isNull(r.getColumn10()));
 			invoice.setTransactionTypeName(NullValidator.isNull(r.getColumn11()));	
-			invoice.setSalesOrderNumber(NullValidator.isNull(r.getColumn12()));
+			invoice.setSalesOrderNumber(NullValidator.isNull(r.getColumn12()));	
 			invoice.setTransactionLineNumber(NullValidator.isNull(r.getColumn13()));
 			invoice.setUomCode(NullValidator.isNull(r.getColumn14()));
 			invoice.setTransactionLineUnitSellingPrice(NullValidator.isNull(r.getColumn15()));
@@ -279,6 +289,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setQuantityInvoiced(NullValidator.isNull(r.getColumn31()));
 			invoice.setTaxRecoverableAmount(NullValidator.isNull(r.getColumn32()));
 			invoice.setTransactionEnteredAmouny(NullValidator.isNull(r.getColumn33()));
+			invoice.setPreviousSalesOrder(NullValidator.isNull(r.getColumn34()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;
@@ -654,8 +665,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
-	@Override
-	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
-		return null;
-	}
+//	@Override
+//	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
+//		return null;
+//	}
 }

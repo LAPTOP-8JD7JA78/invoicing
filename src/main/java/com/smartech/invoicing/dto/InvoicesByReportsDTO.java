@@ -33,6 +33,7 @@ public class InvoicesByReportsDTO {
 	private String setName;
 	private String currency;
 	private String exchangeRate;
+	private String previousSalesOrder;
 	
 	public String getCustomerName() {
 		return customerName;
@@ -227,6 +228,12 @@ public class InvoicesByReportsDTO {
 	}
 	public void setExchangeRate(String exchangeRate) {
 		this.exchangeRate = exchangeRate;
+	}
+	public String getPreviousSalesOrder() {
+		return previousSalesOrder;
+	}
+	public void setPreviousSalesOrder(String previousSalesOrder) {
+		this.previousSalesOrder = previousSalesOrder;
 	}
 	
 }

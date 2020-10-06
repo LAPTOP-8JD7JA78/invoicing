@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dao.InvoiceDao;
+import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.model.TaxCodes;
@@ -390,7 +391,7 @@ public class StampedServiceImpl implements StampedService{
 		            }	
 		            Invoice inv = new Invoice();
 		            //Modificar valor cuando se setean los nextNumbersCorrespondientes y se tengan los archivos reales
-		            fileName = "MEFAC10001";
+		            //fileName = "MEFAC10001";
 		            Invoice getId = invoiceDao.getSingleInvoiceByFolioSerial(fileName);
 		            if(getId != null) {
 			            inv = invoiceDao.getSingleInvoiceById(getId.getId());
@@ -398,6 +399,7 @@ public class StampedServiceImpl implements StampedService{
 			            	if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
 			            		inv.setUUID(content[1]);
 			            		inv.setErrorMsg("");
+			            		inv.setStatus(AppConstants.STATUS_INVOICED);
 			            		if(invoiceDao.updateInvoice(inv)) {
 			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
 			            		}else {
@@ -406,6 +408,7 @@ public class StampedServiceImpl implements StampedService{
 			            	}else {
 			            		inv.setUUID("");
 			            		inv.setErrorMsg(content[1].substring(0, 250));
+			            		inv.setStatus(AppConstants.STATUS_ERROR_PAC);
 			            		if(invoiceDao.updateInvoice(inv)) {
 			            			log.info("Se obtuvo el error en la factura " + file.getName());
 			            		}else {
