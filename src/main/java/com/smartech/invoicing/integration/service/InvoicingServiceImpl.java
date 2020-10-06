@@ -532,7 +532,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//SI ES NC
 					if(!inv.isInvoice()) {
-						Invoice invRef = invoiceDao.getSingleInvoiceById(inv.getId());
+						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber());
 						if(invRef != null) {
 							inv.setUUIDReference(invRef.getUUID());
 						}else {
