@@ -6,6 +6,7 @@ public class ItemsDTO {
 
 	private String itemNumber;
 	private String itemDescription;
+	private String itemDFFClavProdServ;
 	private List<CategoryDTO> itemCategory;
 	
 	public String getItemNumber() {
@@ -25,5 +26,11 @@ public class ItemsDTO {
 	}
 	public void setItemCategory(List<CategoryDTO> itemCategory) {
 		this.itemCategory = itemCategory;
+	}
+	public String getItemDFFClavProdServ() {
+		return itemDFFClavProdServ;
+	}
+	public void setItemDFFClavProdServ(String itemDFFClavProdServ) {
+		this.itemDFFClavProdServ = itemDFFClavProdServ;
 	}
 }

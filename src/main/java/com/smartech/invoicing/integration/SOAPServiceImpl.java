@@ -91,6 +91,10 @@ public class SOAPServiceImpl implements SOAPService {
 										}
 										item.setItemCategory(catList);
 									}
+									Udc udcFlex = udcService.searchBySystemAndKey("XMLFLEX", "PRODFLEX");
+									if(result.has("ns1:ItemDFF") && udcFlex != null){
+										item.setItemDFFClavProdServ(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "codigoSat").toString()));
+									}
 								}
 							}
 															 

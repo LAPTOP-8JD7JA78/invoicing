@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
+import com.smartech.invoicing.dto.ItemsDTO;
+import com.smartech.invoicing.dto.RESTInvoiceRespDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
 import com.smartech.invoicing.dto.SalesOrderLinesDTO;
@@ -549,8 +551,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 									&& line.getOrderedUOMCode().contains(invLine.getUomName()) && "CLOSED".contains(line.getStatusCode())) {
 								count++;
 								//Clave ProdSer
-								//obtener
-								invLine.setUnitProdServ("25111802");
+								ItemsDTO itemSat = soapService.getItemDataByItemNumberOrgCode(line.getProductNumber(), AppConstants.ORACLE_ITEMMASTER);
+								if(itemSat != null && itemSat.getItemDFFClavProdServ() != null && !"".contains(itemSat.getItemDFFClavProdServ())) {
+									invLine.setUnitProdServ(itemSat.getItemDFFClavProdServ());
+								}else {
+									invStatus = false;
+									msgError = msgError + ";PRODSERVSAT-No existe la Clave ProdServ SAT -" + invLine.getUomName() + " en ItemMaster";
+									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER CLAVPRODSER de la linea "+ invLine.getUomName() + ":" + inv.getFolio());
+								}
 								
 								Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, invLine.getUomName());
 								if(satUOM != null) {
@@ -644,5 +652,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 				}
 			}
 		}
+	}
+
+	@Override
+	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
+		return null;
 	}
 }

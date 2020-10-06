@@ -96,22 +96,23 @@ public class PayloadProducer {
 								"</typ1:filter>" + 
 								"<typ1:findAttribute>ItemNumber</typ1:findAttribute>" + 
 								"<typ1:findAttribute>ItemDescription</typ1:findAttribute>" + 
-								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
-								"<typ1:childFindCriteria>" + 
-									"<typ1:filter>" + 
-										"<typ1:group>" + 
-											"<typ1:item>" + 
-												"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
-												"<typ1:attribute>ItemCatalog</typ1:attribute>" + 
-												"<typ1:operator>=</typ1:operator>" + 
-												"<typ1:value>IMEMSA_CATALOGO</typ1:value>" + 
-											"</typ1:item>" + 
-										"</typ1:group>" + 
-									"</typ1:filter>" + 
-									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
-									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
-									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
-								"</typ1:childFindCriteria>" + 
+								"<typ1:findAttribute>ItemDFF</typ1:findAttribute>" +
+//								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
+//								"<typ1:childFindCriteria>" + 
+//									"<typ1:filter>" + 
+//										"<typ1:group>" + 
+//											"<typ1:item>" + 
+//												"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
+//												"<typ1:attribute>ItemCatalog</typ1:attribute>" + 
+//												"<typ1:operator>=</typ1:operator>" + 
+//												"<typ1:value>IMEMSA_CATALOGO</typ1:value>" + 
+//											"</typ1:item>" + 
+//										"</typ1:group>" + 
+//									"</typ1:filter>" + 
+//									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
+//									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
+//									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
+//								"</typ1:childFindCriteria>" + 
 							"</typ:findCriteria>" + 
 						"</typ:findItem>" + 
 					"</soapenv:Body>" + 
