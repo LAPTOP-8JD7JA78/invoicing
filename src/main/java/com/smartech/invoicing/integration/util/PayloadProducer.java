@@ -218,6 +218,7 @@ public class PayloadProducer {
 						"<typ:GetOrderDetails>" + 
 							"<typ:Order>" + 
 								"<ord:SourceTransactionNumber>" + so + "</ord:SourceTransactionNumber>" + 
+								"<ord:ExcludeAttachments>N</ord:ExcludeAttachments>" +
 							"</typ:Order>" + 
 						"</typ:GetOrderDetails>" + 
 					"</soapenv:Body>" + 

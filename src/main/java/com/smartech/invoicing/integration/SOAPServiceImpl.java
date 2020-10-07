@@ -2,6 +2,7 @@ package com.smartech.invoicing.integration;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -262,6 +263,40 @@ public class SOAPServiceImpl implements SOAPService {
 												soLine.setLotSerials(lotSerialsList);
 											}
 											
+											if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
+												JsonObject jaLineAtt = oeLine.getAsJsonObject().get("ns0:LineAttachment").getAsJsonObject();
+												if(jaLineAtt.isJsonArray()) {
+													JsonArray attList = jaLineAtt.getAsJsonArray();
+													for(int a = 0; a < attList.size(); a++) {
+														String att = attList.get(a).getAsJsonObject().get("ns0:Data").getAsString();
+														if(att != null && !"".contains(att)) {
+															try {
+																String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+																soLine.setAdditionalInformation(attDecode);
+															}catch(Exception e) {
+																e.printStackTrace();
+																log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+															}
+														}else {
+															log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+														}
+													}
+												}else {
+													String att = jaLineAtt.getAsJsonObject().get("ns0:Data").getAsString();
+													if(att != null && !"".contains(att)) {
+														try {
+															String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+															soLine.setAdditionalInformation(attDecode);
+														}catch(Exception e) {
+															e.printStackTrace();
+															log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+														}
+													}else {
+														log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+													}
+												}
+											}
+											
 											soLines.add(soLine);
 										}
 									}else {
@@ -305,6 +340,40 @@ public class SOAPServiceImpl implements SOAPService {
 												lotSerialsList.add(soSerLot);
 											}
 											soLine.setLotSerials(lotSerialsList);
+										}
+										
+										if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
+											JsonObject jaLineAtt = oeLine.getAsJsonObject().get("ns0:LineAttachment").getAsJsonObject();
+											if(jaLineAtt.isJsonArray()) {
+												JsonArray attList = jaLineAtt.getAsJsonArray();
+												for(int i = 0; i < attList.size(); i++) {
+													String att = attList.get(i).getAsJsonObject().get("ns0:Data").getAsString();
+													if(att != null && !"".contains(att)) {
+														try {
+															String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+															soLine.setAdditionalInformation(attDecode);
+														}catch(Exception e) {
+															e.printStackTrace();
+															log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+														}
+													}else {
+														log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+													}
+												}
+											}else {
+												String att = jaLineAtt.getAsJsonObject().get("ns0:Data").getAsString();
+												if(att != null && !"".contains(att)) {
+													try {
+														String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+														soLine.setAdditionalInformation(attDecode);
+													}catch(Exception e) {
+														e.printStackTrace();
+														log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+													}
+												}else {
+													log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+												}
+											}
 										}
 										
 										soLines.add(soLine);
@@ -381,6 +450,40 @@ public class SOAPServiceImpl implements SOAPService {
 												soLine.setLotSerials(lotSerialsList);
 											}
 											
+											if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
+												JsonObject jaLineAtt = oeLine.getAsJsonObject().get("ns0:LineAttachment").getAsJsonObject();
+												if(jaLineAtt.isJsonArray()) {
+													JsonArray attList = jaLineAtt.getAsJsonArray();
+													for(int a = 0; a < attList.size(); a++) {
+														String att = attList.get(a).getAsJsonObject().get("ns0:Data").getAsString();
+														if(att != null && !"".contains(att)) {
+															try {
+																String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+																soLine.setAdditionalInformation(attDecode);
+															}catch(Exception e) {
+																e.printStackTrace();
+																log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+															}
+														}else {
+															log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+														}
+													}
+												}else {
+													String att = jaLineAtt.getAsJsonObject().get("ns0:Data").getAsString();
+													if(att != null && !"".contains(att)) {
+														try {
+															String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+															soLine.setAdditionalInformation(attDecode);
+														}catch(Exception e) {
+															e.printStackTrace();
+															log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+														}
+													}else {
+														log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+													}
+												}
+											}
+											
 											soLines.add(soLine);
 										}
 									}else {
@@ -422,6 +525,40 @@ public class SOAPServiceImpl implements SOAPService {
 												lotSerialsList.add(soSerLot);
 											}
 											soLine.setLotSerials(lotSerialsList);
+										}
+										
+										if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
+											JsonObject jaLineAtt = oeLine.getAsJsonObject().get("ns0:LineAttachment").getAsJsonObject();
+											if(jaLineAtt.isJsonArray()) {
+												JsonArray attList = jaLineAtt.getAsJsonArray();
+												for(int i = 0; i < attList.size(); i++) {
+													String att = attList.get(i).getAsJsonObject().get("ns0:Data").getAsString();
+													if(att != null && !"".contains(att)) {
+														try {
+															String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+															soLine.setAdditionalInformation(attDecode);
+														}catch(Exception e) {
+															e.printStackTrace();
+															log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+														}
+													}else {
+														log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+													}
+												}
+											}else {
+												String att = jaLineAtt.getAsJsonObject().get("ns0:Data").getAsString();
+												if(att != null && !"".contains(att)) {
+													try {
+														String attDecode = new String(Base64.getMimeDecoder().decode(att), "UTF-8");
+														soLine.setAdditionalInformation(attDecode);
+													}catch(Exception e) {
+														e.printStackTrace();
+														log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber(),e);
+													}
+												}else {
+													log.warn("ERROR AL OBTENER EL ATTACHMENT DE LA LINEA " + soLine.getSourceTransactionLineNumber() + " DE LA ORDEN " + so.getOrderNumber());
+												}
+											}
 										}
 										
 										soLines.add(soLine);

@@ -9,6 +9,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
@@ -81,6 +82,10 @@ public class InvoiceDetails implements Serializable{
 	
 	@Column(name = "transactionLineNumber", nullable=true)
 	private String transactionLineNumber;
+	
+	@Lob
+	@Column(name = "addtionalDescription", nullable=true)
+	private String addtionalDescription;
 	
 	@ManyToMany(fetch=FetchType.EAGER)
 	private Set<TaxCodes> taxCodes;
@@ -253,5 +258,11 @@ public class InvoiceDetails implements Serializable{
 		this.taxCodes = taxCodes;
 	}
 
+	public String getAddtionalDescription() {
+		return addtionalDescription;
+	}
 
+	public void setAddtionalDescription(String addtionalDescription) {
+		this.addtionalDescription = addtionalDescription;
+	}
 }

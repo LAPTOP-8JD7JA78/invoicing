@@ -11,6 +11,7 @@ public class SalesOrderLinesDTO {
 	private String productDescription;
 	private String taxClassificationCode;
 	private String statusCode;
+	private String additionalInformation;
 	private List<SalesLineLotSerDTO> lotSerials;
 	
 	public String getSourceTransactionLineNumber() {
@@ -66,6 +67,12 @@ public class SalesOrderLinesDTO {
 	}
 	public void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
+	}
+	public String getAdditionalInformation() {
+		return additionalInformation;
+	}
+	public void setAdditionalInformation(String additionalInformation) {
+		this.additionalInformation = additionalInformation;
 	}
 	
 }

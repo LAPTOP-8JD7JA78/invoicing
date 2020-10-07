@@ -596,6 +596,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER UDC UOMSAT de la linea "+ invLine.getUomName() + ":" + inv.getFolio());
 								}
 								
+								if(line.getAdditionalInformation() != null && !"".contains(line.getAdditionalInformation())) {
+									invLine.setAddtionalDescription(line.getAdditionalInformation());
+								}
+								
 								//Serie y lote (Datos Opcionales)
 								if(line.getLotSerials() != null) {
 									String lots = "";
