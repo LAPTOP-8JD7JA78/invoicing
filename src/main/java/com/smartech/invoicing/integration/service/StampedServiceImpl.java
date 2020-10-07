@@ -47,6 +47,7 @@ public class StampedServiceImpl implements StampedService{
 		String voucherType = "";
 		String relationType = "";
 		String paymentTerms = "";
+		String UUIDRelated = "";
 		int n = 1;
 		try {
 			//Obtener ruta para dejar los archivos
@@ -67,9 +68,11 @@ public class StampedServiceImpl implements StampedService{
 			if(i.isInvoice()) {
 				voucherType = AppConstantsUtil.VOUCHER_I;
 				relationType = "";
+				UUIDRelated = "";
 			}else {
 				voucherType = AppConstantsUtil.VOUCHER_E;
 				relationType = i.getInvoiceRelationType();
+				UUIDRelated = i.getUUIDReference();
 			}
 			//Terminos de pago
 			if(i.getPaymentMethod().equals(AppConstantsUtil.PAYMENT_METHOD)) {
@@ -92,7 +95,8 @@ public class StampedServiceImpl implements StampedService{
 					i.getPaymentMethod() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
 					date + AppConstantsUtil.FILES_SEPARATOR +
-					i.getInvoiceDiscount() + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					//i.getInvoiceDiscount() + AppConstantsUtil.FILES_SEPARATOR +//Descuento
 					""  + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getZip() + AppConstantsUtil.FILES_SEPARATOR +
@@ -123,8 +127,8 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Total Con letra
 					i.getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +//40
 					"" + AppConstantsUtil.FILES_SEPARATOR +//orden de compra
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Número de copias
-					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
+					"1" + AppConstantsUtil.FILES_SEPARATOR +//Número de copias
+					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE ORDEN DE VENTA
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Número de cuenta del cliente
@@ -155,8 +159,8 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//66
 					"" + AppConstantsUtil.FILES_SEPARATOR +//67  */
 					relationType + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getUUIDReference()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getSerial()) + AppConstantsUtil.FILES_SEPARATOR +
+					UUIDRelated + AppConstantsUtil.FILES_SEPARATOR +
+					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//taxId Extranjero
 					i.getCFDIUse() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Notes					
@@ -234,8 +238,9 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +*/
-					idet.getTotalDiscount() + AppConstantsUtil.FILES_SEPARATOR +//28
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					idet.getTotalDiscount() + AppConstantsUtil.FILES_SEPARATOR +//28*/
+		        	"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Notes				
 					"\n";
 			return detail;
