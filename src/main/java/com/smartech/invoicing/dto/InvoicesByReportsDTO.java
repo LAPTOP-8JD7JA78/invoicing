@@ -34,6 +34,12 @@ public class InvoicesByReportsDTO {
 	private String currency;
 	private String exchangeRate;
 	private String previousSalesOrder;
+	private String shipToName;
+	private String shipToAddress;
+	private String shipToCity;
+	private String shipToCountry;
+	private String shipToZip;
+	private String shipToState;
 	
 	public String getCustomerName() {
 		return customerName;
@@ -234,6 +240,42 @@ public class InvoicesByReportsDTO {
 	}
 	public void setPreviousSalesOrder(String previousSalesOrder) {
 		this.previousSalesOrder = previousSalesOrder;
+	}
+	public String getShipToName() {
+		return shipToName;
+	}
+	public void setShipToName(String shipToName) {
+		this.shipToName = shipToName;
+	}
+	public String getShipToAddress() {
+		return shipToAddress;
+	}
+	public void setShipToAddress(String shipToAddress) {
+		this.shipToAddress = shipToAddress;
+	}
+	public String getShipToCity() {
+		return shipToCity;
+	}
+	public void setShipToCity(String shipToCity) {
+		this.shipToCity = shipToCity;
+	}
+	public String getShipToCountry() {
+		return shipToCountry;
+	}
+	public void setShipToCountry(String shipToCountry) {
+		this.shipToCountry = shipToCountry;
+	}
+	public String getShipToZip() {
+		return shipToZip;
+	}
+	public void setShipToZip(String shipToZip) {
+		this.shipToZip = shipToZip;
+	}
+	public String getShipToState() {
+		return shipToState;
+	}
+	public void setShipToState(String shipToState) {
+		this.shipToState = shipToState;
 	}
 	
 }

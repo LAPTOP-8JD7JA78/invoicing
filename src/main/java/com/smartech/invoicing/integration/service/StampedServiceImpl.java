@@ -110,13 +110,13 @@ public class StampedServiceImpl implements StampedService{
 					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCustomerTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 					""  + AppConstantsUtil.FILES_SEPARATOR +
-					i.getAddress1() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCustomerAddress1() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCustomerZip() + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getCity()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getState()) + AppConstantsUtil.FILES_SEPARATOR +
-					i.getCountry() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getCustomerCity()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getCustomerState()) + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCustomerCountry() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					i.getInvoiceCurrency() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getInvoiceExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
@@ -128,17 +128,17 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Número de cuenta del cliente
-					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getShipToName() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCustomerTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 					""  + AppConstantsUtil.FILES_SEPARATOR +
-					i.getAddress1() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					i.getCustomerZip() + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getCity()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getState()) + AppConstantsUtil.FILES_SEPARATOR +
-					i.getCountry() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR;//57
+					i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Interior Number
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Exterior Number
+					i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getShipToCity()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +
+					i.getShipToCountry() + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR;//Localidad-----57
 		            //Valores de los impuestos
 		            for(int h=0; h<impH.length; h++){
 		            	content = content + NullValidator.isNull(impH[h]) + "|";
@@ -374,21 +374,6 @@ public class StampedServiceImpl implements StampedService{
 		            }
 		            content = c.split(Pattern.quote("|"));
 		            objReader.close();
-		            //Pasar el archivo a otra carpeta
-		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
-					FileWriter fw = new FileWriter(newArrive);
-		            BufferedWriter bw = new BufferedWriter(fw);
-		            bw.write(c);
-		            bw.close();	  
-		            fw.close();
-		            if(file.exists()) {
-		            	if(file.delete()){
-		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
-			            }
-			            else {
-			            	log.info("El fichero" + file.getName() + " no ha sido borrado");
-			            }
-		            }	
 		            Invoice inv = new Invoice();
 		            //Modificar valor cuando se setean los nextNumbersCorrespondientes y se tengan los archivos reales
 		            //fileName = "MEFAC10001";
@@ -402,6 +387,21 @@ public class StampedServiceImpl implements StampedService{
 			            		inv.setStatus(AppConstants.STATUS_INVOICED);
 			            		if(invoiceDao.updateInvoice(inv)) {
 			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
+			    		            //Pasar el archivo a otra carpeta
+			    		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+			    					FileWriter fw = new FileWriter(newArrive);
+			    		            BufferedWriter bw = new BufferedWriter(fw);
+			    		            bw.write(c);
+			    		            bw.close();	  
+			    		            fw.close();
+			    		            if(file.exists()) {
+			    		            	if(file.delete()){
+			    		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
+			    			            }
+			    			            else {
+			    			            	log.info("El fichero" + file.getName() + " no ha sido borrado");
+			    			            }
+			    		            }	
 			            		}else {
 			            			log.info("No se actualizo la factura: " + file.getName());
 			            		}

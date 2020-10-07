@@ -38,26 +38,20 @@ public class Invoice implements Serializable{
 	@Column(name = "UUIDReference", nullable=true)
 	private String UUIDReference;
 	
-	@Column(name = "address1", nullable=true)
-	private String address1;
+	@Column(name = "customerAddress1", nullable=true)
+	private String customerAddress1;
 	
-	@Column(name = "address2", nullable=true)
-	private String address2;
+	@Column(name = "customerAddress2", nullable=true)
+	private String customerAddress2;
 	
-	@Column(name = "address3", nullable=true)
-	private String address3;
+	@Column(name = "customerCity", nullable=true)
+	private String customerCity;
 	
-	@Column(name = "address4", nullable=true)
-	private String address4;
+	@Column(name = "customerState", nullable=true)
+	private String customerState;
 	
-	@Column(name = "city", nullable=true)
-	private String city;
-	
-	@Column(name = "state", nullable=true)
-	private String state;
-	
-	@Column(name = "country", nullable=true)
-	private String country;
+	@Column(name = "customerCountry", nullable=true)
+	private String customerCountry;
 	
 	@Column(name = "createdBy", nullable=true)
 	private String createdBy;
@@ -68,6 +62,9 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "customerName", nullable=true)
 	private String customerName;
+	
+	@Column(name = "customerTaxIdentifier", nullable=true)
+	private String customerTaxIdentifier;
 	
 	@Column(name = "customerEmail", nullable=true)
 	private String customerEmail;
@@ -116,9 +113,6 @@ public class Invoice implements Serializable{
 	@Column(name = "errorMsg", nullable=true)
 	private String errorMsg;
 	
-	@Column(name = "customerTaxIdentifier", nullable=true)
-	private String customerTaxIdentifier;
-	
 	@Column(name = "invoiceReferenceTransactionNumber", nullable=true)
 	private String invoiceReferenceTransactionNumber;
 	
@@ -163,6 +157,24 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "invoiceRelationType", nullable=true)
 	private String invoiceRelationType;
+	
+	@Column(name = "shipToName", nullable=true)
+	private String shipToName;
+	
+	@Column(name = "shipToaddress", nullable=true)
+	private String shipToaddress;
+	
+	@Column(name = "shipToCity", nullable=true)
+	private String shipToCity;
+	
+	@Column(name = "shipToCountry", nullable=true)
+	private String shipToCountry;
+	
+	@Column(name = "shipToZip", nullable=true)
+	private String shipToZip;
+	
+	@Column(name = "shipToState", nullable=true)
+	private String shipToState;
 
 	public long getId() {
 		return id;
@@ -188,60 +200,44 @@ public class Invoice implements Serializable{
 		UUIDReference = uUIDReference;
 	}
 
-	public String getAddress1() {
-		return address1;
+	public String getCustomerAddress1() {
+		return customerAddress1;
 	}
 
-	public void setAddress1(String address1) {
-		this.address1 = address1;
+	public void setCustomerAddress1(String customerAddress1) {
+		this.customerAddress1 = customerAddress1;
 	}
 
-	public String getAddress2() {
-		return address2;
+	public String getCustomerAddress2() {
+		return customerAddress2;
 	}
 
-	public void setAddress2(String address2) {
-		this.address2 = address2;
+	public void setCustomerAddress2(String customerAddress2) {
+		this.customerAddress2 = customerAddress2;
 	}
 
-	public String getAddress3() {
-		return address3;
+	public String getCustomerCity() {
+		return customerCity;
 	}
 
-	public void setAddress3(String address3) {
-		this.address3 = address3;
+	public void setCustomerCity(String customerCity) {
+		this.customerCity = customerCity;
 	}
 
-	public String getAddress4() {
-		return address4;
+	public String getCustomerState() {
+		return customerState;
 	}
 
-	public void setAddress4(String address4) {
-		this.address4 = address4;
+	public void setCustomerState(String customerState) {
+		this.customerState = customerState;
 	}
 
-	public String getCity() {
-		return city;
+	public String getCustomerCountry() {
+		return customerCountry;
 	}
 
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getState() {
-		return state;
-	}
-
-	public void setState(String state) {
-		this.state = state;
-	}
-
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
+	public void setCustomerCountry(String customerCountry) {
+		this.customerCountry = customerCountry;
 	}
 
 	public String getCreatedBy() {
@@ -266,6 +262,14 @@ public class Invoice implements Serializable{
 
 	public void setCustomerName(String customerName) {
 		this.customerName = customerName;
+	}
+
+	public String getCustomerTaxIdentifier() {
+		return customerTaxIdentifier;
+	}
+
+	public void setCustomerTaxIdentifier(String customerTaxIdentifier) {
+		this.customerTaxIdentifier = customerTaxIdentifier;
 	}
 
 	public String getCustomerEmail() {
@@ -388,14 +392,6 @@ public class Invoice implements Serializable{
 		this.errorMsg = errorMsg;
 	}
 
-	public String getCustomerTaxIdentifier() {
-		return customerTaxIdentifier;
-	}
-
-	public void setCustomerTaxIdentifier(String customerTaxIdentifier) {
-		this.customerTaxIdentifier = customerTaxIdentifier;
-	}
-
 	public String getInvoiceReferenceTransactionNumber() {
 		return invoiceReferenceTransactionNumber;
 	}
@@ -515,6 +511,53 @@ public class Invoice implements Serializable{
 	public void setInvoiceRelationType(String invoiceRelationType) {
 		this.invoiceRelationType = invoiceRelationType;
 	}
-		
+
+	public String getShipToName() {
+		return shipToName;
+	}
+
+	public void setShipToName(String shipToName) {
+		this.shipToName = shipToName;
+	}
+
+	public String getShipToaddress() {
+		return shipToaddress;
+	}
+
+	public void setShipToaddress(String shipToaddress) {
+		this.shipToaddress = shipToaddress;
+	}
+
+	public String getShipToCity() {
+		return shipToCity;
+	}
+
+	public void setShipToCity(String shipToCity) {
+		this.shipToCity = shipToCity;
+	}
+
+	public String getShipToCountry() {
+		return shipToCountry;
+	}
+
+	public void setShipToCountry(String shipToCountry) {
+		this.shipToCountry = shipToCountry;
+	}
+
+	public String getShipToZip() {
+		return shipToZip;
+	}
+
+	public void setShipToZip(String shipToZip) {
+		this.shipToZip = shipToZip;
+	}
+
+	public String getShipToState() {
+		return shipToState;
+	}
+
+	public void setShipToState(String shipToState) {
+		this.shipToState = shipToState;
+	}
 }
 

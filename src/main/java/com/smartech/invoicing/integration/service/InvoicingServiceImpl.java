@@ -95,13 +95,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 			for(InvoicesByReportsDTO inv: invlist) {				
 				if(!arr.contains(inv.getTransactionNumber())) {
 					Invoice invoice = new Invoice();
-					//Datos del cliente---------------------------------------------------------------------------------------
+					//Datos del cliente facturacion---------------------------------------------------------------------------------------
 					invoice.setCustomerName(inv.getCustomerName());
 					invoice.setCustomerZip(inv.getCustomerPostalCode());
-					invoice.setAddress1(inv.getCustomerAddress1());
-					invoice.setCountry(inv.getCustomerCountry());
+					invoice.setCustomerAddress1(inv.getCustomerAddress1());
+					invoice.setCustomerCountry(inv.getCustomerCountry());
 					invoice.setCustomerTaxIdentifier(inv.getCustomerTaxIdentifier());
 					invoice.setCustomerEmail("llopez@smartech.com.mx");
+					
+					//Datos del cliente envío---------------------------------------------------------------------------------------
+					invoice.setShipToName(inv.getShipToName());
+					invoice.setShipToaddress(inv.getShipToAddress());
+					invoice.setShipToCity(inv.getShipToCity());
+					invoice.setShipToState(inv.getShipToState());
+					invoice.setShipToCountry(inv.getShipToCountry());
+					invoice.setShipToZip(inv.getShipToZip());
 					
 					//Datos de la unidad de negocio---------------------------------------------------------------------------
 					invoice.setCompany(companyService.getCompanyByName(inv.getBusisinesUnitName()));
@@ -257,6 +265,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 	public InvoicesByReportsDTO fullDTO (Row r) {
 		InvoicesByReportsDTO invoice = new InvoicesByReportsDTO();
 		try {
+			//Datos del cliente para facturación
 			invoice.setCustomerName(NullValidator.isNull(r.getColumn0()));
 			invoice.setCustomerNumber(NullValidator.isNull(r.getColumn1()));
 			invoice.setCustomerTaxIdentifier(NullValidator.isNull(r.getColumn2()));
@@ -290,6 +299,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setTaxRecoverableAmount(NullValidator.isNull(r.getColumn32()));
 			invoice.setTransactionEnteredAmouny(NullValidator.isNull(r.getColumn33()));
 			invoice.setPreviousSalesOrder(NullValidator.isNull(r.getColumn34()));
+			//Datos del cliente para envío
+			invoice.setShipToName(NullValidator.isNull(r.getColumn35()));
+			invoice.setShipToAddress(NullValidator.isNull(r.getColumn36()));
+			invoice.setShipToCity(NullValidator.isNull(r.getColumn37()));
+			invoice.setShipToCountry(NullValidator.isNull(r.getColumn38()));
+			invoice.setShipToZip(NullValidator.isNull(r.getColumn39()));
+			invoice.setShipToState(NullValidator.isNull(r.getColumn40()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;
