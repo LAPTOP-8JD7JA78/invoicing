@@ -95,11 +95,10 @@ public class StampedServiceImpl implements StampedService{
 					i.getPaymentMethod() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
 					date + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					//i.getInvoiceDiscount() + AppConstantsUtil.FILES_SEPARATOR +//Descuento
+					"" + AppConstantsUtil.FILES_SEPARATOR +//i.getInvoiceDiscount() + AppConstantsUtil.FILES_SEPARATOR +//Descuento
 					""  + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
-					i.getCompany().getZip() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getBranch().getZip() + AppConstantsUtil.FILES_SEPARATOR +//i.getCompany().getZip() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getCompany().getColony()) + AppConstantsUtil.FILES_SEPARATOR +
@@ -127,7 +126,7 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Total Con letra
 					i.getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +//40
 					"" + AppConstantsUtil.FILES_SEPARATOR +//orden de compra
-					"1" + AppConstantsUtil.FILES_SEPARATOR +//Número de copias
+					AppConstantsUtil.NUMBER_COPIES + AppConstantsUtil.FILES_SEPARATOR +//Número de copias
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE ORDEN DE VENTA
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
@@ -163,7 +162,11 @@ public class StampedServiceImpl implements StampedService{
 					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//taxId Extranjero
 					i.getCFDIUse() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Notes					
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Notes	
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +				
 					"\n";
 			//Lineas txt
 			for(InvoiceDetails id: i.getInvoiceDetails()) {
