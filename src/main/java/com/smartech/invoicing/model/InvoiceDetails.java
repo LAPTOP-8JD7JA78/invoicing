@@ -13,6 +13,9 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
+
 @Entity(name = "InvoiceDetails")
 @Table(name = "invoiceDetails")
 public class InvoiceDetails implements Serializable{
@@ -89,6 +92,31 @@ public class InvoiceDetails implements Serializable{
 	
 	@ManyToMany(fetch=FetchType.EAGER)
 	private Set<TaxCodes> taxCodes;
+	
+	@Column(name = "fraccionArancelaria", nullable=true)
+	private String fraccionArancelaria;
+	
+	@Column(name = "incotermKey", nullable=true)
+	private String incotermKey;
+	
+	@Column(name = "itemModel", nullable=true)
+	private String itemModel;
+	
+	@Column(name = "itemBrand", nullable=true)
+	private String itemBrand;
+	
+	@Column(name = "isImport", nullable=true)
+	private boolean isImport;
+	
+	@Column(name = "customskey", nullable=true)
+	private String customskey;
+	
+	@Column(name = "datePetition", nullable = true)
+	@DateTimeFormat(iso = ISO.DATE_TIME)
+	private String datePetition;
+	
+	@Column(name = "numberPetiton", nullable=true)
+	private String numberPetiton;
 
 	public long getId() {
 		return id;
@@ -265,4 +293,69 @@ public class InvoiceDetails implements Serializable{
 	public void setAddtionalDescription(String addtionalDescription) {
 		this.addtionalDescription = addtionalDescription;
 	}
+
+	public String getFraccionArancelaria() {
+		return fraccionArancelaria;
+	}
+
+	public void setFraccionArancelaria(String fraccionArancelaria) {
+		this.fraccionArancelaria = fraccionArancelaria;
+	}
+
+	public String getIncotermKey() {
+		return incotermKey;
+	}
+
+	public void setIncotermKey(String incotermKey) {
+		this.incotermKey = incotermKey;
+	}
+
+	public String getItemModel() {
+		return itemModel;
+	}
+
+	public void setItemModel(String itemModel) {
+		this.itemModel = itemModel;
+	}
+
+	public String getItemBrand() {
+		return itemBrand;
+	}
+
+	public void setItemBrand(String itemBrand) {
+		this.itemBrand = itemBrand;
+	}
+
+	public boolean isImport() {
+		return isImport;
+	}
+
+	public void setImport(boolean isImport) {
+		this.isImport = isImport;
+	}
+
+	public String getCustomskey() {
+		return customskey;
+	}
+
+	public void setCustomskey(String customskey) {
+		this.customskey = customskey;
+	}
+
+	public String getDatePetition() {
+		return datePetition;
+	}
+
+	public void setDatePetition(String datePetition) {
+		this.datePetition = datePetition;
+	}
+
+	public String getNumberPetiton() {
+		return numberPetiton;
+	}
+
+	public void setNumberPetiton(String numberPetiton) {
+		this.numberPetiton = numberPetiton;
+	}
+	
 }
