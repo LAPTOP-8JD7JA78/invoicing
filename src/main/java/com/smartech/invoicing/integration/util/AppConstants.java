@@ -61,4 +61,7 @@ public class AppConstants {
 	
 	//UDC
 	public static final String UDC_SYSTEM_UOMSAT = "UOMSAT";
+	public static final String UDC_SYSTEM_OPERATIONTYPE = "OPERATIONTYPE";
+	public static final String UDC_SYSTEM_PETITIONKEY = "PETITIONKEY";
+	public static final String UDC_STRVALUE1_DEFAULT = "DEFAULT";
 }

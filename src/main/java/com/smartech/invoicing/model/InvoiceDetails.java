@@ -117,6 +117,12 @@ public class InvoiceDetails implements Serializable{
 	
 	@Column(name = "numberPetiton", nullable=true)
 	private String numberPetiton;
+	
+	@Column(name = "itemUomCustoms", nullable=true)
+	private String itemUomCustoms;
+	
+	@Column(name = "itemNotes", nullable=true)
+	private String itemNotes;
 
 	public long getId() {
 		return id;
@@ -356,6 +362,22 @@ public class InvoiceDetails implements Serializable{
 
 	public void setNumberPetiton(String numberPetiton) {
 		this.numberPetiton = numberPetiton;
+	}
+
+	public String getItemUomCustoms() {
+		return itemUomCustoms;
+	}
+
+	public void setItemUomCustoms(String itemUomCustoms) {
+		this.itemUomCustoms = itemUomCustoms;
+	}
+
+	public String getItemNotes() {
+		return itemNotes;
+	}
+
+	public void setItemNotes(String itemNotes) {
+		this.itemNotes = itemNotes;
 	}
 	
 }
