@@ -95,6 +95,15 @@ public class SOAPServiceImpl implements SOAPService {
 									Udc udcFlex = udcService.searchBySystemAndKey("XMLFLEX", "PRODFLEX");
 									if(result.has("ns1:ItemDFF") && udcFlex != null){
 										item.setItemDFFClavProdServ(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "codigoSat").toString()));
+										//Comercio Exterior
+										item.setItemDFFFraccionArancelaria(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "fraccionArancelaria").toString()));
+										item.setItemDFFMarca(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "marca").toString()));
+										item.setItemDFFModelo(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "modelo").toString()));
+										//Importación
+										String isImported = NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "importacion").toString());
+										if(isImported != null && !"".contains(isImported) && "Si".contains(isImported)) {
+											item.setItemDFFIsImported(true);
+										}
 									}
 								}
 							}
