@@ -18,10 +18,7 @@ import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
 import com.smartech.invoicing.dto.SalesOrderLinesDTO;
-import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.SOAPService;
-import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
-import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.model.Branch;
@@ -37,6 +34,7 @@ import com.smartech.invoicing.service.NextNumberService;
 import com.smartech.invoicing.service.TaxCodesService;
 import com.smartech.invoicing.service.UdcService;
 import com.smartech.invoicing.util.NullValidator;
+import com.smartech.invoicing.util.StringUtils;
 
 @Service("invoicingService")
 public class InvoicingServiceImpl implements InvoicingService{
@@ -61,10 +59,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	InvoiceDao invoiceDao;
-	
-	@Autowired
-	RESTService restService;
-	
+		
 	@Autowired
 	SOAPService soapService;
 	
@@ -346,150 +341,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
-	
-	@Override
-	public void updateStartInvoiceList() {
-		List<String> otList = new ArrayList<String>();
-		otList.add(AppConstants.STATUS_REPORTS_ING);
-		otList.add(AppConstants.STATUS_REPORTS_ESP);
-		otList.add("Credit Memo");
-		otList.add("Nota de Crédito");
-		
-		List<String> sList = new ArrayList<String>();
-		sList.add(AppConstants.STATUS_START);
-		sList.add(AppConstants.STATUS_ERROR_DATA);
-		
-		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
-		if(invoiceList != null && !invoiceList.isEmpty()) {
-			for(Invoice inv : invoiceList) {
-				String msgError = "";
-				boolean invStatus = true;
-				//Obtención de Datos de OM
-				SalesOrder so = restService.getSalesOrderByOrderNumber(inv.getFromSalesOrder());
-				if(so != null && !so.getItems().isEmpty()) {
-					SalesOrderAI soai = restService.getAddInfoBySalesNumber(so);
-					if(soai != null && !soai.getItems().isEmpty()) {
-						//Proceso de llenado con los datos de OM
-						//CABECERO
-						Branch br = branchService.getBranchByCode(so.getItems().get(0).getRequestedFulfillmentOrganizationCode());
-						if(br != null) {
-							inv.setBranch(br);
-						}else {
-							invStatus = false;
-							msgError = msgError + ";BRANCH-Error al obtener la sucursal";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA SUCURSAL");
-						}
-						//Uso CFDI
-						if(!soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().isEmpty()) {
-							inv.setCFDIUse(soai.getItems().get(0).getHeaderEffBUSOCFDIprivateVO().get(0).getUsocfdi());
-						}else {
-							invStatus = false;
-							msgError = msgError + ";USOCFDI-Error al obtener el Uso CFDI";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL USO CFDI");
-						}
-						//Método de pago
-						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
-							inv.setPaymentMethod(soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().get(0).getMetodopago());
-						}else {
-							invStatus = false;
-							msgError = msgError + ";METODOPAGO-Error al obtener el Método de Pago";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL MÉTODO DE PAGO");
-						}
-						//Forma de pago
-						if(!soai.getItems().get(0).getHeaderEffBMETODOPAGOprivateVO().isEmpty()) {
-							inv.setPaymentType(soai.getItems().get(0).getHeaderEffBFORMAPAGOprivateVO().get(0).getFormapago());
-						}else {
-							invStatus = false;
-							msgError = msgError + ";FORMAPAGO-Error al obtener la Forma de Pago";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FORMA DE PAGO");
-						}
-						//SI ES NC
-						if(!inv.isInvoice()) {
-							Invoice invRef = invoiceDao.getSingleInvoiceById(inv.getId());
-							if(invRef != null) {
-								inv.setUUIDReference(invRef.getUUID());
-							}else {
-								invStatus = false;
-								msgError = msgError + ";DATOSREF-Error al obtener la Factura de referencia";
-								log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FACTURA DE REFEENCIA");
-							}
-						}
-						
-						int count = 0;
-						
-						//Revisar las lineas
-						for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
-							for(com.smartech.invoicing.integration.json.salesorder.Line line: so.getItems().get(0).getLines()) {
-								if(line.getProductNumber().contains(invLine.getItemNumber()) 
-										&& line.getOrderedQuantity().equals(invLine.getQuantity()) && line.getOrderedUOMCode().contains(invLine.getUomName())) {
-									count++;
-									//Clave ProdSer
-									//obtener
-									invLine.setUnitProdServ("25111802");
-									invLine.setUomCode("H87");
-									
-									//Serie y lote (Datos Opcionales)
-									if(!line.getLotSerials().isEmpty()) {
-										String lots = "";
-										String serials = "";
-										for(com.smartech.invoicing.integration.json.salesorder.LotSerials lotSer : line.getLotSerials()) {
-											if(lotSer.getLotNumber() != null && !"".contains(lotSer.getLotNumber())) {
-												lots = lots + invLine.getItemLot() + ",";
-											}
-											
-											if(lotSer.getItemSerialNumberFrom() != null && !"".contains(lotSer.getItemSerialNumberFrom())) {
-												if(lotSer.getItemSerialNumberFrom().contains(lotSer.getItemSerialNumberTo())) {
-													serials = serials + lotSer.getItemSerialNumberFrom() + ",";
-												}else {
-													serials = serials + lotSer.getItemSerialNumberFrom() + "-" + lotSer.getItemSerialNumberTo() + ",";
-												}
-											}
-										}
-										lots=lots!=""?lots.substring(0, lots.length() - 1):"";
-										serials=serials!=""?serials.substring(0, serials.length() - 1):"";
-										
-										invLine.setItemLot(lots);
-										invLine.setItemSerial(serials);
-									}
-									
-									break;
-								}
-							}
-						}
-						
-						if(count != inv.getInvoiceDetails().size()) {
-							invStatus = false;
-							msgError = msgError + ";OMSALESORDERLINES-Error al actualizar las lineas, puede que alguna falte información.";
-							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA INFO. DE LAS LINEAS DE LA ORDEN EN OM");
-						}
-					}else {
-						invStatus = false;
-						msgError = msgError + ";OMSALESORDER-AI-Error al obtener la inf. add. Order en OM (La factura puede no tener DFF asignados)";
-						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA INFO. ADI. ORDEN EN OM");
-					}
-				}else {
-					invStatus = false;
-					msgError = msgError + ";OMSALESORDER-Error al obtener la Order en OM (La factura puede no haberse cerrado)";
-					log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA ORDEN EN OM");
-				}
-				
-				if(invStatus) {
-					inv.setStatus(AppConstants.STATUS_PENDING);
-					inv.setUpdatedBy("SYSTEM");
-					inv.setUpdatedDate(new Date());
-					inv.setErrorMsg("");
-					invoiceDao.updateInvoice(inv);
-				}else {
-					inv.setStatus(AppConstants.STATUS_ERROR_DATA);
-					inv.setUpdatedBy("SYSTEM");
-					inv.setUpdatedDate(new Date());
-					inv.setErrorMsg(msgError);
-					invoiceDao.updateInvoice(inv);
-				}
-			}
-		}
-	}
-
 	@Override
 	public void updateStartInvoiceSOAPList() {
 		List<String> otList = new ArrayList<String>();
@@ -505,6 +356,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			for(Invoice inv : invoiceList) {
 				String msgError = "";
 				boolean invStatus = true;
+				boolean havePetition = false;
 				//Obtención de Datos de OM
 				SalesOrderDTO so = soapService.getSalesOrderInformation(inv.getFromSalesOrder());
 				if(so != null && !so.getLines().isEmpty()) {
@@ -577,19 +429,42 @@ public class InvoicingServiceImpl implements InvoicingService{
 							if(line.getProductNumber().contains(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
 									&& line.getOrderedUOMCode().contains(invLine.getUomName()) && "CLOSED".contains(line.getStatusCode())) {
 								count++;
-								//Clave ProdSer
-								ItemsDTO itemSat = soapService.getItemDataByItemNumberOrgCode(line.getProductNumber(), AppConstants.ORACLE_ITEMMASTER);
-								if(itemSat != null && itemSat.getItemDFFClavProdServ() != null && !"".contains(itemSat.getItemDFFClavProdServ())) {
-									invLine.setUnitProdServ(itemSat.getItemDFFClavProdServ());
+								//Item Master
+								ItemsDTO itemSat = soapService.getItemDataByItemNumberOrgCode(line.getProductNumber(), AppConstants.ORACLE_ITEMMASTER);							
+								if(itemSat != null) {
+									//Clave Producto Servicio
+									if(itemSat.getItemDFFClavProdServ() != null && !"".contains(itemSat.getItemDFFClavProdServ())) {
+										invLine.setUnitProdServ(itemSat.getItemDFFClavProdServ());
+									}else {
+										invStatus = false;
+										msgError = msgError + ";PRODSERVSAT-No existe la Clave ProdServ SAT -" + invLine.getItemNumber() + " en ItemMaster";
+										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER CLAVPRODSER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
+									}
+									
+									//Flexfield no Obligatorios
+									invLine.setFraccionArancelaria(itemSat.getItemDFFFraccionArancelaria());
+									invLine.setItemBrand(itemSat.getItemDFFMarca());
+									invLine.setItemModel(itemSat.getItemDFFModelo());
+									
+									//Importación
+									invLine.setImport(itemSat.isItemDFFIsImported());
+									if(invLine.isImport()) {
+										havePetition = true;
+										log.info("PARA LA ORDEN -" + inv.getFolio() + "El ITEM - " + invLine.getItemNumber() + " TIENE PEDIMENTOS");
+									}
+									
 								}else {
 									invStatus = false;
-									msgError = msgError + ";PRODSERVSAT-No existe la Clave ProdServ SAT -" + invLine.getUomName() + " en ItemMaster";
-									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER CLAVPRODSER de la linea "+ invLine.getUomName() + ":" + inv.getFolio());
+									msgError = msgError + ";ITEMMAST-Error al consultar los datos del IMA";
+									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LOS DATOS DEL ITEM MASTER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
 								}
 								
 								Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, invLine.getUomName());
-								if(satUOM != null) {
+								if(satUOM != null && satUOM.getStrValue1() != null && !"".contains(satUOM.getStrValue1())) {
+									//UOM del SAT
 									invLine.setUomCode(satUOM.getStrValue1());
+									//UOM de Aduana
+									invLine.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
 								}else {
 									invStatus = false;
 									msgError = msgError + ";UOMSAT-No existe la Unidad de Medida SAT -" + invLine.getUomName() + " en UDC";
@@ -613,7 +488,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 											if(lotSer.getSerialNumberFrom().contains(lotSer.getSerialNumberTo())) {
 												serials = serials + lotSer.getSerialNumberFrom() + ",";
 											}else {
-												serials = serials + lotSer.getSerialNumberFrom() + "-" + lotSer.getSerialNumberTo() + ",";
+												String serVar = StringUtils.getAllSerialsNumbersByRange(lotSer.getSerialNumberFrom(), lotSer.getSerialNumberTo());
+												serials = serials + NullValidator.isNull(serVar) + ",";
 											}
 										}
 									}
@@ -641,7 +517,11 @@ public class InvoicingServiceImpl implements InvoicingService{
 				}
 				
 				if(invStatus) {
-					inv.setStatus(AppConstants.STATUS_PENDING);
+					if(havePetition) {
+						inv.setStatus(AppConstants.STATUS_PETITIONDATA);
+					}else {
+						inv.setStatus(AppConstants.STATUS_PENDING);
+					}
 					inv.setUpdatedBy("SYSTEM");
 					inv.setUpdatedDate(new Date());
 					inv.setErrorMsg("");
@@ -685,8 +565,22 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
-//	@Override
-//	public List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i) {
-//		return null;
-//	}
+	@Override
+	public void updatePetitionInvoiceList() {
+		List<String> otList = new ArrayList<String>();
+		otList.add(AppConstants.ORDER_TYPE_FACTURA);
+		otList.add(AppConstants.ORDER_TYPE_NC);
+		
+		List<String> sList = new ArrayList<String>();
+		sList.add(AppConstants.STATUS_PETITIONDATA);
+		sList.add(AppConstants.STATUS_ERROR_PETITION);
+		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);	
+		if(invoiceList != null && !invoiceList.isEmpty()) {
+			for(Invoice inv: invoiceList) {
+				for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
+					
+				}
+			}
+		}
+	}
 }
