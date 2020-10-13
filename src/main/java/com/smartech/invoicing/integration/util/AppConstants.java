@@ -20,6 +20,7 @@ public class AppConstants {
 	//Servicios
 	public static final String SERVICE_TEST1 = "TEST1";
 	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
+	public static final String SERVICE_AR_REPORT_PAYMENTS = "AR_REPORT_PAYMENTS";
 	public static final String SERVICE_REST_TEST1 = "REST_TEST1";
 	public static final String SERVICE_SALES_ORDER_1 = "SALES_ORDER_1";
 	public static final String SERVICE_SALES_ORDER_AI_1 = "SALES_ORDER_AI_1";
@@ -54,7 +55,7 @@ public class AppConstants {
 	//TIPO DE ORDEN
 	public static final String ORDER_TYPE_FACTURA = "FACTURA";
 	public static final String ORDER_TYPE_NC = "NOTA CREDITO";
-	public static final String ORDER_TYPE_CPAGO = "COMPLEMENTO DE PAGO";
+	public static final String ORDER_TYPE_CPAGO = "COMPLEMENTO PAGO";
 	public static final String ORDER_TYPE_EXP = "EXPORTACION";
 	public static final String ORDER_TYPE_LIV = "LIVERPOOL";
 	public static final String ORDER_TYPE_MAR = "MARINA";

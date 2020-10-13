@@ -226,4 +226,9 @@ public class PayloadProducer {
 		
 		return SOAPRequest;
 	}
+	
+	public static String getArReportPayments(String sessionId, String date) {
+		String request = "";
+		return request;
+	}
 }

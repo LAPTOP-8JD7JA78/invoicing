@@ -20,14 +20,15 @@ public class NextNumberDaoImpl implements NextNumberDao{
 	@Autowired
 	SessionFactory sessionFactory;
 
+	@Override
 	@SuppressWarnings("unchecked")
-	public synchronized int getLastNumber(String OrderType, String Organization) {
+	public synchronized int getLastNumber(String OrderType, Branch Organization) {
 		 // TODO Auto-generated method stub
 		 Session session = this.sessionFactory.getCurrentSession();
 		 Criteria crit =  session.createCriteria(NextNumber.class);    
 	     crit.setProjection(Projections.max("Folio"));
 	     crit.add( Restrictions.eq("OrderType", OrderType));
-	     crit.add( Restrictions.eq("Organization", Organization));
+	     crit.add( Restrictions.eq("branch", Organization));
 	     List<Long> orders = crit.list(); 
 	     if(orders.get(0) != null) {
 	    	 try {
@@ -42,12 +43,13 @@ public class NextNumberDaoImpl implements NextNumberDao{
 	     }
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	public synchronized NextNumber getNumber(String OrderType, String Org) {
+	public synchronized NextNumber getNumberCon(String OrderType, Branch Org) {
 		Session session = this.sessionFactory.getCurrentSession();
 		 Criteria crit =  session.createCriteria(NextNumber.class); 
 	     crit.add( Restrictions.eq("OrderType", OrderType));
-	     crit.add( Restrictions.eq("Organization", Org));
+	     crit.add( Restrictions.eq("branch", Org));
 	     List<NextNumber> orders = crit.list(); 
 	     if(orders.get(0) != null) {
 	    	 try {

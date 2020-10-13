@@ -25,12 +25,14 @@ import com.smartech.invoicing.model.Branch;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.model.NextNumber;
+import com.smartech.invoicing.model.Payments;
 import com.smartech.invoicing.model.TaxCodes;
 import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.BranchService;
 import com.smartech.invoicing.service.CompanyService;
 import com.smartech.invoicing.service.InvoiceService;
 import com.smartech.invoicing.service.NextNumberService;
+import com.smartech.invoicing.service.PaymentsService;
 import com.smartech.invoicing.service.TaxCodesService;
 import com.smartech.invoicing.service.UdcService;
 import com.smartech.invoicing.util.NullValidator;
@@ -63,6 +65,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 	@Autowired
 	SOAPService soapService;
 	
+	@Autowired
+	PaymentsService paymentsService;
+	
 	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());
 	
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -72,7 +77,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 	@Override
 	public boolean createStampInvoice(List<Row> r) {
 		try {
-			//Llenado de objeto DTO de la respuesta del reporte
+			//Llenado de objeto DTO de la respuesta del reporte de facturas
 			List<String> arr = new ArrayList<String>();
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
 			List<Invoice> invList = new ArrayList<Invoice>();
@@ -109,6 +114,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Datos de la unidad de negocio---------------------------------------------------------------------------
 					invoice.setCompany(companyService.getCompanyByName(inv.getBusisinesUnitName()));
 					invoice.setBranch(null);
+					invoice.setPayments(null);
 					
 					//Datos generales---------------------------------------------------------------------------------------
 					invoice.setSetName(inv.getSetName());
@@ -582,5 +588,88 @@ public class InvoicingServiceImpl implements InvoicingService{
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean createStampedPayments(List<Row> r) {
+		try {
+			//Llenado de objeto DTO de la respuesta del reporte de pagos
+			List<String> arr = new ArrayList<String>();
+			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
+			List<Invoice> invList = new ArrayList<Invoice>();
+			for(Row ro: r) {
+				InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
+				invReports = fullPaymentsDTO(ro);
+				if(invReports != null) {
+//					System.out.println(invReports.getTransactionNumber());				
+					invlist.add(invReports);
+					
+				}			
+			}
+			
+			for(InvoicesByReportsDTO iR: invlist) {
+				Invoice inv = new Invoice();
+				inv = invoiceDao.getSingleInvoiceByFolio("11002");
+				if(inv != null) {
+					List<Payments> pay = paymentsService.getPaymentsList(inv.getUUID());
+					NextNumber nN = new NextNumber();
+					nN = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CPAGO, inv.getBranch());
+					Payments payment = new Payments();
+					if(pay != null) {
+						int con = pay.size() + 1;
+						payment.setSerial(nN.getSerie());
+						payment.setFolio(String.valueOf(nN.getFolio()));
+						payment.setCreationDate(sdf.format(new Date()));
+						payment.setPostalCode(inv.getBranch().getZip());
+						payment.setRelationType("04");
+						payment.setUuidReference(inv.getUUID());
+						payment.setBranch(inv.getBranch());
+						payment.setCompany(inv.getCompany());
+						payment.setCountry(inv.getCustomerCountry());
+						payment.setTaxIdentifier(inv.getCustomerTaxIdentifier());//Utilizados para nacional o extranjero
+						payment.setCustomerName(inv.getCustomerName());	
+						payment.setPartyNumber("");
+						payment.setCustomerEmail(inv.getCustomerEmail());
+						payment.setCurrency(inv.getInvoiceCurrency());
+						payment.setExchangeRate(String.valueOf(inv.getInvoiceExchangeRate()));
+						payment.setPaymentAmount("500");
+						payment.setTransactionReference("Pago: " + String.valueOf(con));
+						payment.setBankReference("");//Cliente
+						payment.setAcountBankTaxIdentifier("");//Cliente
+						payment.setPayerAccount("");//Cliente
+						payment.setBeneficiaryAccount("");
+						payment.setBenBankAccTaxIden("");						
+						payment.setPaymentNumber(String.valueOf(con));
+						payment.setPreviousBalanceAmount("6000");
+						payment.setRemainingBalanceAmount("5500");						
+						payment.setPaymentStatus(AppConstants.STATUS_PENDING);
+						
+						List<Payments> nPay= new ArrayList<Payments>();
+						nPay.add(payment);
+						Set<Payments> realPay = new HashSet<Payments>(nPay);
+						inv.setPayments(realPay);
+						
+						if(!invoiceDao.updateInvoice(inv)) {
+							System.out.println(false);
+						}
+						
+					}
+				}
+			}
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public InvoicesByReportsDTO fullPaymentsDTO (Row r) {
+		InvoicesByReportsDTO payments = new InvoicesByReportsDTO();
+		try {
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return payments;
 	}
 }

@@ -137,6 +137,9 @@ public class Invoice implements Serializable{
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private Set<InvoiceDetails> invoiceDetails;
 	
+	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	private Set<Payments> payments;
+	
 	@Column(name = "setName", nullable=false)
 	private String setName;
 	
@@ -454,6 +457,14 @@ public class Invoice implements Serializable{
 
 	public void setInvoiceDetails(Set<InvoiceDetails> invoiceDetails) {
 		this.invoiceDetails = invoiceDetails;
+	}
+	
+	public Set<Payments> getPayments() {
+		return payments;
+	}
+
+	public void setPayments(Set<Payments> payments) {
+		this.payments = payments;
 	}
 
 	public String getSetName() {

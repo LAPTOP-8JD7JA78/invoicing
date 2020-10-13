@@ -148,4 +148,32 @@ public class SchedulerService {
 		}
 		log.info("\'updateUUIDOracleERP\': is finished********");
 	}
+	
+//	@Scheduled(fixedDelay=1000, initialDelay=5000)
+	public void createPayments() {
+		log.info("\'createPayments\' is started*******");
+		try {
+			AnalyticsDTO analytics = new AnalyticsDTO();
+//			Calendar calendar = Calendar.getInstance();
+//			calendar.setTime(new Date());
+//			calendar.add(Calendar.HOUR, 5);
+//			calendar.add(Calendar.MINUTE, -6);	
+//			String fecha = sdf.format(calendar.getTime());
+//			System.out.println(sdf.format(calendar.getTime()));
+			analytics.setAr_Report_date("2020-10-01 00:00:00");;
+			Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+					AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
+			if(!r.getRow().isEmpty()) {
+				if(!invoicingService.createStampedPayments(r.getRow())) {
+					System.out.println(false);
+				}
+			}else {
+				log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR DURANTE EL PROCESO DE \'createPayments\'-----------------------------", e);
+		}
+		log.info("\'createPayments\': is finished********");
+	}
 }

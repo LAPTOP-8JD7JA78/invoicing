@@ -8,6 +8,9 @@ public class AppConstantsUtil {
 	public static final String RUTA_FILES_EXTENSION = ".txt";
 	public static final String FILES_HEADER = "H";
 	public static final String FILES_DETAILS = "D";
+	public static final String PAYMENT_HEADER = "H";
+	public static final String PAYMENT_PAYMENT = "P";
+	public static final String PAYMENT_DETAILS = "D";
 	public static final String FILES_COMPLEMENT_CE = "";
 	public static final String FILES_SEPARATOR = "|";
 	public static final String VOUCHER_I = "I";

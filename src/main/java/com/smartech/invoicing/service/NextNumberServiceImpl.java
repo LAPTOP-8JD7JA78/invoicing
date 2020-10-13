@@ -13,14 +13,14 @@ public class NextNumberServiceImpl implements NextNumberService{
 	NextNumberDao nextNumberDao;
 	
 	@Override
-	public int getNextNumber(String orderType, String organization) {
+	public int getNextNumber(String orderType, Branch organization) {
 		return nextNumberDao.getLastNumber(orderType, organization);
 		//return 0;
 	}
 
 	@Override
-	public NextNumber getNumber(String orderType, String org) {
-		return nextNumberDao.getNumber(orderType, org);
+	public NextNumber getNumberCon(String orderType, Branch org) {
+		return nextNumberDao.getNumberCon(orderType, org);
 	}
 
 	@Override
