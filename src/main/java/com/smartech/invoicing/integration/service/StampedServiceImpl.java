@@ -48,6 +48,8 @@ public class StampedServiceImpl implements StampedService{
 		String relationType = "";
 		String paymentTerms = "";
 		String UUIDRelated = "";
+		impH = new String[10];
+		impD = new String[10];
 		int n = 1;
 		try {
 			//Obtener ruta para dejar los archivos
@@ -266,43 +268,107 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para combo
 					
 					//Datos del complemento exterior
-					"" + AppConstantsUtil.FILES_SEPARATOR +//c_Motivo Traslado
-					operationType + AppConstantsUtil.FILES_SEPARATOR +//c_Tipo de operacion
-					petitionKey + AppConstantsUtil.FILES_SEPARATOR +//c_Clave pedimento
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Cert origen
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//c_Motivo Traslado
+//					operationType + AppConstantsUtil.FILES_SEPARATOR +//c_Tipo de operacion
+//					petitionKey + AppConstantsUtil.FILES_SEPARATOR +//c_Clave pedimento
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//Cert origen
+//					"" + AppConstantsUtil.FILES_SEPARATOR +
+//					"" + AppConstantsUtil.FILES_SEPARATOR +
+//					NullValidator.isNull(idet.getIncotermKey()) + AppConstantsUtil.FILES_SEPARATOR +//c_Incoterm 40
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//Subdivison	
+//					NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones	
+//					idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
+//					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//Curp del emisor
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//Número del registro fiscal
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//Recidencia fiscal
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Número de identificacion fiscal
+//					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Nombre
+//					i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Calle 50
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo # Exterior 
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//shipTo # Interior
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Colony
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Localidad
+//					i.getShipToCity() + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Municipio
+//					NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +//shipTo Estado
+//					NullValidator.isNull(i.getShipToCountry()) + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Country
+//					i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Zip
+//					idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +//Número del artículo, sku
+//					NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
+//					idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
+//					idet.getItemUomCustoms() + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
+//					idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
+//					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Valor total aduana
+//					NullValidator.isNull(idet.getItemBrand())+ AppConstantsUtil.FILES_SEPARATOR +//Marca
+//					NullValidator.isNull(idet.getItemModel()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//Submodelo
+//					NullValidator.isNull(idet.getItemSerial()) + AppConstantsUtil.FILES_SEPARATOR +//No. de seríe
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(idet.getIncotermKey()) + AppConstantsUtil.FILES_SEPARATOR +//c_Incoterm 40
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Subdivison	
-					NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones	
-					idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
-					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Curp del emisor
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Número del registro fiscal
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Recidencia fiscal
-					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Número de identificacion fiscal
-					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Nombre
-					i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Calle 50
-					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo # Exterior 
-					"" + AppConstantsUtil.FILES_SEPARATOR +//shipTo # Interior
-					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Colony
-					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Localidad
-					i.getShipToCity() + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Municipio
-					NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +//shipTo Estado
-					NullValidator.isNull(i.getShipToCountry()) + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Country
-					i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Zip
-					idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +//Número del artículo, sku
-					NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
-					idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
-					idet.getItemUomCustoms() + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
-					idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
-					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Valor total aduana
-					NullValidator.isNull(idet.getItemBrand())+ AppConstantsUtil.FILES_SEPARATOR +//Marca
-					NullValidator.isNull(idet.getItemModel()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Submodelo
-					NullValidator.isNull(idet.getItemSerial()) + AppConstantsUtil.FILES_SEPARATOR +//No. de seríe
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//10
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//10
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//10
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					//Datos del complemento detallista 
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//10
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//10
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"\n";
 			return detail;
 		}catch(Exception e) {
