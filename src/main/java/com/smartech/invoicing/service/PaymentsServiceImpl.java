@@ -33,4 +33,9 @@ public class PaymentsServiceImpl implements PaymentsService{
 	public boolean updatePayment(Payments pay) {
 		return paymentsDao.updatePayment(pay);
 	}
+
+	@Override
+	public List<Payments> getPaymentsStatus(String status) {
+		return paymentsDao.getPaymentsByStatus(status);
+	}
 }

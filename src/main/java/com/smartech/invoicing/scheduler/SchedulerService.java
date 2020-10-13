@@ -19,7 +19,9 @@ import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.integration.xml.rowset.Rowset;
 import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicing.model.Payments;
 import com.smartech.invoicing.service.InvoiceService;
+import com.smartech.invoicing.service.PaymentsService;
 
 public class SchedulerService {
 	
@@ -37,6 +39,8 @@ public class SchedulerService {
 	InvoiceDao invoiceDao;
 	@Autowired
 	StampedService stampedService;
+	@Autowired
+	PaymentsService paymentsService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -106,8 +110,8 @@ public class SchedulerService {
 		log.info("\'getPendingData\' is started*******");
 		List<String> arr = new ArrayList<String>();
 		List<Invoice> cinv = new ArrayList<Invoice>();
-//		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_START, "");
 		List<Invoice> inv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING, "");
+		List<Payments> payList = paymentsService.getPaymentsStatus(AppConstants.STATUS_PENDING);
 		for(Invoice i: inv) {
 			if(!arr.contains(i.getFolio())) {				
 				cinv.add(i);
@@ -115,14 +119,23 @@ public class SchedulerService {
 			}
 		}
 		if(!cinv.isEmpty()) {
-			System.out.println(true);
 			for(Invoice in: cinv) {
 				if(!stampedService.createFileFac(in)) {
-					log.error("PENDING STATUS" + in);
+					log.error("PENDING STATUS (INVOICES): " + in);
 				}	
 			}
 		}else {
-			log.warn("PENDING STATUS " + cinv + "DON´T HAVA ANY DATA");
+			log.warn("PENDING STATUS " + cinv + "DON´T HAVA ANY DATA (INVOICES)");
+		}
+		
+		if(!payList.isEmpty()) {
+			for(Payments pay: payList) {
+				if(!stampedService.createPaymentsFile(pay)) {
+					log.error("PENDING STATUS (PAYMENTS): " + pay);
+				}
+			}
+		}else {
+			log.warn("PENDING STATUS " + cinv + "DON´T HAVA ANY DATA (PAYMENTS)");
 		}
 		log.info("\'getPendingData\': is finished********");
 		

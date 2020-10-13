@@ -98,4 +98,19 @@ public class PaymentsDaoImpl implements PaymentsDao{
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> getPaymentsByStatus(String status) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+			criteria.add(Restrictions.eq("paymentStatus", status));
+			criteria.addOrder(Order.desc("id"));
+			return criteria.list();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

@@ -19,6 +19,7 @@ import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
+import com.smartech.invoicing.model.Payments;
 import com.smartech.invoicing.model.TaxCodes;
 import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.UdcService;
@@ -194,17 +195,6 @@ public class StampedServiceImpl implements StampedService{
 		}catch(Exception e) {
 			e.printStackTrace();
 			
-			return false;
-		}
-	}
-
-	@Override
-	public boolean createPaymentsFile(Invoice i) {
-		try {
-			
-			return true;
-		}catch(Exception e) {
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -552,6 +542,17 @@ public class StampedServiceImpl implements StampedService{
 		            
 				}
 			}
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	@Override
+	public boolean createPaymentsFile(Payments i) {
+		try {
+			System.out.println(true);
 			return true;
 		}catch(Exception e) {
 			e.printStackTrace();

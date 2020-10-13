@@ -9,4 +9,5 @@ public interface PaymentsService {
 	Payments getPayment(long id);
 	List<Payments> getPaymentsListByStatus(List<String> otList);
 	boolean updatePayment(Payments pay); 
+	List<Payments> getPaymentsStatus(String status);
 }
