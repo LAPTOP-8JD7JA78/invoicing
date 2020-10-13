@@ -69,4 +69,33 @@ public class PaymentsDaoImpl implements PaymentsDao{
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> getPaymentsListByStatus(List<String> otList) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Payments.class).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+		try {
+			if(otList != null && !otList.isEmpty()) {
+				criteria.add(Restrictions.in("paymentStatus",otList));
+			}			
+			criteria.addOrder(Order.desc("folio"));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return criteria.list();
+	}
+
+	@Override
+	public boolean updatePayment(Payments pay) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			session.update(pay);
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 }

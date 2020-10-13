@@ -12,6 +12,7 @@ public class SalesOrderLinesDTO {
 	private String taxClassificationCode;
 	private String statusCode;
 	private String additionalInformation;
+	private String freightTermsCode;
 	private List<SalesLineLotSerDTO> lotSerials;
 	
 	public String getSourceTransactionLineNumber() {
@@ -73,6 +74,12 @@ public class SalesOrderLinesDTO {
 	}
 	public void setAdditionalInformation(String additionalInformation) {
 		this.additionalInformation = additionalInformation;
+	}
+	public String getFreightTermsCode() {
+		return freightTermsCode;
+	}
+	public void setFreightTermsCode(String freightTermsCode) {
+		this.freightTermsCode = freightTermsCode;
 	}
 	
 }

@@ -1,5 +1,6 @@
 package com.smartech.invoicing.integration;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Base64;
@@ -25,6 +26,7 @@ import com.smartech.invoicing.integration.service.HTTPRequestService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.util.PayloadProducer;
 import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicing.model.Payments;
 import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.UdcService;
 import com.smartech.invoicing.util.NullValidator;
@@ -38,6 +40,7 @@ public class SOAPServiceImpl implements SOAPService {
 	UdcService udcService;
 	
 	static Logger log = Logger.getLogger(SOAPService.class.getName());
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	@Override
 	public ItemsDTO getItemDataByItemNumberOrgCode(String itemNumber, String orgCode) {
@@ -120,7 +123,7 @@ public class SOAPServiceImpl implements SOAPService {
 	}
 
 	@Override
-	public Invoice updateUUIDToOracleERP(Invoice inv) {
+	public Invoice updateUUIDToOracleERPInvoice(Invoice inv) {
 		JSONObject xmlJSONObj;
 		JSONObject json;
 		JsonElement jelement;
@@ -246,6 +249,7 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setProductDescription(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 											soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 											soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
+											soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -325,6 +329,7 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setProductDescription(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 										soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 										soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
+										soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -433,6 +438,7 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setProductDescription(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 											soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 											soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
+											soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -510,6 +516,7 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setProductDescription(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 										soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 										soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
+										soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -588,6 +595,59 @@ public class SOAPServiceImpl implements SOAPService {
 		}
 		
 		return so;
+	}
+
+	@Override
+	public Payments updateUUIDToOracleERPPayments(Payments pay) {
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if(pay != null) {
+			if((pay.getUUID() != null && !"".contains(pay.getUUID())) && (pay.getSerial() != null && !"".contains(pay.getSerial())) 
+					&& (pay.getFolio() != null && !"".contains(pay.getFolio()))) {
+				try {
+					Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+																		PayloadProducer.setARReceiptsRegionalFlexfield(pay.getReceiptNumber(), pay.getReceiptId(), pay.getUUID()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+					String strResponse1 = (String) request1.get("response");
+					int codeResponse1 = (int) request1.get("code");
+					String strHttpResponse1 = (String) request1.get("httpResponse");
+					
+					if(codeResponse1 >= 200 && codeResponse1 < 300) {
+						if(strResponse1 != null && !"".contains(strResponse1)) {
+							xmlJSONObj = XML.toJSONObject(strResponse1, true);
+							jelement = new JsonParser().parse(xmlJSONObj.toString());
+							jobject = jelement.getAsJsonObject();
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+									
+									if(!result.isJsonNull()) {
+										if(result.get("content").getAsInt() == 1) {
+											pay.setPaymentStatus(AppConstants.STATUS_FINISHED);
+											pay.setUpdateDate(sdf.format(new Date()));
+										}else {
+											log.warn("ERROR AL ACTUALIZAR UUID RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
+										}
+									}
+								}
+																 
+							}else {
+								log.warn("ERROR AL ACTUALIZAR UUID RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
+							}
+						}
+					}
+				}catch(Exception e) {
+					e.printStackTrace();
+					log.error("ERROR AL EJECUTAR WS DE ERPDDF - updateUUIDToOracleERP***************************", e);
+				}
+			}else {
+				log.warn("EL RECIBO" + pay.getFolio() + " - " + pay.getReceiptNumber() + " NO CUENTA CON UUID, SERIE O FOLI0 - updateUUIDToOracleERPPayments***************************");
+			}
+		}
+		return pay;
 	}
 
 	

@@ -499,6 +499,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invLine.setAddtionalDescription(line.getAdditionalInformation());
 								}
 								
+								//Comercio Exterior
+								invLine.setIncotermKey(line.getFreightTermsCode());
+								
 								//Serie y lote (Datos Opcionales)
 								if(line.getLotSerials() != null) {
 									String lots = "";
@@ -575,7 +578,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			for(Invoice inv: invoiceList) {
 				if(inv.getCompany() != null) {
 					if(inv.getCompany().isFusionCloud()) {
-						inv = soapService.updateUUIDToOracleERP(inv);
+						inv = soapService.updateUUIDToOracleERPInvoice(inv);
 					}else {
 						inv.setStatus(AppConstants.STATUS_FINISHED);
 						inv.setUpdatedBy("SYSTEM");
@@ -584,6 +587,23 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoiceDao.updateInvoice(inv);
 				}else {
 					log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA COMPAÑIA");
+				}
+			}
+		}
+		
+		List<Payments> payList = paymentsService.getPaymentsListByStatus(otList);	
+		if(payList != null && ! payList.isEmpty()) {
+			for(Payments pay: payList) {
+				if(pay.getCompany() != null) {
+					if(pay.getCompany().isFusionCloud()) {
+						pay = soapService.updateUUIDToOracleERPPayments(pay);
+					}else {
+						pay.setPaymentStatus(AppConstants.STATUS_FINISHED);
+						pay.setUpdateDate(sdf.format(new Date()));
+					}
+					paymentsService.updatePayment(pay);
+				}else {
+					log.warn("PARA EL PAGO " + pay.getFolio() + " ERROR AL TRAER LA COMPAÑIA");
 				}
 			}
 		}

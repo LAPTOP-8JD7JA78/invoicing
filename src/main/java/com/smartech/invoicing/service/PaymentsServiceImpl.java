@@ -23,4 +23,14 @@ public class PaymentsServiceImpl implements PaymentsService{
 	public Payments getPayment(long id) {
 		return paymentsDao.getPayment(id);
 	}
+
+	@Override
+	public List<Payments> getPaymentsListByStatus(List<String> otList) {
+		return paymentsDao.getPaymentsListByStatus(otList);
+	}
+
+	@Override
+	public boolean updatePayment(Payments pay) {
+		return paymentsDao.updatePayment(pay);
+	}
 }
