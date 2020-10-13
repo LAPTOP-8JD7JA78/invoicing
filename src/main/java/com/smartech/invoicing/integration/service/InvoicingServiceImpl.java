@@ -76,6 +76,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Override
 	public boolean createStampInvoice(List<Row> r) {
+		List<Udc> udc = new ArrayList<Udc>();
+		String country = "";
+		String shipCountry = "";
 		try {
 			//Llenado de objeto DTO de la respuesta del reporte de facturas
 			List<String> arr = new ArrayList<String>();
@@ -94,12 +97,27 @@ public class InvoicingServiceImpl implements InvoicingService{
 			//llenar header---------------------------------------------------------------------------------------------------
 			for(InvoicesByReportsDTO inv: invlist) {				
 				if(!arr.contains(inv.getTransactionNumber())) {
+					udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
+					for(Udc u: udc) {
+						if(u.getStrValue1().equals(inv.getCustomerCountry())) {
+							country = u.getUdcKey();
+						}
+						if(u.getStrValue1().equals(inv.getShipToCountry())) {
+							shipCountry = u.getUdcKey();
+						}
+					}
+					if(country.isEmpty()) {
+						return false;
+					}
+					if(shipCountry.isEmpty()) {
+						return false;
+					}
 					Invoice invoice = new Invoice();
 					//Datos del cliente facturacion---------------------------------------------------------------------------------------
 					invoice.setCustomerName(inv.getCustomerName());
 					invoice.setCustomerZip(inv.getCustomerPostalCode());
 					invoice.setCustomerAddress1(inv.getCustomerAddress1());
-					invoice.setCustomerCountry(inv.getCustomerCountry());
+					invoice.setCustomerCountry(country);
 					invoice.setCustomerTaxIdentifier(inv.getCustomerTaxIdentifier());
 					invoice.setCustomerEmail("llopez@smartech.com.mx");
 					
@@ -108,7 +126,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoice.setShipToaddress(inv.getShipToAddress());
 					invoice.setShipToCity(inv.getShipToCity());
 					invoice.setShipToState(inv.getShipToState());
-					invoice.setShipToCountry(inv.getShipToCountry());
+					invoice.setShipToCountry(shipCountry);
 					invoice.setShipToZip(inv.getShipToZip());
 					
 					//Datos de la unidad de negocio---------------------------------------------------------------------------

@@ -67,4 +67,5 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_OPERATIONTYPE = "OPERATIONTYPE";
 	public static final String UDC_SYSTEM_PETITIONKEY = "PETITIONKEY";
 	public static final String UDC_STRVALUE1_DEFAULT = "DEFAULT";
+	public static final String UDC_SYSTEM_COUNTRY = "COUNTRY";
 }
