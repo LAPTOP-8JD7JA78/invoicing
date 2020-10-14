@@ -67,10 +67,10 @@ public class StringUtils {
 	    return true;
 	}
 	
-	public List<String> getSerialListByString(String serials){
-		if(serials != null && !"".contains(serials)) {
+	public static List<String> getSerialLotsListByString(String serialLots){
+		if(serialLots != null && !"".contains(serialLots)) {
 			try {
-				List<String> items = Arrays.asList(serials.split(","));
+				List<String> items = Arrays.asList(serialLots.split(","));
 				return items;
 			}catch(Exception e) {
 				e.printStackTrace();

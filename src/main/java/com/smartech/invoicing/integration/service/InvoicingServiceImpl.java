@@ -18,7 +18,9 @@ import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
 import com.smartech.invoicing.dto.SalesOrderLinesDTO;
+import com.smartech.invoicing.integration.RESTService;
 import com.smartech.invoicing.integration.SOAPService;
+import com.smartech.invoicing.integration.json.invitemlot.InventoryItemLots;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.model.Branch;
@@ -64,6 +66,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 		
 	@Autowired
 	SOAPService soapService;
+	
+	@Autowired
+	RESTService restService;
 	
 	@Autowired
 	PaymentsService paymentsService;
@@ -508,7 +513,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									String serials = "";
 									for(SalesLineLotSerDTO lotSer: line.getLotSerials()) {
 										if(lotSer.getLotNumber() != null && !"".contains(lotSer.getLotNumber())) {
-											lots = lots + invLine.getItemLot() + ",";
+											lots = lots + lotSer.getLotNumber() + ",";
 										}
 										
 										if(lotSer.getSerialNumberFrom() != null && !"".contains(lotSer.getSerialNumberFrom())) {
@@ -620,10 +625,44 @@ public class InvoicingServiceImpl implements InvoicingService{
 		sList.add(AppConstants.STATUS_ERROR_PETITION);
 		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);	
 		if(invoiceList != null && !invoiceList.isEmpty()) {
+			boolean hasLot = true;
+			String msgError = "";
 			for(Invoice inv: invoiceList) {
 				for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
-					
+					if(invLine.isImport()) {
+						if(invLine.getItemLot() != null && !"".contains(invLine.getItemLot())) {
+							List<String> lots = StringUtils.getSerialLotsListByString(invLine.getItemLot());
+							for(String lot: lots) {
+								InventoryItemLots lotData = restService.getInventoryLot(inv.getBranch().getCode(), invLine.getItemNumber(), lot);
+								if(lotData != null && lotData.getItems() != null && !lotData.getItems().isEmpty()) {
+									invLine.setNumberPetiton(lot);
+									invLine.setDatePetition(sdf.format(lotData.getItems().get(0).getOriginationDate()));
+									invLine.setCustomskey("NUEVO LAREDO TAMPS");
+								}else {
+									msgError = msgError + ";ITEMLOT-Error al obtener información del Lote " + lot;
+									log.warn("EL ARTICULO " + invLine.getItemNumber() + " DE LA ORDEN " + inv.getFromSalesOrder() + " ERROR AL CONSULTAR INFORMACIÓN WS DEL LOTE " + lot);
+									hasLot = false;
+								}
+							}
+						}else {
+							msgError = msgError + ";ITEMDATALOT-Item de importación sin Lote " + invLine.getItemNumber();
+							log.warn("EL ARTICULO " + invLine.getItemNumber() + " DE LA ORDEN " + inv.getFromSalesOrder() + " ES DE IMPORTACIÓN SIN INFORMACION DEL LOTE");
+							hasLot = false;
+						}
+					}
 				}
+				
+				if(hasLot) {
+					inv.setStatus(AppConstants.STATUS_PENDING);
+					inv.setErrorMsg("");
+				}else {
+					inv.setStatus(AppConstants.STATUS_ERROR_PETITION);
+					inv.setErrorMsg(msgError);
+				}
+				
+				inv.setUpdatedDate(new Date());
+				inv.setUpdatedBy("SYSTEM");
+				invoiceDao.updateInvoice(inv);
 			}
 		}
 	}

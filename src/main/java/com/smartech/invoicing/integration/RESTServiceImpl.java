@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.integration.dto.HeadersRestDTO;
 import com.smartech.invoicing.integration.dto.ParamsRestDTO;
+import com.smartech.invoicing.integration.json.invitemlot.InventoryItemLots;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
@@ -141,6 +142,40 @@ public class RESTServiceImpl implements RESTService {
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("REST API SERVICE FAIL getAddInfoBySalesNumber ****************************", e);
+			return null;
+		}
+	}
+
+	@Override
+	public InventoryItemLots getInventoryLot(String invOrgCode, String itemNumber, String itemLot) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("finder", "findByOrgItemAndLot;bindOrganizationCode=" + invOrgCode +",bindItemNumber=" + itemNumber +",bindLotNumber=" + itemLot));
+			params.add(new ParamsRestDTO("fields", "OrganizationId,OrganizationCode,InventoryItemId,ItemNumber,LotNumber,OriginationDate"));
+			params.add(new ParamsRestDTO("onlyData", true));
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					AppConstants.URL_REST_ITEMLOT, HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_ITEMLOT);
+			
+			int statusCode;
+			InventoryItemLots responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (InventoryItemLots) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
 			return null;
 		}
 	}

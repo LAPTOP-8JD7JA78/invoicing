@@ -27,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import com.google.gson.Gson;
 import com.smartech.invoicing.integration.dto.HeadersRestDTO;
 import com.smartech.invoicing.integration.dto.ParamsRestDTO;
+import com.smartech.invoicing.integration.json.invitemlot.InventoryItemLots;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
@@ -246,6 +247,12 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 					map.put("code", respSO2.getStatusCode().value());
 					map.put("response", respSO2.hasBody()?respSO2.getBody():null);
 					map.put("httpResponse", respSO2.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_ITEMLOT:
+					ResponseEntity<InventoryItemLots> respSO3 = rt.exchange(url, method, re, InventoryItemLots.class);
+					map.put("code", respSO3.getStatusCode().value());
+					map.put("response", respSO3.hasBody()?respSO3.getBody():null);
+					map.put("httpResponse", respSO3.getHeaders());
 					break;
 				
 			}		
