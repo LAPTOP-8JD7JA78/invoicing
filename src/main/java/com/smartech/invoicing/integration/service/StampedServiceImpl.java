@@ -551,8 +551,88 @@ public class StampedServiceImpl implements StampedService{
 	
 	@Override
 	public boolean createPaymentsFile(Payments i) {
+		String fileRuta = "";
+		String fileName = "";
+		String content = "";
+		
+		String rType ="";
+		String country = "";
 		try {
-			System.out.println(true);
+			//Obtener ruta para dejar los archivos
+			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
+			for(Udc ud: u) {
+				if(ud.getStrValue1().equals(AppConstantsUtil.RUTA_FILES_STAMPED)) {
+					fileRuta = ud.getUdcKey();
+				}
+			}
+			//Nombrar archivo
+			fileName = NullValidator.isNull(i.getSerial()) + i.getFolio();
+			//Crear archivo en la ruta deseada
+			File file = new File(fileRuta + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+			if (!file.exists()) {
+             	file.createNewFile();
+            }
+			
+			List<Udc> uList = udcService.searchBySystem(AppConstants.UDC_SYSTEM_RTYPE);
+			for(Udc ud: uList) {
+				if(ud.getStrValue1().equals(AppConstants.UDC_STRVALUE1_CPAGOS)) {
+					rType = ud.getUdcKey();
+					break;
+				}
+			}
+			if(i.getCountry().equals(AppConstantsUtil.COUNTRY_DEFAULT)) {
+				country = "";
+			}else {
+				country = i.getCountry();
+			}
+			content = AppConstantsUtil.PAYMENT_HEADER + AppConstantsUtil.FILES_SEPARATOR +
+					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCreationDate() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getBranch().getZip() + AppConstantsUtil.FILES_SEPARATOR +
+					rType + AppConstantsUtil.FILES_SEPARATOR +
+					i.getUuidReference() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCompany().getBusinessUnitName() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
+					country + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
+					i.getPartyNumber() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +					
+					"\n"+
+					AppConstantsUtil.PAYMENT_PAYMENT + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCreationDate() + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Forma de pago
+					i.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getPaymentAmount() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getTransactionReference() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getBankReference()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getAcountBankTaxIdentifier()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getPayerAccount()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getBeneficiaryAccount()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
+					"\n"+
+					AppConstantsUtil.PAYMENT_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
+					i.getUuidReference() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Método de pago PUE
+					i.getPaymentNumber() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getPreviousBalanceAmount()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getPaymentAmount()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getRemainingBalanceAmount()) + AppConstantsUtil.FILES_SEPARATOR +
+					"\n";
+			
+			FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(content);
+            bw.close();
+            
 			return true;
 		}catch(Exception e) {
 			e.printStackTrace();
