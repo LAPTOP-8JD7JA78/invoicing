@@ -603,6 +603,8 @@ public class SOAPServiceImpl implements SOAPService {
 		JSONObject json;
 		JsonElement jelement;
 		JsonObject jobject;
+		boolean status1 = false;
+		boolean status2 = false;
 		if(pay != null) {
 			if((pay.getUUID() != null && !"".contains(pay.getUUID())) && (pay.getSerial() != null && !"".contains(pay.getSerial())) 
 					&& (pay.getFolio() != null && !"".contains(pay.getFolio()))) {
@@ -626,8 +628,7 @@ public class SOAPServiceImpl implements SOAPService {
 									
 									if(!result.isJsonNull()) {
 										if(result.get("content").getAsInt() == 1) {
-											pay.setPaymentStatus(AppConstants.STATUS_FINISHED);
-											pay.setUpdateDate(sdf.format(new Date()));
+											status1 = true;
 										}else {
 											log.warn("ERROR AL ACTUALIZAR UUID RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
 										}
@@ -639,6 +640,38 @@ public class SOAPServiceImpl implements SOAPService {
 							}
 						}
 					}
+					
+					Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+							PayloadProducer.setARReceiptsSerialFolioFlexfield(pay.getReceiptNumber(), pay.getReceiptId(), pay.getSerial(), pay.getFolio()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+					
+					String strResponse2 = (String) request2.get("response");
+					int codeResponse2 = (int) request2.get("code");
+					String strHttpResponse2 = (String) request2.get("httpResponse");
+					
+					if(codeResponse2 >= 200 && codeResponse2< 300) {
+						if(strResponse2 != null && !"".contains(strResponse2)) {
+							xmlJSONObj = XML.toJSONObject(strResponse2, true);
+							jelement = new JsonParser().parse(xmlJSONObj.toString());
+							jobject = jelement.getAsJsonObject();
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+								
+									if(!result.isJsonNull()) {
+										if(result.get("content").getAsInt() == 1) {
+											status2 = true;
+										}else {
+											log.warn("ERROR AL ACTUALIZAR SERIAL - FOLIO RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
+										}
+									}
+								}			 
+							}else {
+								log.warn("ERROR AL ACTUALIZAR SERIAL - FOLIO RECEIPT RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
+							}
+						}
+					}
+					
 				}catch(Exception e) {
 					e.printStackTrace();
 					log.error("ERROR AL EJECUTAR WS DE ERPDDF - updateUUIDToOracleERP***************************", e);
@@ -647,6 +680,12 @@ public class SOAPServiceImpl implements SOAPService {
 				log.warn("EL RECIBO" + pay.getFolio() + " - " + pay.getReceiptNumber() + " NO CUENTA CON UUID, SERIE O FOLI0 - updateUUIDToOracleERPPayments***************************");
 			}
 		}
+		
+		if(status1 && status2) {
+			pay.setPaymentStatus(AppConstants.STATUS_FINISHED);
+		}
+		pay.setUpdateDate(sdf.format(new Date()));
+		
 		return pay;
 	}
 

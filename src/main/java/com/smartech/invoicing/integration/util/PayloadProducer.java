@@ -232,6 +232,26 @@ public class PayloadProducer {
 		return SOAPRequest;
 	}
 	
+	public static String setARReceiptsSerialFolioFlexfield(String receiptNumber, String receiptId, String serial, String folio) {
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">" + 
+				"<soapenv:Header/>" + 
+					"<soapenv:Body>" + 
+						"<typ:updateDffEntityDetails>" + 
+							"<typ:operationMode>single</typ:operationMode>" + 
+							"<typ:object>" + 
+								"<erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>" + 
+								"<erp:ContextValue>SerieyFolio</erp:ContextValue>" + 
+								"<erp:UserKeyA>"+ receiptNumber + "</erp:UserKeyA>" + 
+								"<erp:UserKeyB>" + receiptId + "</erp:UserKeyB>" + 
+								"<erp:DFFAttributes>{\"ATTRIBUTE1\":\"" + folio + "\",\"ATTRIBUTE2\":\"" + serial + "\"}</erp:DFFAttributes>" + 
+							"</typ:object>" + 
+						"</typ:updateDffEntityDetails>" + 
+					"</soapenv:Body>" + 
+				"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
+	
 	public static String getSalesOrderInfoBySalesNumber(String so) {
 		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/scm/doo/decomposition/orderDetailServices/orderInformationService/types/\" xmlns:ord=\"http://xmlns.oracle.com/apps/scm/doo/decomposition/orderDetailServices/orderInformationService/\">" + 
 				"<soapenv:Header/>" + 
