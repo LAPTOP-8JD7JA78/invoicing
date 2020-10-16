@@ -20,7 +20,7 @@ public class PaymentsServiceImpl implements PaymentsService{
 	}
 
 	@Override
-	public Payments getPayment(long id) {
+	public Payments getPayment(String id) {
 		return paymentsDao.getPayment(id);
 	}
 

@@ -178,6 +178,12 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "shipToState", nullable=true)
 	private String shipToState;
+	
+	@Column(name = "previousBalanceAmount", nullable=true)
+	private String previousBalanceAmount;
+	
+	@Column(name = "RemainingBalanceAmount", nullable=true)
+	private String RemainingBalanceAmount;
 
 	public long getId() {
 		return id;
@@ -570,5 +576,22 @@ public class Invoice implements Serializable{
 	public void setShipToState(String shipToState) {
 		this.shipToState = shipToState;
 	}
+
+	public String getPreviousBalanceAmount() {
+		return previousBalanceAmount;
+	}
+
+	public void setPreviousBalanceAmount(String previousBalanceAmount) {
+		this.previousBalanceAmount = previousBalanceAmount;
+	}
+
+	public String getRemainingBalanceAmount() {
+		return RemainingBalanceAmount;
+	}
+
+	public void setRemainingBalanceAmount(String remainingBalanceAmount) {
+		RemainingBalanceAmount = remainingBalanceAmount;
+	}
+	
 }
 

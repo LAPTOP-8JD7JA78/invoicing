@@ -188,8 +188,8 @@ public class StampedServiceImpl implements StampedService{
             bw.write(content);
             bw.close();
             //Actualizar estado de la factura
-            /*i.setStatus(AppConstants.STATUS_INVOICED);
-            invoiceDao.updateInvoice(i);*/
+            i.setStatus(AppConstants.STATUS_UPDUUID);
+            invoiceDao.updateInvoice(i);
 			
 			return true;
 		}catch(Exception e) {
@@ -608,7 +608,7 @@ public class StampedServiceImpl implements StampedService{
 					i.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getPaymentAmount() + AppConstantsUtil.FILES_SEPARATOR +
-					i.getTransactionReference() + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +//Transaction Reference
 					NullValidator.isNull(i.getBankReference()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getAcountBankTaxIdentifier()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getPayerAccount()) + AppConstantsUtil.FILES_SEPARATOR +

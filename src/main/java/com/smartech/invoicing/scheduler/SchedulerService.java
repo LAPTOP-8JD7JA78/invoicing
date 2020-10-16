@@ -163,7 +163,7 @@ public class SchedulerService {
 		log.info("\'readDataPac\': is finished********");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void updateUUIDOracleERP() {
 		log.info("\'updateUUIDOracleERP\' is started*******");
 		try {
@@ -186,9 +186,9 @@ public class SchedulerService {
 //			calendar.add(Calendar.MINUTE, -6);	
 //			String fecha = sdf.format(calendar.getTime());
 //			System.out.println(sdf.format(calendar.getTime()));
-			analytics.setAr_Report_date("2020-10-01 00:00:00");;
+			analytics.setAr_Report_date("2020-10-14 00:00:00");;
 			Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
-					AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
+					AppConstants.SERVICE_AR_REPORT_PAYMENTS, analytics);
 			if(!r.getRow().isEmpty()) {
 				if(!invoicingService.createStampedPayments(r.getRow())) {
 					System.out.println(false);

@@ -53,11 +53,11 @@ public class PaymentsDaoImpl implements PaymentsDao{
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Payments getPayment(long id) {
+	public Payments getPayment(String id) {
 		try {
 			Session session = this.sessionFactory.getCurrentSession();
 			Criteria criteria = session.createCriteria(Payments.class);	
-			criteria.add( Restrictions.eq("id", id));	
+			criteria.add( Restrictions.eq("receiptNumber", id));	
 			List<Payments> list =  criteria.list();
 			if(!list.isEmpty()){
 				return list.get(0);

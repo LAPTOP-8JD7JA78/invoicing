@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,16 +76,28 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());
 	
-	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");	
+	final SimpleDateFormat formatterUTC = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
 	DecimalFormat df = new DecimalFormat("#.00");
 	
 	@Override
-	public boolean createStampInvoice(List<Row> r) {
+	public boolean createStampInvoice(List<Row> r) {		
 		List<Udc> udc = new ArrayList<Udc>();
 		String country = "";
 		String shipCountry = "";
+		String timeZone = "";
 		try {
+			//Fechas
+			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
+			for(Udc u: tZone) {
+				if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_TIMEZONE)) {
+					timeZone = u.getUdcKey();
+				}
+			}
+			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+			sdfNoTime.setTimeZone(TimeZone.getTimeZone("UTC"));
+			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
 			//Llenado de objeto DTO de la respuesta del reporte de facturas
 			List<String> arr = new ArrayList<String>();
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
@@ -165,9 +178,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoice.setOrderSource(inv.getTransactionSource());
 					invoice.setOrderType(inv.getTransactionTypeName());
 					
-					//Datos extras-------------------------------------------------------------------------------------------------
+					//Datos extras------------------------------------------------------------------------------------------------
+					Date date = sdfNoTime.parse(inv.getTransactionDate());
+					String dateT = formatterUTC.format(date);
+					
 					invoice.setCreatedBy("llopez");
-					invoice.setCreationDate(sdfNoTime.parse(inv.getTransactionDate()));
+					invoice.setCreationDate(sdfNoTime.parse(dateT));
 					invoice.setUpdatedBy("llopez");
 					invoice.setUpdatedDate(new Date());
 					
@@ -424,6 +440,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//Método de pago
 					if(so.getMetodoPago() != null && !"".contains(so.getMetodoPago())) {
+						if(so.getMetodoPago().equals(AppConstants.PAY_METHOD)) {
+							inv.setRemainingBalanceAmount(null);
+							inv.setPreviousBalanceAmount(null);
+						}else {
+							inv.setRemainingBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
+							inv.setPreviousBalanceAmount(null);
+						}
 						inv.setPaymentMethod(so.getMetodoPago());
 					}else {
 						invStatus = false;
@@ -667,38 +690,60 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	public boolean createStampedPayments(List<Row> r) {
+		String timeZone = "";
+		String cPago = "";		
 		try {
+			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
+			for(Udc u: tZone) {
+				if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_TIMEZONE)) {
+					timeZone = u.getUdcKey();
+				}
+			}
+			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
+//			Date date = sdf.parse(r.getColumn19());
+//			String dateT = formatterUTC.format(date);
+			
+			List<Udc> catPago = udcService.searchBySystem(AppConstants.UDC_SYSTEM_RTYPE);
+			for(Udc cp: catPago) {
+				if(cp.getStrValue1().equals(AppConstants.UDC_STRVALUE1_CPAGOS)) {
+					cPago = cp.getUdcKey();
+					break;
+				}
+			}
 			//Llenado de objeto DTO de la respuesta del reporte de pagos
-			List<String> arr = new ArrayList<String>();
-			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
-			List<Invoice> invList = new ArrayList<Invoice>();
+			List<Payments> invlist = new ArrayList<Payments>();	
 			for(Row ro: r) {
-				InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
+				Payments invReports = new Payments();
 				invReports = fullPaymentsDTO(ro);
-				if(invReports != null) {
-//					System.out.println(invReports.getTransactionNumber());				
-					invlist.add(invReports);
-					
+				if(invReports != null) {				
+					invlist.add(invReports);					
 				}			
 			}
 			
-			for(InvoicesByReportsDTO iR: invlist) {
+			for(Payments iR: invlist) {
 				Invoice inv = new Invoice();
-				inv = invoiceDao.getSingleInvoiceByFolio("11002");
+				inv = invoiceDao.getSingleInvoiceByFolio(iR.getTransactionReference());
 				if(inv != null) {
 					List<Payments> pay = paymentsService.getPaymentsList(inv.getUUID());
-					NextNumber nN = new NextNumber();
-					nN = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CPAGO, inv.getBranch());
+					Payments p = paymentsService.getPayment(iR.getReceiptNumber());
 					Payments payment = new Payments();
-					if(pay != null) {
+					if(pay != null && p == null) {
+						NextNumber nN = new NextNumber();
+						nN = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CPAGO, inv.getBranch());
+						String eRate = "1.0";
+						if(iR.getExchangeRate() != null) {
+							eRate = iR.getExchangeRate();
+						}
 						int con = pay.size() + 1;
 						payment.setSerial(nN.getSerie());
 						payment.setFolio(String.valueOf(nN.getFolio()));
-						payment.setCreationDate(sdf.format(new Date()));
+						payment.setCreationDate(iR.getCreationDate());
 						payment.setPostalCode(inv.getBranch().getZip());
-						payment.setRelationType("04");
+						payment.setRelationType(cPago);
 						payment.setUuidReference(inv.getUUID());
 						payment.setBranch(inv.getBranch());
 						payment.setCompany(inv.getCompany());
@@ -708,17 +753,30 @@ public class InvoicingServiceImpl implements InvoicingService{
 						payment.setPartyNumber("");
 						payment.setCustomerEmail(inv.getCustomerEmail());
 						payment.setCurrency(inv.getInvoiceCurrency());
-						payment.setExchangeRate(String.valueOf(inv.getInvoiceExchangeRate()));
-						payment.setPaymentAmount("500");
+						payment.setExchangeRate(eRate);
+						payment.setPaymentAmount(iR.getPaymentAmount());
 						payment.setTransactionReference("Pago: " + String.valueOf(con));
 						payment.setBankReference("");//Cliente
 						payment.setAcountBankTaxIdentifier("");//Cliente
 						payment.setPayerAccount("");//Cliente
-						payment.setBeneficiaryAccount("");
-						payment.setBenBankAccTaxIden("");						
+						payment.setBeneficiaryAccount(iR.getBeneficiaryAccount());
+						payment.setBenBankAccTaxIden("");	
+						payment.setReceiptId(iR.getReceiptId());
+						payment.setReceiptNumber(iR.getReceiptNumber());
 						payment.setPaymentNumber(String.valueOf(con));
-						payment.setPreviousBalanceAmount("6000");
-						payment.setRemainingBalanceAmount("5500");						
+						if(inv.getPreviousBalanceAmount() == null ) {
+							payment.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
+							payment.setRemainingBalanceAmount(String.valueOf(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(payment.getPaymentAmount())));
+							inv.setPreviousBalanceAmount(payment.getRemainingBalanceAmount());
+							inv.setRemainingBalanceAmount("0");
+						}else {
+							payment.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
+							payment.setRemainingBalanceAmount(String.valueOf(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(payment.getPaymentAmount())));
+							inv.setPreviousBalanceAmount(payment.getRemainingBalanceAmount());
+							inv.setRemainingBalanceAmount("0");
+						}
+//						payment.setPreviousBalanceAmount(iR.getPreviousBalanceAmount());
+//						payment.setRemainingBalanceAmount(iR.getRemainingBalanceAmount());						
 						payment.setPaymentStatus(AppConstants.STATUS_PENDING);
 						
 						List<Payments> nPay= new ArrayList<Payments>();
@@ -727,7 +785,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						inv.setPayments(realPay);
 						
 						if(!invoiceDao.updateInvoice(inv)) {
-							System.out.println(false);
+							log.error("NO SE CREO EL REGISTRO DE PAYMENTS CON EL RECEIPT NUMBER: " + NullValidator.isNull(p.getReceiptNumber()));
 						}
 						
 					}
@@ -740,13 +798,60 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 	
-	public InvoicesByReportsDTO fullPaymentsDTO (Row r) {
-		InvoicesByReportsDTO payments = new InvoicesByReportsDTO();
-		try {
+	public Payments fullPaymentsDTO (Row r) {
+		Payments p = new Payments();
+		List<Udc> country = new ArrayList<Udc>();
+		String count = "";
+		String timeZone = "";
+		try {			
+			country = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
+			for(Udc u: country) {
+				if(u.getStrValue1().equals(r.getColumn3())) {
+					count = u.getUdcKey();
+				}
+			}
 			
+			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
+			for(Udc u: tZone) {
+				if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_TIMEZONE)) {
+					timeZone = u.getUdcKey();
+				}
+			}
+			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
+			Date date = sdf.parse(r.getColumn19());
+			String dateT = formatterUTC.format(date);
+			
+			p.setCustomerName(r.getColumn0());
+			p.setTaxIdentifier(r.getColumn1());
+			p.setCountry(count);
+			p.setPostalCode(r.getColumn4());
+			p.setCompany(companyService.getCompanyByName(r.getColumn8()));
+			p.setBeneficiaryAccount(r.getColumn10());
+			p.setTransactionReference(r.getColumn12());
+			p.setCurrency(r.getColumn16());
+			p.setCreationDate(dateT);
+			p.setExchangeRate(r.getColumn7());
+			p.setReceiptId(r.getColumn22());
+			p.setReceiptNumber(r.getColumn23());
+			p.setPaymentAmount(r.getColumn31());
+//			p.setPreviousBalanceAmount(r.getColumn31());
+//			p.setRemainingBalanceAmount(String.valueOf(Double.parseDouble(p.getPreviousBalanceAmount()) - Double.parseDouble(p.getPaymentAmount())));
+			String bank = p.getBeneficiaryAccount();
+			bank = bank.substring(bank.length() -4);
+			List<Udc> bList = udcService.searchBySystem(AppConstants.UDC_SYSTEM_ACCBANK);
+			for(Udc bl: bList) {
+				if(bl.getStrValue1().equals(r.getColumn11())) {
+					if(bl.getUdcKey().contains(bank)) {
+						p.setBeneficiaryAccount(bl.getUdcKey());
+						break;
+					}
+				}
+			}
 		}catch(Exception e) {
 			e.printStackTrace();
+			return null;
 		}
-		return payments;
+		return p;
 	}
 }

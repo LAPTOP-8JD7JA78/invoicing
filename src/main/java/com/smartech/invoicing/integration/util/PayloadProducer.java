@@ -269,7 +269,64 @@ public class PayloadProducer {
 	}
 	
 	public static String getArReportPayments(String sessionId, String date) {
-		String request = "";
+		String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"        SELECT\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Details\".\"Paying Customer Name\" s_1,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Details\".\"Paying Customer Taxpayer Identification Number\" s_2,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Identifying Address\".\"Paying Customer City\" s_3,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Identifying Address\".\"Paying Customer Country\" s_4,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Identifying Address\".\"Paying Customer Postal Code\" s_5,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Identifying Address\".\"Paying Customer State\" s_6,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Identifying Address\".\"Paying Customer Street Address 1\" s_7,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Standard Receipt Distribution Details\".\"Conversion Rate\" s_8,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Business Unit\".\"Business Unit Name\" s_9,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Legal Entity\".\"Legal Entity Name\" s_10,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Remittance Bank Account\".\"Bank Account Number\" s_11,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Remittance Bank Account\".\"Bank Name\" s_12,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Applied Transaction Number\" s_13,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"JG_AR_RECEIVABLE_APPLICATIONS_DESC_TRANSACTIONSTATUS_\" s_14,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Transaction Class\" s_15,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Transaction to Receipt Conversion Rate\" s_16,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Document Currency\" s_17,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_ANTICIPO_\" s_18,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Creation Date\" s_19,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Last Updated Date\" s_20,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Date\" s_21,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Exchange Rate Type\" s_22,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt ID\" s_23,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Number\" s_24,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Payment\".\"Receipt Class\" s_25,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Payment\".\"Receipt Method\" s_26,\r\n" + 
+				"   DESCRIPTOR_IDOF(\"Receivables - Standard Receipts Application Details Real Time\".\"Business Unit\".\"Business Unit Name\") s_27,\r\n" + 
+				"   DESCRIPTOR_IDOF(\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Latest Application\") s_28,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Applied From Entered Amount\" s_29,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Applied To Entered Amount\" s_30,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Tax Applied Entered Amount\" s_31,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Receipt Entered Amount\" s_32,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Total Receipt Amount Pending Application\" s_33,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Total Unapplied Amount\" s_34,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Transaction Amounts\".\"Transaction Entered Amount\" s_35\r\n" + 
+				"FROM \"Receivables - Standard Receipts Application Details Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"(\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "')\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
 		return request;
 	}
 }

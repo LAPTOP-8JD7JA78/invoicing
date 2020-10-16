@@ -42,12 +42,15 @@ public class AppConstants {
 	public static final String STATUS_GETRESTDATA = "DATA";
 	public static final String STATUS_PETITIONDATA = "PETITION";
 	public static final String STATUS_PENDING = "PENDING";
+	public static final String STATUS_UPDUUID = "UPDUUID";
 	public static final String STATUS_INVOICED = "INVOICED";
 	public static final String STATUS_ERROR_DATA = "ERROR DATA";
 	public static final String STATUS_ERROR_PAC = "ERROR PAC";
 	public static final String STATUS_ERROR_PETITION = "ERROR PETITION";
 	public static final String STATUS_FINISHED = "FINISHED";
 
+	public static final String PAY_METHOD= "PUE";
+	
 	//Estados de reportes
 	public static final String STATUS_REPORTS_ING = "Invoice";
 	public static final String STATUS_REPORTS_ESP = "Factura";
@@ -72,4 +75,7 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_COUNTRY = "COUNTRY";
 	public static final String UDC_SYSTEM_RTYPE = "SATRTYPE";
 	public static final String UDC_STRVALUE1_CPAGOS = "CPAGOS";
+	public static final String UDC_SYSTEM_ACCBANK = "ACCBANK";
+	public static final String UDC_SYSTEM_TIMEZONE = "TIMEZONE";
+	public static final String UDC_STRVALUE1_TIMEZONE = "USO HORARIO";
 }
