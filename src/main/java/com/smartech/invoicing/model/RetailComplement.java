@@ -105,6 +105,14 @@ public class RetailComplement implements Serializable {
 	@Column(name = "total", nullable = true)
     private String total;
 
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
+
 	public String getDocumentStatus() {
 		return documentStatus;
 	}
