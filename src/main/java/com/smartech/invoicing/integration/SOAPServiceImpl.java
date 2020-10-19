@@ -17,7 +17,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.smartech.invoicing.dto.CatAttachmentDTO;
 import com.smartech.invoicing.dto.CategoryDTO;
+import com.smartech.invoicing.dto.ItemGtinDTO;
 import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
@@ -81,6 +83,7 @@ public class SOAPServiceImpl implements SOAPService {
 												JsonElement op = jsonarray.get(i).getAsJsonObject();
 												c.setCatalogCode(NullValidator.isNull(op.getAsJsonObject().get("ns1:ItemCatalog").toString()));
 												c.setCategoryName(NullValidator.isNull(op.getAsJsonObject().get("ns1:CategoryName").toString()));
+												c.setCategoryCode(NullValidator.isNull(op.getAsJsonObject().get("ns1:CategoryCode").toString()));
 												if(!c.getCatalogCode().isEmpty()) {
 													catList.add(c);
 												}
@@ -89,6 +92,7 @@ public class SOAPServiceImpl implements SOAPService {
 											CategoryDTO c = new CategoryDTO();
 											c.setCatalogCode(NullValidator.isNull(result.get("ns1:ItemCategory").getAsJsonObject().get("ns1:ItemCatalog").toString()));
 											c.setCategoryName(NullValidator.isNull(result.get("ns1:ItemCategory").getAsJsonObject().get("ns1:CategoryName").toString()));
+											c.setCategoryCode(NullValidator.isNull(result.get("ns1:ItemCategory").getAsJsonObject().get("ns1:CategoryCode").toString()));
 											if(!c.getCatalogCode().isEmpty()) {
 												catList.add(c);
 											}
@@ -687,6 +691,130 @@ public class SOAPServiceImpl implements SOAPService {
 		pay.setUpdateDate(sdf.format(new Date()));
 		
 		return pay;
+	}
+
+	@Override
+	public CategoryDTO getCategoryDataFrom(String categoryCode) {
+		CategoryDTO cat = null;
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if(categoryCode != null && !"".contains(categoryCode)) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_ITEMCATALOG, 
+																	PayloadProducer.getRetailerItemCatalogInfo(categoryCode), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+				
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findCategoryResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findCategoryResponse").getAsJsonObject().has("ns2:result")) {
+								JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findCategoryResponse").getAsJsonObject().get("ns2:result").getAsJsonObject();
+								
+								if(!result.isJsonNull()) {
+									cat = new CategoryDTO();
+									cat.setCatalogCode(NullValidator.isNull(result.getAsJsonObject().get("ns1:CatalogCode").getAsString()));
+									cat.setCategoryName(NullValidator.isNull(result.getAsJsonObject().get("ns1:CategoryName").getAsString()));
+									cat.setCategoryCode(NullValidator.isNull(result.getAsJsonObject().get("ns1:CategoryCode").getAsString()));
+									
+									if(result.has("ns1:Attachment")) {
+										List<CatAttachmentDTO> catAttList = new ArrayList<CatAttachmentDTO>();
+										
+										if(result.getAsJsonObject().get("ns1:Attachment").isJsonArray()) {
+											JsonArray jattlist = result.getAsJsonObject().get("ns1:Attachment").getAsJsonArray();
+											for(int i = 0; i < jattlist.size(); i++) {
+												CatAttachmentDTO catAtt = new CatAttachmentDTO();
+												catAtt.setFileName(NullValidator.isNull(jattlist.get(i).getAsJsonObject().get("ns1:FileName").getAsString()));
+												catAtt.setTitle(NullValidator.isNull(jattlist.get(i).getAsJsonObject().get("ns1:Title").getAsString()));
+												catAttList.add(catAtt);
+											}
+										}else {
+											JsonObject jattach = result.getAsJsonObject().get("ns1:Attachment").getAsJsonObject();
+											CatAttachmentDTO catAtt = new CatAttachmentDTO();
+											catAtt.setFileName(NullValidator.isNull(jattach.getAsJsonObject().get("ns1:FileName").getAsString()));
+											catAtt.setTitle(NullValidator.isNull(jattach.getAsJsonObject().get("ns1:Title").getAsString()));
+											catAttList.add(catAtt);
+										}
+										cat.setAttachments(catAttList);
+									}else {
+										log.warn("ERROR AL OBTENER LOS ADJUNTOS DE LA CATEGORIA - " + categoryCode + "***************************");
+									}
+									
+								}
+							}
+															 
+						}else {
+							log.warn("ERROR AL OBTENER DATOS DE LA CATEGORIA - " + categoryCode + "***************************");
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER DATOS DE LA CATEGORIA - " + categoryCode + "***************************", e);
+			}
+		}
+		return cat;
+	}
+
+	@Override
+	public ItemGtinDTO getItemGTINData(String itemNumber, String orgCode, String partyNumber) {
+		ItemGtinDTO gtin = null;
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((itemNumber != null && !"".contains(itemNumber)) && (orgCode != null && !"".contains(orgCode)) && (partyNumber != null && !"".contains(partyNumber))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_ITEMRELATIONSHIP, 
+						PayloadProducer.getGTINFromItemRelationships(itemNumber, orgCode, partyNumber), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+	
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findGTINCrossReferenceResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findGTINCrossReferenceResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().has("ns0:Value")) {
+								JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findGTINCrossReferenceResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().get("ns0:Value").getAsJsonObject();
+								
+								if(!result.isJsonNull()) {
+									gtin = new ItemGtinDTO();
+									gtin.setGtin(NullValidator.isNull(result.get("ns1:GTIN").getAsString()));
+									gtin.setItemNumber(NullValidator.isNull(result.get("ns1:ItemNumber").getAsString()));
+									gtin.setOrganizationCode(NullValidator.isNull(result.get("ns1:OrganizationCode").getAsString()));
+									gtin.setTradingPartnerName(NullValidator.isNull(result.get("ns1:TradingPartnerName").getAsString()));
+									gtin.setTradingPartnerNumber(NullValidator.isNull(result.get("ns1:TradingPartnerNumber").getAsString()));
+									gtin.setUomCodeValue(NullValidator.isNull(result.get("ns1:UOMCodeValue").getAsString()));
+								}
+							}
+						}else {
+							log.warn("ERROR AL OBTENER DATOS DEL GTIN (RESPONSE ERROR) - " + itemNumber + " - " + partyNumber + "***************************");
+						}
+					}
+				}else {
+					log.warn("ERROR AL OBTENER DATOS DEL GTIN - " + itemNumber + " - " + partyNumber + "***************************");
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER DATOS DEL GTIN - " + itemNumber + " - " + partyNumber + "***************************", e);
+			}
+		}
+		return gtin;
 	}
 
 	

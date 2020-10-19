@@ -14,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dao.InvoiceDao;
+import com.smartech.invoicing.dto.CatAttachmentDTO;
+import com.smartech.invoicing.dto.CategoryDTO;
 import com.smartech.invoicing.dto.InvoicesByReportsDTO;
+import com.smartech.invoicing.dto.ItemGtinDTO;
 import com.smartech.invoicing.dto.ItemsDTO;
 import com.smartech.invoicing.dto.SalesLineLotSerDTO;
 import com.smartech.invoicing.dto.SalesOrderDTO;
@@ -561,6 +564,75 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invLine.setItemSerial(serials);
 								}
 								
+								//complemento detallista---------------------------------------------------------------
+								if(invLine.getRetailComplements() != null) {
+									
+									//UOM 
+									invLine.getRetailComplements().setUomCode(satUOM.getStrValue1());	
+								
+									//Complemento detallista Número y Type
+									if(itemSat.getItemCategory() != null && itemSat.getItemCategory().size() >= 1) {
+										String numbers = "";
+										String names = "";
+										for(CategoryDTO catItem : itemSat.getItemCategory()) {
+											String catStr = catItem.getCategoryCode();
+											names = names + catItem.getCategoryName() + ",";
+											catItem = soapService.getCategoryDataFrom(catStr);
+											if(catItem != null && (catItem.getAttachments() != null && !catItem.getAttachments().isEmpty())) {
+												for(CatAttachmentDTO att : catItem.getAttachments()) {
+													if(att.getTitle().contains(inv.getCustomerPartyNumber())) {
+														numbers = numbers + att.getFileName() + ",";
+														break;
+													}
+												}
+												if(!"".contains(numbers)) {
+													numbers = numbers.substring(0, numbers.length() - 1);
+													invLine.getRetailComplements().setNumber(numbers);
+												}else {
+													invStatus = false;
+													msgError = msgError + ";RETAILSNUMBERWS-NO SE ENCONTRARON ATT DEL CLIENTE " + inv.getCustomerPartyNumber();
+													log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER los attachment de la linea "+ invLine.getItemNumber() + ":" + inv.getFolio() + " del cliente " + inv.getCustomerPartyNumber());
+												}
+											}else {
+												invStatus = false;
+												msgError = msgError + ";RETAILSNUMBERWS-NO SE ENCONTRARON DATOS DEL CATÁLOGO " + catStr;
+												log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER las categorias de la linea "+ invLine.getItemNumber() + ":" + inv.getFolio() + " del categoria " + catStr);
+											}
+										}
+										
+										//Type 
+										if(!"".contains(names)) {
+											names = names.substring(0, names.length() - 1);
+											invLine.getRetailComplements().setType(names);
+										}else {
+											invStatus = false;
+											msgError = msgError + ";RETAILSNUMBERWS-NO SE ENCONTRARON CATEGORIAS DEL CLIENTE " + inv.getCustomerPartyNumber();
+											log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER Categorias de la linea "+ invLine.getItemNumber() + ":" + inv.getFolio() + " del cliente " + inv.getCustomerPartyNumber());
+										}
+									}else {
+										invStatus = false;
+										msgError = msgError + ";RETAILSNUMBER-NO TIENE CATEGORÍAS ASIGNADAS EL ARTÍCULO.";
+										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER las categorias de la linea "+ invLine.getItemNumber() + ":" + inv.getFolio() + " No contiene catálogos asignados.");
+									}
+									
+									//complemento Destallista GTIN
+									ItemGtinDTO gtin = soapService.getItemGTINData(invLine.getItemNumber(), AppConstants.ORACLE_ITEMMASTER, inv.getCustomerPartyNumber());
+									if(gtin != null) {
+										if(gtin.getGtin() != null && !"".contains(gtin.getGtin())) {
+											invLine.getRetailComplements().setgTin(gtin.getGtin());
+										}else {
+											invStatus = false;
+											msgError = msgError + ";RETAILSGTIN-GTIN NULO O VACIO -" + invLine.getItemNumber();
+											log.warn("PARA LA ORDEN " + inv.getFolio() + " GTIN VACIO O NULO AL OBTENER el GTIN de la linea "+ invLine.getItemNumber() + ":" + inv.getFolio() + " del cliente " + inv.getCustomerPartyNumber());
+										}
+									}else {
+										invStatus = false;
+										msgError = msgError + ";RETAILSGTIN-ERROR AL OBTENER EL GTIN DEL ITEM -" + invLine.getItemNumber();
+										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER el GTIN de la linea "+ invLine.getItemNumber() + ":" + inv.getFolio() + " del cliente " + inv.getCustomerPartyNumber());
+									}
+								}
+								//complemento detallista---------------------------------------------------------------
+
 								break;
 							}
 						}

@@ -97,8 +97,8 @@ public class PayloadProducer {
 								"<typ1:findAttribute>ItemNumber</typ1:findAttribute>" + 
 								"<typ1:findAttribute>ItemDescription</typ1:findAttribute>" + 
 								"<typ1:findAttribute>ItemDFF</typ1:findAttribute>" +
-//								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
-//								"<typ1:childFindCriteria>" + 
+								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
+								"<typ1:childFindCriteria>" + 
 //									"<typ1:filter>" + 
 //										"<typ1:group>" + 
 //											"<typ1:item>" + 
@@ -109,10 +109,10 @@ public class PayloadProducer {
 //											"</typ1:item>" + 
 //										"</typ1:group>" + 
 //									"</typ1:filter>" + 
-//									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
-//									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
-//									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
-//								"</typ1:childFindCriteria>" + 
+									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
+									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
+									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
+								"</typ1:childFindCriteria>" + 
 							"</typ:findCriteria>" + 
 						"</typ:findItem>" + 
 					"</soapenv:Body>" + 
@@ -329,5 +329,86 @@ public class PayloadProducer {
 				"   </soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>";
 		return request;
+	}
+	
+	public static String getRetailerItemCatalogInfo(String categoryCode) {
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/scm/productModel/catalogs/itemCatalogService/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">" + 
+				"<soapenv:Header/>" + 
+				"<soapenv:Body>" + 
+					"<typ:findCategory>" + 
+						"<typ:findCriteria>" + 
+							"<typ1:fetchStart>0</typ1:fetchStart>" + 
+							"<typ1:fetchSize>1</typ1:fetchSize>" + 
+							"<typ1:filter>" + 
+								"<typ1:group>" + 
+									"<typ1:item>" + 
+										"<typ1:conjunction>And</typ1:conjunction>" + 
+										"<typ1:attribute>CategoryCode</typ1:attribute>" + 
+										"<typ1:operator>=</typ1:operator>" + 
+										"<typ1:value>" + categoryCode + "</typ1:value>" + 
+									"</typ1:item>" + 
+								"</typ1:group>" + 
+							"</typ1:filter>" + 
+							"<typ1:findAttribute>CategoryCode</typ1:findAttribute>" + 
+							"<typ1:findAttribute>CategoryId</typ1:findAttribute>" + 
+							"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
+							"<typ1:findAttribute>CatalogCode</typ1:findAttribute>" + 
+							"<typ1:findAttribute>Attachment</typ1:findAttribute>" + 
+							"<typ1:childFindCriteria>" + 
+								"<typ1:findAttribute>Title</typ1:findAttribute>" + 
+								"<typ1:findAttribute>FileName</typ1:findAttribute>" + 
+								"<typ1:childAttrName>Attachment</typ1:childAttrName>" + 
+							"</typ1:childFindCriteria>" + 
+						"</typ:findCriteria>" + 
+					"</typ:findCategory>" + 
+				"</soapenv:Body>" + 
+			"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
+	
+	public static String getGTINFromItemRelationships(String itemNumber, String organizationCode, String partyNumber) {
+		
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/scm/productModel/items/itemRelationshipService/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">" + 
+				"<soapenv:Header/>" + 
+				"<soapenv:Body>" + 
+					"<typ:findGTINCrossReference>" + 
+						"<typ:findCriteria>" + 
+							"<typ1:fetchStart>0</typ1:fetchStart>" + 
+							"<typ1:fetchSize>1</typ1:fetchSize>" + 
+							"<typ1:filter>" + 
+								"<typ1:group>" + 
+									"<typ1:item>" + 
+										"<typ1:conjunction>And</typ1:conjunction>" + 
+										"<typ1:attribute>ItemNumber</typ1:attribute>" + 
+										"<typ1:operator>=</typ1:operator>" + 
+										"<typ1:value>" + itemNumber + "</typ1:value>" + 
+									"</typ1:item>" + 
+									"<typ1:item>" + 
+										"<typ1:conjunction>And</typ1:conjunction>" + 
+										"<typ1:attribute>OrganizationCode</typ1:attribute>" + 
+										"<typ1:operator>=</typ1:operator>" + 
+										"<typ1:value>" + organizationCode + "</typ1:value>" + 
+									"</typ1:item>" + 
+									"<typ1:item>" + 
+										"<typ1:conjunction>And</typ1:conjunction>" + 
+										"<typ1:attribute>TradingPartnerNumber</typ1:attribute>" + 
+										"<typ1:operator>=</typ1:operator>" + 
+										"<typ1:value>" + partyNumber + "</typ1:value>" + 
+									"</typ1:item>" + 
+								"</typ1:group>" + 
+							"</typ1:filter>" + 
+							"<typ1:findAttribute>ItemNumber</typ1:findAttribute>" + 
+							"<typ1:findAttribute>OrganizationCode</typ1:findAttribute>" + 
+							"<typ1:findAttribute>TradingPartnerName</typ1:findAttribute>" + 
+							"<typ1:findAttribute>TradingPartnerNumber</typ1:findAttribute>" + 
+							"<typ1:findAttribute>UOMCodeValue</typ1:findAttribute>" + 
+							"<typ1:findAttribute>GTIN</typ1:findAttribute>" + 
+						"</typ:findCriteria>" + 
+					"</typ:findGTINCrossReference>" + 
+				"</soapenv:Body>" + 
+			"</soapenv:Envelope>";
+		
+		return SOAPRequest;
 	}
 }
