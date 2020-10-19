@@ -11,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -123,6 +124,9 @@ public class InvoiceDetails implements Serializable{
 	
 	@Column(name = "itemNotes", nullable=true)
 	private String itemNotes;
+	
+	@OneToOne
+	private RetailComplement retailComplements;
 
 	public long getId() {
 		return id;
@@ -378,6 +382,14 @@ public class InvoiceDetails implements Serializable{
 
 	public void setItemNotes(String itemNotes) {
 		this.itemNotes = itemNotes;
+	}
+
+	public RetailComplement getRetailComplements() {
+		return retailComplements;
+	}
+
+	public void setRetailComplements(RetailComplement retailComplements) {
+		this.retailComplements = retailComplements;
 	}
 	
 }
