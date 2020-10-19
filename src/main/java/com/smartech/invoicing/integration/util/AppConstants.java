@@ -81,8 +81,21 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_ACCBANK = "ACCBANK";
 	public static final String UDC_SYSTEM_TIMEZONE = "TIMEZONE";
 	public static final String UDC_STRVALUE1_TIMEZONE = "USO HORARIO";
+	public static final String UDC_SYSTEM_SCHEDULER = "SCHEDULER";
+	public static final String UDC_STRVALUE1_INVOICES = "INVOICES";
+	public static final String UDC_SYSTEM_EMAILS = "EMAILS";
+	public static final String UDC_STRVALUE1_PAYMENTS = "PAYMENTS";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";
 	public static final String LIVERPOOL_CREDIT_NOTE = "CREDIT_NOTE";
+
+	//User defaul
+	public static final String USER_DEFAULT = "SYSTEM";
+	
+	//Enviar errores por correo para aviso
+	public static final String EMAIL_INVOICE_SUBJECT = "ERROR EN PROCESO DE REPORTE (INVOICE-InvoicesSchedule)";
+	public static final String EMAIL_INVOICE_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DE FACTURAS";
+	public static final String EMAIL_PAYMENTS_SUBJECT = "ERROR EN PROCESO DE REPORTE (PAYMENTS-createPayments)";
+	public static final String EMAIL_PAYMENTS_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DE PAGOS";
 }

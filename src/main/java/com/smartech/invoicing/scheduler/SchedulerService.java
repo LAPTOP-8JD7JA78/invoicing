@@ -70,9 +70,13 @@ public class SchedulerService {
 	
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testEmail() {
+		List<Udc> emails = udcService.searchBySystem("EMAILS");
 		String e = "lopluis98@gmail.com";
 		List<String> email = new ArrayList<String>();
 		email.add(e);
+		for(Udc u: emails) {
+			email.add(u.getUdcKey());
+		}
 		mailService.sendMail(email,
 				"ERROR EN PROCESO DE REPORTE (INVOICE)",
 				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES");
@@ -83,7 +87,7 @@ public class SchedulerService {
 		log.info("\'InvoicesSchedule\' is started*******");		
 		String nextSearch = sdf.format(new Date());
 		AnalyticsDTO analytics = new AnalyticsDTO();		
-		Udc da = udcService.searchBySystemAndKey("SCHEDULER", "INVOICES");
+		Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_INVOICES);
 		if(da != null) {
 			Date dateSearch = da.getDateValue();
 			String search = sdf.format(dateSearch);
@@ -93,23 +97,31 @@ public class SchedulerService {
 			if(!r.getRow().isEmpty()) {
 				if(!invoicingService.createStampInvoice(r.getRow())) {
 					System.out.println(false);
-					if(da.getIntValue() == 5) {						
+					if(da.getIntValue() == 5) {		
+						List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+						List<String> email = new ArrayList<String>();
+						for(Udc u: emails) {
+							email.add(u.getUdcKey());
+						}
+						mailService.sendMail(email,
+								AppConstants.EMAIL_INVOICE_SUBJECT,
+								AppConstants.EMAIL_INVOICE_CONTENT);
 						String date = sdf.format(new Date());
 						da.setDateValue(sdf.parse(date));
 						da.setIntValue(0);
-						udcService.update(da, new Date(), "SYSTEM");
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 					}else {
 						da.setIntValue(da.getIntValue() + 1);
-						udcService.update(da, new Date(), "SYSTEM");
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 					}					
 				}else {
 					da.setDateValue(sdf.parse(nextSearch));
-					udcService.update(da, new Date(), "SYSTEM");
+					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 				}
 			}else {
 				log.warn("REPORTS " + r.getRow() + " WITHOUT INFORMATON");
 				da.setDateValue(sdf.parse(nextSearch));
-				udcService.update(da, new Date(), "SYSTEM");
+				udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 			}
 		}else {
 			log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
@@ -216,7 +228,7 @@ public class SchedulerService {
 		try {
 			String nextSearch = sdf.format(new Date());
 			AnalyticsDTO analytics = new AnalyticsDTO();
-			Udc da = udcService.searchBySystemAndKey("SCHEDULER", "PAYMENTS");
+			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_PAYMENTS);
 			if(da != null) {
 				Date dateSearch = da.getDateValue();
 				String search = sdf.format(dateSearch);
@@ -227,26 +239,30 @@ public class SchedulerService {
 					if(!invoicingService.createStampedPayments(r.getRow())) {
 						System.out.println(false);
 						if(da.getIntValue() == 5) {
-							String e = "llopez@smartech.com.mx";							
-							List<String> email = null;
-							email.add(e);
-							
+							List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+							List<String> email = new ArrayList<String>();
+							for(Udc u: emails) {
+								email.add(u.getUdcKey());
+							}
+							mailService.sendMail(email,
+									AppConstants.EMAIL_INVOICE_SUBJECT,
+									AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()));
 							String date = sdf.format(new Date());
 							da.setDateValue(sdf.parse(date));
 							da.setIntValue(0);
-							udcService.update(da, new Date(), "SYSTEM");							
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);							
 						}else {
 							da.setIntValue(da.getIntValue() + 1);
-							udcService.update(da, new Date(), "SYSTEM");
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 						}
 					}else {
 						da.setDateValue(sdf.parse(nextSearch));
-						udcService.update(da, new Date(), "SYSTEM");
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 					}
 				}else {
 					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
 					da.setDateValue(sdf.parse(nextSearch));
-					udcService.update(da, new Date(), "SYSTEM");
+					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 				}
 			}else {
 				log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
