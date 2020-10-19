@@ -40,6 +40,7 @@ public class InvoicesByReportsDTO {
 	private String shipToCountry;
 	private String shipToZip;
 	private String shipToState;
+	private String customerPartyNumber;
 	
 	public String getCustomerName() {
 		return customerName;
@@ -276,6 +277,12 @@ public class InvoicesByReportsDTO {
 	}
 	public void setShipToState(String shipToState) {
 		this.shipToState = shipToState;
+	}
+	public String getCustomerPartyNumber() {
+		return customerPartyNumber;
+	}
+	public void setCustomerPartyNumber(String customerPartyNumber) {
+		this.customerPartyNumber = customerPartyNumber;
 	}
 	
 }

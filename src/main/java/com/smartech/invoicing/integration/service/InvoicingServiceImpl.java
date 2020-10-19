@@ -138,6 +138,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoice.setCustomerCountry(country);
 					invoice.setCustomerTaxIdentifier(inv.getCustomerTaxIdentifier());
 					invoice.setCustomerEmail("llopez@smartech.com.mx");
+					invoice.setCustomerPartyNumber(inv.getCustomerPartyNumber());
 					
 					//Datos del cliente envío---------------------------------------------------------------------------------------
 					invoice.setShipToName(inv.getShipToName());
@@ -350,6 +351,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setShipToCountry(NullValidator.isNull(r.getColumn38()));
 			invoice.setShipToZip(NullValidator.isNull(r.getColumn39()));
 			invoice.setShipToState(NullValidator.isNull(r.getColumn40()));
+			invoice.setCustomerPartyNumber(NullValidator.isNull(r.getColumn41()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;
