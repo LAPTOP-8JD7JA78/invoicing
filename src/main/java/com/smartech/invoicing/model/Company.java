@@ -74,6 +74,12 @@ public class Company implements Serializable{
     
 	@Column(name = "isFusionCloud", nullable=true)
     private boolean isFusionCloud;
+	
+	@Column(name = "globalLocationNumberProvider", nullable=true)
+    private String globalLocationNumberProvider;
+	
+	@Column(name = "AlternativeId", nullable=true)
+    private String AlternativeId;
 
 	public long getId() {
 		return id;
@@ -217,6 +223,22 @@ public class Company implements Serializable{
 
 	public void setFusionCloud(boolean isFusionCloud) {
 		this.isFusionCloud = isFusionCloud;
+	}
+
+	public String getGlobalLocationNumberProvider() {
+		return globalLocationNumberProvider;
+	}
+
+	public void setGlobalLocationNumberProvider(String globalLocationNumberProvider) {
+		this.globalLocationNumberProvider = globalLocationNumberProvider;
+	}
+
+	public String getAlternativeId() {
+		return AlternativeId;
+	}
+
+	public void setAlternativeId(String alternativeId) {
+		AlternativeId = alternativeId;
 	}
 	
 }

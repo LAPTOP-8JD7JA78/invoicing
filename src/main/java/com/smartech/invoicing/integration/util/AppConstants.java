@@ -54,9 +54,11 @@ public class AppConstants {
 	//Estados de reportes
 	public static final String STATUS_REPORTS_ING = "Invoice";
 	public static final String STATUS_REPORTS_ESP = "Factura";
+	
 	//Lineas del reporte
 	public static final String REPORT_LINE_TYPE_NOR = "NORMAL";
 	public static final String REPORT_LINE_TYPE_DIS = "DISCOUNT";
+	
 	//TIPO DE ORDEN
 	public static final String ORDER_TYPE_FACTURA = "FACTURA";
 	public static final String ORDER_TYPE_NC = "NOTA CREDITO";
@@ -64,6 +66,7 @@ public class AppConstants {
 	public static final String ORDER_TYPE_EXP = "EXPORTACION";
 	public static final String ORDER_TYPE_LIV = "LIVERPOOL";
 	public static final String ORDER_TYPE_MAR = "MARINA";
+	
 	//TIPO DE CAMBIO ESTANDAR
 	public static final double INVOICE_EXCHANGE_RATE= 1.00;
 	
@@ -78,4 +81,8 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_ACCBANK = "ACCBANK";
 	public static final String UDC_SYSTEM_TIMEZONE = "TIMEZONE";
 	public static final String UDC_STRVALUE1_TIMEZONE = "USO HORARIO";
+	
+	//Complemento detallista
+	public static final String LIVERPOOL_INVOICE = "INVOICE";
+	public static final String LIVERPOOL_CREDIT_NOTE = "CREDIT_NOTE";
 }
