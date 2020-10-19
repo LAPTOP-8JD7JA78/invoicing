@@ -257,7 +257,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 						
 						//Complemento detallista
-//						invDetails.setRetailComplements(null);
+						invDetails.setRetailComplements(null);
 						
 						invDetails.setTaxCodes(tcList);
 						//invDetails.setTaxCodes(tcList);

@@ -184,6 +184,9 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "RemainingBalanceAmount", nullable=true)
 	private String RemainingBalanceAmount;
+	
+	@Column(name = "customerPartyNumber", nullable=true)
+	private String customerPartyNumber;
 
 	public long getId() {
 		return id;
@@ -591,6 +594,14 @@ public class Invoice implements Serializable{
 
 	public void setRemainingBalanceAmount(String remainingBalanceAmount) {
 		RemainingBalanceAmount = remainingBalanceAmount;
+	}
+
+	public String getCustomerPartyNumber() {
+		return customerPartyNumber;
+	}
+
+	public void setCustomerPartyNumber(String customerPartyNumber) {
+		this.customerPartyNumber = customerPartyNumber;
 	}
 	
 }
