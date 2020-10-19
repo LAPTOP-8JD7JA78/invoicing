@@ -105,7 +105,7 @@ public class SchedulerService {
 						}
 						mailService.sendMail(email,
 								AppConstants.EMAIL_INVOICE_SUBJECT,
-								AppConstants.EMAIL_INVOICE_CONTENT);
+								AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()));
 						String date = sdf.format(new Date());
 						da.setDateValue(sdf.parse(date));
 						da.setIntValue(0);
