@@ -255,6 +255,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 						if(tcList.size() == 0) {
 							tcList.add(taxCodesService.getTCById(2));
 						}
+						
+						//Complemento detallista
+//						invDetails.setRetailComplements(null);
+						
 						invDetails.setTaxCodes(tcList);
 						//invDetails.setTaxCodes(tcList);
 						if(invDetails.getLineType().equals(AppConstants.REPORT_LINE_TYPE_NOR)) {							

@@ -79,9 +79,9 @@ public class StampedServiceImpl implements StampedService{
 			}
 			//Terminos de pago
 			if(i.getPaymentMethod().equals(AppConstantsUtil.PAYMENT_METHOD)) {
-				paymentTerms = i.getPaymentTerms();
-			}else {
 				paymentTerms = "";
+			}else {
+				paymentTerms = i.getPaymentTerms();
 			}
 			//Llenar los impuestos
 			getTaxes(i.getInvoiceDetails());
