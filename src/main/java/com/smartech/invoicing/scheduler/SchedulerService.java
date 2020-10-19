@@ -1,12 +1,13 @@
 package com.smartech.invoicing.scheduler;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -15,14 +16,17 @@ import com.smartech.invoicing.integration.SOAPService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.service.InvoicingService;
+import com.smartech.invoicing.integration.service.MailService;
 import com.smartech.invoicing.integration.service.StampedService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.integration.xml.rowset.Rowset;
 import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.Payments;
+import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.InvoiceService;
 import com.smartech.invoicing.service.PaymentsService;
+import com.smartech.invoicing.service.UdcService;
 
 public class SchedulerService {
 	
@@ -42,6 +46,10 @@ public class SchedulerService {
 	StampedService stampedService;
 	@Autowired
 	PaymentsService paymentsService;
+	@Autowired
+	UdcService udcService;
+	@Autowired
+	MailService mailService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -59,25 +67,52 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
+	
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
-	public void InvoicesSchedule() {
-		log.info("\'InvoicesSchedule\' is started*******");
-		AnalyticsDTO analytics = new AnalyticsDTO();
-//		Calendar calendar = Calendar.getInstance();
-//		calendar.setTime(new Date());
-//		calendar.add(Calendar.HOUR, 5);
-//		calendar.add(Calendar.MINUTE, -6);	
-//		String fecha = sdf.format(calendar.getTime());
-//		System.out.println(sdf.format(calendar.getTime()));
-		analytics.setAr_Report_date("2020-10-01 00:00:00");;
-		Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
-				AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
-		if(!r.getRow().isEmpty()) {
-			if(!invoicingService.createStampInvoice(r.getRow())) {
-				System.out.println(false);
+	public void testEmail() {
+		String e = "lopluis98@gmail.com";
+		List<String> email = new ArrayList<String>();
+		email.add(e);
+		mailService.sendMail(email,
+				"ERROR EN PROCESO DE REPORTE (INVOICE)",
+				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES");
+	}
+
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+	public void InvoicesSchedule() throws ParseException {
+		log.info("\'InvoicesSchedule\' is started*******");		
+		String nextSearch = sdf.format(new Date());
+		AnalyticsDTO analytics = new AnalyticsDTO();		
+		Udc da = udcService.searchBySystemAndKey("SCHEDULER", "INVOICES");
+		if(da != null) {
+			Date dateSearch = da.getDateValue();
+			String search = sdf.format(dateSearch);
+			analytics.setAr_Report_date(search);
+			Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+					AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
+			if(!r.getRow().isEmpty()) {
+				if(!invoicingService.createStampInvoice(r.getRow())) {
+					System.out.println(false);
+					if(da.getIntValue() == 5) {						
+						String date = sdf.format(new Date());
+						da.setDateValue(sdf.parse(date));
+						da.setIntValue(0);
+						udcService.update(da, new Date(), "SYSTEM");
+					}else {
+						da.setIntValue(da.getIntValue() + 1);
+						udcService.update(da, new Date(), "SYSTEM");
+					}					
+				}else {
+					da.setDateValue(sdf.parse(nextSearch));
+					udcService.update(da, new Date(), "SYSTEM");
+				}
+			}else {
+				log.warn("REPORTS " + r.getRow() + " WITHOUT INFORMATON");
+				da.setDateValue(sdf.parse(nextSearch));
+				udcService.update(da, new Date(), "SYSTEM");
 			}
 		}else {
-			log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+			log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
 		}
 		log.info("\'InvoicesSchedule\' is finished*******");
 	}
@@ -163,7 +198,7 @@ public class SchedulerService {
 		log.info("\'readDataPac\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void updateUUIDOracleERP() {
 		log.info("\'updateUUIDOracleERP\' is started*******");
 		try {
@@ -179,23 +214,43 @@ public class SchedulerService {
 	public void createPayments() {
 		log.info("\'createPayments\' is started*******");
 		try {
+			String nextSearch = sdf.format(new Date());
 			AnalyticsDTO analytics = new AnalyticsDTO();
-//			Calendar calendar = Calendar.getInstance();
-//			calendar.setTime(new Date());
-//			calendar.add(Calendar.HOUR, 5);
-//			calendar.add(Calendar.MINUTE, -6);	
-//			String fecha = sdf.format(calendar.getTime());
-//			System.out.println(sdf.format(calendar.getTime()));
-			analytics.setAr_Report_date("2020-10-14 00:00:00");;
-			Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
-					AppConstants.SERVICE_AR_REPORT_PAYMENTS, analytics);
-			if(!r.getRow().isEmpty()) {
-				if(!invoicingService.createStampedPayments(r.getRow())) {
-					System.out.println(false);
+			Udc da = udcService.searchBySystemAndKey("SCHEDULER", "PAYMENTS");
+			if(da != null) {
+				Date dateSearch = da.getDateValue();
+				String search = sdf.format(dateSearch);
+				analytics.setAr_Report_date(search);
+				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+						AppConstants.SERVICE_AR_REPORT_PAYMENTS, analytics);
+				if(!r.getRow().isEmpty()) {
+					if(!invoicingService.createStampedPayments(r.getRow())) {
+						System.out.println(false);
+						if(da.getIntValue() == 5) {
+							String e = "llopez@smartech.com.mx";							
+							List<String> email = null;
+							email.add(e);
+							
+							String date = sdf.format(new Date());
+							da.setDateValue(sdf.parse(date));
+							da.setIntValue(0);
+							udcService.update(da, new Date(), "SYSTEM");							
+						}else {
+							da.setIntValue(da.getIntValue() + 1);
+							udcService.update(da, new Date(), "SYSTEM");
+						}
+					}else {
+						da.setDateValue(sdf.parse(nextSearch));
+						udcService.update(da, new Date(), "SYSTEM");
+					}
+				}else {
+					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+					da.setDateValue(sdf.parse(nextSearch));
+					udcService.update(da, new Date(), "SYSTEM");
 				}
 			}else {
-				log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
-			}
+				log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
+			}			
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("ERROR DURANTE EL PROCESO DE \'createPayments\'-----------------------------", e);
