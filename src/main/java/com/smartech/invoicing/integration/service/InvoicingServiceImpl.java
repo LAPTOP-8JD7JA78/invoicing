@@ -507,12 +507,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invLine.setItemBrand(itemSat.getItemDFFMarca());
 									invLine.setItemModel(itemSat.getItemDFFModelo());
 									
-									//Importación
-									invLine.setImport(itemSat.isItemDFFIsImported());
-									if(invLine.isImport()) {
-										havePetition = true;
-										log.info("PARA LA ORDEN -" + inv.getFolio() + "El ITEM - " + invLine.getItemNumber() + " TIENE PEDIMENTOS");
-									}
+//									//Importación
+//									invLine.setImport(itemSat.isItemDFFIsImported());
+//									if(invLine.isImport()) {
+//										havePetition = true;
+//										log.info("PARA LA ORDEN -" + inv.getFolio() + "El ITEM - " + invLine.getItemNumber() + " TIENE PEDIMENTOS");
+//									}
 									
 								}else {
 									invStatus = false;
