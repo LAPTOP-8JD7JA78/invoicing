@@ -17,6 +17,7 @@ import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.service.InvoicingService;
 import com.smartech.invoicing.integration.service.MailService;
+import com.smartech.invoicing.integration.service.NumberLetterService;
 import com.smartech.invoicing.integration.service.StampedService;
 import com.smartech.invoicing.integration.util.AppConstants;
 import com.smartech.invoicing.integration.xml.rowset.Row;
@@ -50,6 +51,8 @@ public class SchedulerService {
 	UdcService udcService;
 	@Autowired
 	MailService mailService;
+	@Autowired
+	NumberLetterService numberLetterService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -70,16 +73,19 @@ public class SchedulerService {
 	
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testEmail() {
-		List<Udc> emails = udcService.searchBySystem("EMAILS");
-		String e = "lopluis98@gmail.com";
-		List<String> email = new ArrayList<String>();
-		email.add(e);
-		for(Udc u: emails) {
-			email.add(u.getUdcKey());
-		}
-		mailService.sendMail(email,
-				"ERROR EN PROCESO DE REPORTE (INVOICE)",
-				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES");
+//		List<Udc> emails = udcService.searchBySystem("EMAILS");
+//		String e = "lopluis98@gmail.com";
+//		List<String> email = new ArrayList<String>();
+//		email.add(e);
+//		for(Udc u: emails) {
+//			email.add(u.getUdcKey());
+//		}
+//		mailService.sendMail(email,
+//				"ERROR EN PROCESO DE REPORTE (INVOICE)",
+//				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES");
+		//Datos para pobrar el total con letra
+		String data = numberLetterService.getNumberLetter("10460224.76", true, "MXN");
+		System.out.println(data);
 	}
 
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)

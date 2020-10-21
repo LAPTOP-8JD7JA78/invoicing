@@ -42,6 +42,34 @@ public class InvoicesByReportsDTO {
 	private String shipToState;
 	private String customerPartyNumber;
 	
+	private boolean isDetCom;
+	private String documentStatus;
+	private String transactionType;/////////
+	private String instructionCode;
+	private String textNote;
+	private String referenceId;
+	private String referenceDate;
+	private String adicionalInformation;
+	private String adicionalInformationNumber;
+	private String adicionalInformationId;
+	private String deliveryNote;
+	private String buyerNumberFolio;
+	private String buyerDateFolio;
+	private String GLNBuyer;
+	private String purchasingContact;
+	private String seller;
+	private String GLNProvider;
+	private String alternativeId;
+	private String identificationType;
+	private String elementOnLine;
+	private String type;
+	private String typeCode;
+	private String Gtin;
+	private String invoicedQuantity;
+	private String uomCodeDet;
+	private String price;
+	private String total;
+	
 	public String getCustomerName() {
 		return customerName;
 	}
@@ -283,6 +311,168 @@ public class InvoicesByReportsDTO {
 	}
 	public void setCustomerPartyNumber(String customerPartyNumber) {
 		this.customerPartyNumber = customerPartyNumber;
+	}
+	public boolean isDetCom() {
+		return isDetCom;
+	}
+	public void setDetCom(boolean isDetCom) {
+		this.isDetCom = isDetCom;
+	}
+	public String getDocumentStatus() {
+		return documentStatus;
+	}
+	public void setDocumentStatus(String documentStatus) {
+		this.documentStatus = documentStatus;
+	}
+	public String getTransactionType() {
+		return transactionType;
+	}
+	public void setTransactionType(String transactionType) {
+		this.transactionType = transactionType;
+	}
+	public String getInstructionCode() {
+		return instructionCode;
+	}
+	public void setInstructionCode(String instructionCode) {
+		this.instructionCode = instructionCode;
+	}
+	public String getTextNote() {
+		return textNote;
+	}
+	public void setTextNote(String textNote) {
+		this.textNote = textNote;
+	}
+	public String getReferenceId() {
+		return referenceId;
+	}
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+	public String getReferenceDate() {
+		return referenceDate;
+	}
+	public void setReferenceDate(String referenceDate) {
+		this.referenceDate = referenceDate;
+	}
+	public String getAdicionalInformation() {
+		return adicionalInformation;
+	}
+	public void setAdicionalInformation(String adicionalInformation) {
+		this.adicionalInformation = adicionalInformation;
+	}
+	public String getAdicionalInformationNumber() {
+		return adicionalInformationNumber;
+	}
+	public void setAdicionalInformationNumber(String adicionalInformationNumber) {
+		this.adicionalInformationNumber = adicionalInformationNumber;
+	}
+	public String getAdicionalInformationId() {
+		return adicionalInformationId;
+	}
+	public void setAdicionalInformationId(String adicionalInformationId) {
+		this.adicionalInformationId = adicionalInformationId;
+	}
+	public String getDeliveryNote() {
+		return deliveryNote;
+	}
+	public void setDeliveryNote(String deliveryNote) {
+		this.deliveryNote = deliveryNote;
+	}
+	public String getBuyerNumberFolio() {
+		return buyerNumberFolio;
+	}
+	public void setBuyerNumberFolio(String buyerNumberFolio) {
+		this.buyerNumberFolio = buyerNumberFolio;
+	}
+	public String getBuyerDateFolio() {
+		return buyerDateFolio;
+	}
+	public void setBuyerDateFolio(String buyerDateFolio) {
+		this.buyerDateFolio = buyerDateFolio;
+	}
+	public String getGLNBuyer() {
+		return GLNBuyer;
+	}
+	public void setGLNBuyer(String gLNBuyer) {
+		GLNBuyer = gLNBuyer;
+	}
+	public String getPurchasingContact() {
+		return purchasingContact;
+	}
+	public void setPurchasingContact(String purchasingContact) {
+		this.purchasingContact = purchasingContact;
+	}
+	public String getSeller() {
+		return seller;
+	}
+	public void setSeller(String seller) {
+		this.seller = seller;
+	}
+	public String getGLNProvider() {
+		return GLNProvider;
+	}
+	public void setGLNProvider(String gLNProvider) {
+		GLNProvider = gLNProvider;
+	}
+	public String getAlternativeId() {
+		return alternativeId;
+	}
+	public void setAlternativeId(String alternativeId) {
+		this.alternativeId = alternativeId;
+	}
+	public String getIdentificationType() {
+		return identificationType;
+	}
+	public void setIdentificationType(String identificationType) {
+		this.identificationType = identificationType;
+	}
+	public String getElementOnLine() {
+		return elementOnLine;
+	}
+	public void setElementOnLine(String elementOnLine) {
+		this.elementOnLine = elementOnLine;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+	public String getTypeCode() {
+		return typeCode;
+	}
+	public void setTypeCode(String typeCode) {
+		this.typeCode = typeCode;
+	}
+	public String getGtin() {
+		return Gtin;
+	}
+	public void setGtin(String gtin) {
+		Gtin = gtin;
+	}
+	public String getInvoicedQuantity() {
+		return invoicedQuantity;
+	}
+	public void setInvoicedQuantity(String invoicedQuantity) {
+		this.invoicedQuantity = invoicedQuantity;
+	}
+	public String getUomCodeDet() {
+		return uomCodeDet;
+	}
+	public void setUomCodeDet(String uomCodeDet) {
+		this.uomCodeDet = uomCodeDet;
+	}
+	public String getPrice() {
+		return price;
+	}
+	public void setPrice(String price) {
+		this.price = price;
+	}
+	public String getTotal() {
+		return total;
+	}
+	public void setTotal(String total) {
+		this.total = total;
 	}
 	
 }

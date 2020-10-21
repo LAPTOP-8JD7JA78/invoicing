@@ -35,6 +35,9 @@ public class StampedServiceImpl implements StampedService{
 	@Autowired
 	InvoiceDao invoiceDao;
 	
+	@Autowired
+	NumberLetterService numberLetterService;
+	
 	static Logger log = Logger.getLogger(StampedServiceImpl.class.getName());
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	public String[ ] impH = new String[10];
@@ -126,7 +129,7 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					i.getInvoiceCurrency() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getInvoiceExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Total Con letra
+					numberLetterService.getNumberLetter(String.valueOf(i.getInvoiceTotal()), true, i.getInvoiceCurrency()) + AppConstantsUtil.FILES_SEPARATOR +//Total Con letra
 					i.getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +//40
 					"" + AppConstantsUtil.FILES_SEPARATOR +//orden de compra
 					AppConstantsUtil.NUMBER_COPIES + AppConstantsUtil.FILES_SEPARATOR +//Número de copias
@@ -259,8 +262,9 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para combo
+					"" + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
 					
+		        	detail = detail +
 					//Datos del complemento exterior
 //					"" + AppConstantsUtil.FILES_SEPARATOR +//c_Motivo Traslado
 //					operationType + AppConstantsUtil.FILES_SEPARATOR +//c_Tipo de operacion
@@ -331,35 +335,68 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					//Datos del complemento detallista 
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//10
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//10
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"\n";
+					"" + AppConstantsUtil.FILES_SEPARATOR;
+		        	//Datos del complemento detallista 
+		        	if(idet.getRetailComplements() != null) {
+			        	detail = detail +								
+						idet.getRetailComplements().getDocumentStatus() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getTransactionType() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getInstructionCode() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getTextNote() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getReferenceId() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getReferenceDate() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getAdicionalInformation() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getAdicionalInformationNumber() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getAdicionalInformationId() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getDeliveryNote() + AppConstantsUtil.FILES_SEPARATOR +//10
+						idet.getRetailComplements().getBuyerNumberFolio() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getBuyerDateFolio() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getGlobalLocationNumberBuyer() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getPurchasingContact() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getSeller() + AppConstantsUtil.FILES_SEPARATOR +
+						i.getCompany().getGlobalLocationNumberProvider() + AppConstantsUtil.FILES_SEPARATOR +
+						i.getCompany().getAlternativeId() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getIdentificationType() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getElementOnline() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getType() + AppConstantsUtil.FILES_SEPARATOR +//10
+						idet.getRetailComplements().getNumber() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getgTin() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getInovicedQuantity() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getUomCode() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getPriceTotal() + AppConstantsUtil.FILES_SEPARATOR +
+						idet.getRetailComplements().getTotal() + AppConstantsUtil.FILES_SEPARATOR +
+						"\n";
+		        	}else {
+			        	detail = detail +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +//10
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +//10
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"\n";
+		        	}
+
 			return detail;
 		}catch(Exception e) {
 			e.printStackTrace();

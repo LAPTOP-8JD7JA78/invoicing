@@ -169,7 +169,16 @@ public class PayloadProducer {
 				"   \"Receivables - Transactions Real Time\".\"- Freight Details\".\"Ship To Location Country\" s_39,\r\n" + 
 				"   \"Receivables - Transactions Real Time\".\"- Freight Details\".\"Ship To Location Postal Code\" s_40,\r\n" + 
 				"   \"Receivables - Transactions Real Time\".\"- Freight Details\".\"Ship To Location State\" s_41s,\r\n" +
-				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Details\".\"Bill-to Customer Number\" s_42\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Details\".\"Bill-to Customer Number\" s_42,\r\n" +
+				"	\"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_ESTATUS_\" s_43," +
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_CNPLNT_TLST_\" s44,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_CODIGO_DE_INSTRUCCION_\" s_45,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_CONTACTO_DE_COMPRAS_\" s_46,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_GNL_DEL_COMPRADOR_\" s_47,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_IT_RFRNC_TNL_\" s_48,\r\n" +//Tipo de Identificación --TransactionType 
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_NNR_NTRN_TL_PRFTR_\" s_49,\r\n" + //Número de referencia adicional  -- AdicionalInformationNumbe
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_REFERENCIA_ADICIONAL_\" s_50,\n\r" +
+				"	\"Receivables - Transactions Real Time\".\"- Additional Header Information\".\"Customer Transaction Reference\" s_51\n\r" +
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
 				"WHERE\r\n" + 
 				"((\"- Line Information\".\"Sales Order Number\" IS NOT NULL) AND (\"- Reference Information\".\"Creation Date\" > timestamp '" + date + "'))\r\n" + 

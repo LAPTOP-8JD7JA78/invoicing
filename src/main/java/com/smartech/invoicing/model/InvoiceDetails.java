@@ -3,6 +3,7 @@ package com.smartech.invoicing.model;
 import java.io.Serializable;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -125,8 +126,8 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "itemNotes", nullable=true)
 	private String itemNotes;
 	
-	@OneToOne
-	private RetailComplement retailComplements;
+	@OneToOne(cascade=CascadeType.ALL)
+	RetailComplement retailComplements;
 
 	public long getId() {
 		return id;

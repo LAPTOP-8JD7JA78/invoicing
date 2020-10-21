@@ -56,6 +56,7 @@ public class AppConstants {
 	//Estados de reportes
 	public static final String STATUS_REPORTS_ING = "Invoice";
 	public static final String STATUS_REPORTS_ESP = "Factura";
+	public static final String STATUS_REPORTS_LIV_CON_16 = "Fac contado 16";
 	
 	//Lineas del reporte
 	public static final String REPORT_LINE_TYPE_NOR = "NORMAL";

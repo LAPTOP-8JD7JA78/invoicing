@@ -32,6 +32,7 @@ import com.smartech.invoicing.model.Invoice;
 import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.model.NextNumber;
 import com.smartech.invoicing.model.Payments;
+import com.smartech.invoicing.model.RetailComplement;
 import com.smartech.invoicing.model.TaxCodes;
 import com.smartech.invoicing.model.Udc;
 import com.smartech.invoicing.service.BranchService;
@@ -76,6 +77,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	@Autowired
 	PaymentsService paymentsService;
+	
+	@Autowired
+	NumberLetterService numberLetterService;
 	
 	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());
 	
@@ -166,7 +170,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoice.setInvoice(true);
 					invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 					if(!inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ESP)//Es nota de credito
-						&& !inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ING)) {
+						&& !inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_ING)
+						&& !inv.getTransactionTypeName().contains(AppConstants.STATUS_REPORTS_LIV_CON_16)) {
 						invoice.setInvoice(false);
 						invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
 						invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
@@ -223,7 +228,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}else {
 								invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
 								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
-							}							
+							}	
+							in.setTransactionType(AppConstants.LIVERPOOL_INVOICE);
 						}else if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_NC)) {
 							if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) < 0) {
 								invDetails.setUnitPrice(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice()))))));
@@ -231,14 +237,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}else {
 								invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
 								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
-							}	
+							}
+							in.setTransactionType(AppConstants.LIVERPOOL_CREDIT_NOTE);
 						}
 						
 						invDetails.setTransactionLineNumber(in.getTransactionLineNumber());
 						if(i.isInvoice()) {
-							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getQuantityInvoiced())))));
+							invDetails.setQuantity(Double.parseDouble(df.format(Double.parseDouble(NullValidator.isNull(in.getQuantityInvoiced())))));
+							in.setInvoicedQuantity(String.valueOf((invDetails.getQuantity())));
 						}else {
-							invDetails.setQuantity(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(in.getQuantityCredited())))));
+							invDetails.setQuantity(Double.parseDouble(df.format(Double.parseDouble(NullValidator.isNull(in.getQuantityCredited())))));
+							in.setInvoicedQuantity(String.valueOf((invDetails.getQuantity())));
 						}
 						invDetails.setUomName(in.getUomCode());
 						if(in.getTaxRecoverableAmount().isEmpty()) {
@@ -260,8 +269,40 @@ public class InvoicingServiceImpl implements InvoicingService{
 							tcList.add(taxCodesService.getTCById(2));
 						}
 						
-						//Complemento detallista
-						invDetails.setRetailComplements(null);
+						//Complemento detallista						
+						if(in.isDetCom()) {
+							RetailComplement rc = new RetailComplement();
+							rc.setDocumentStatus(in.getDocumentStatus());
+							rc.setTransactionType(in.getTransactionType());
+							rc.setInstructionCode(in.getInstructionCode());
+							rc.setTextNote(numberLetterService.getNumberLetter(String.valueOf(invDetails.getTotalAmount() + invDetails.getTotalTaxAmount()), true, invDetails.getCurrency()));
+							//rc.setReferenceId();
+							//rc.setReferenceDate(referenceDate);
+							rc.setAdicionalInformation("");
+							rc.setAdicionalInformationNumber(in.getAdicionalInformationNumber());
+							rc.setAdicionalInformationId(in.getAdicionalInformationId());
+							rc.setDeliveryNote("");
+							//rc.setBuyerNumberFolio("");
+							//rc.setBuyerDateFolio("");
+							rc.setGlobalLocationNumberBuyer(in.getGLNBuyer());
+							rc.setPurchasingContact(in.getPurchasingContact());
+							rc.setSeller("");
+							//rc.getGlobalLocationNumberProvider("");
+							//rc.setAlternativeId("");
+							rc.setIdentificationType(in.getIdentificationType());
+							rc.setElementOnline("");
+							//rc.setType("");
+							//rc.setNumber("");
+							//rc.setgTin("");
+							rc.setInovicedQuantity(in.getInvoicedQuantity());
+							//rc.setUomCode("");
+							rc.setPriceTotal(String.valueOf(invDetails.getTotalAmount()));
+							rc.setTotal(String.valueOf(invDetails.getTotalAmount() + invDetails.getTotalTaxAmount()));
+							
+							invDetails.setRetailComplements(rc);
+						}else {
+							invDetails.setRetailComplements(null);
+						}	
 						
 						invDetails.setTaxCodes(tcList);
 						//invDetails.setTaxCodes(tcList);
@@ -355,6 +396,26 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setShipToZip(NullValidator.isNull(r.getColumn39()));
 			invoice.setShipToState(NullValidator.isNull(r.getColumn40()));
 			invoice.setCustomerPartyNumber(NullValidator.isNull(r.getColumn41()));
+			//Complemento detallista
+			if(r.getColumn43() != null) {
+				if(r.getColumn43().equals("Y")) {
+					invoice.setDetCom(true);
+					invoice.setDocumentStatus(NullValidator.isNull(r.getColumn42()));
+					invoice.setInstructionCode(NullValidator.isNull(r.getColumn44()));
+					invoice.setAdicionalInformationNumber(NullValidator.isNull(r.getColumn49()));//Listo
+					invoice.setAdicionalInformationId(NullValidator.isNull(r.getColumn47()));
+					invoice.setGLNBuyer(NullValidator.isNull(r.getColumn46()));
+					invoice.setPurchasingContact(NullValidator.isNull(r.getColumn45()));
+					invoice.setIdentificationType(NullValidator.isNull(r.getColumn48()));
+				}else {
+					invoice.setDetCom(false);
+				}
+			}else {
+				invoice.setDetCom(false);
+			}
+			if(invoice.getTransactionNumber().equals("20000")) {
+				System.out.println();
+			}
 		}catch(Exception e) {
 			e.printStackTrace();
 			return null;
