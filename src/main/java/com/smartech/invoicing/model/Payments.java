@@ -124,6 +124,12 @@ public class Payments implements Serializable{
 	
 	@Column(name = "UUID", nullable = true)
     private String UUID;
+	
+	@Column(name = "paymentType", nullable = true)
+	private String paymentType;
+	
+	@Column(name = "paymentError", nullable = true)
+	private String paymentError;
 
 	public int getId() {
 		return id;
@@ -387,6 +393,22 @@ public class Payments implements Serializable{
 
 	public void setUUID(String uUID) {
 		UUID = uUID;
+	}
+
+	public String getPaymentType() {
+		return paymentType;
+	}
+
+	public void setPaymentType(String paymentType) {
+		this.paymentType = paymentType;
+	}
+
+	public String getPaymentError() {
+		return paymentError;
+	}
+
+	public void setPaymentError(String paymentError) {
+		this.paymentError = paymentError;
 	}
 	
 }

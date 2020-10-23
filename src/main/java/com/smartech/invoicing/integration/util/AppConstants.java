@@ -70,6 +70,9 @@ public class AppConstants {
 	public static final String ORDER_TYPE_LIV = "LIVERPOOL";
 	public static final String ORDER_TYPE_MAR = "MARINA";
 	
+	public static final String PAYMENTS_CPAGO = "CPAGO";
+	public static final String PAYMENTS_ADVPAY = "ADVPAY";
+	
 	//TIPO DE CAMBIO ESTANDAR
 	public static final double INVOICE_EXCHANGE_RATE= 1.00;
 	
@@ -101,4 +104,5 @@ public class AppConstants {
 	public static final String EMAIL_INVOICE_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DE FACTURAS";
 	public static final String EMAIL_PAYMENTS_SUBJECT = "ERROR EN PROCESO DE REPORTE (PAYMENTS-createPayments)";
 	public static final String EMAIL_PAYMENTS_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DE PAGOS";
+
 }

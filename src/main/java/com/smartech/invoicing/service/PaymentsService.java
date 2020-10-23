@@ -10,4 +10,6 @@ public interface PaymentsService {
 	List<Payments> getPaymentsListByStatus(List<String> otList);
 	boolean updatePayment(Payments pay); 
 	List<Payments> getPaymentsStatus(String status);
+	Payments getPaymentByName(String fileName);
+	Payments getPaymentsById(String id);
 }

@@ -4,10 +4,13 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.transform.Transformers;
+import org.hibernate.type.IntegerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,6 +114,33 @@ public class PaymentsDaoImpl implements PaymentsDao{
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Payments getPaymentsByName(String fileName) {
+		SQLQuery query;
+		String sql;
+		Session session = sessionFactory.getCurrentSession();	
+		try {
+			sql = "SELECT * FROM payments where concat_ws('', serial, folio) = '" + fileName + "'";
+			query = session.createSQLQuery(sql);
+			query.setResultTransformer(Transformers.aliasToBean(Payments.class));
+			query.addScalar("id", new IntegerType());
+			List<Payments> invL = query.list();
+			if(!invL.isEmpty()) {
+				return invL.get(0);
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public Payments getPaymentById(String Id) {
+		Session session = this.sessionFactory.getCurrentSession();
+		return (Payments) session.get(Payments.class, Integer.valueOf(Id));
 	}
 
 }

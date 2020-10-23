@@ -110,6 +110,7 @@ public class PayloadProducer {
 //										"</typ1:group>" + 
 //									"</typ1:filter>" + 
 									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
+									"<typ1:findAttribute>CategoryCode</typ1:findAttribute>" + 
 									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
 									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
 								"</typ1:childFindCriteria>" + 

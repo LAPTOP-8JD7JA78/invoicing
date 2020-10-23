@@ -11,4 +11,6 @@ public interface PaymentsDao {
 	List<Payments> getPaymentsListByStatus(List<String> otList);
 	boolean updatePayment(Payments pay);
 	List<Payments> getPaymentsByStatus(String status);
+	Payments getPaymentsByName(String fileName);
+	Payments getPaymentById(String Id);
 }

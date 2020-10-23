@@ -22,6 +22,7 @@ import com.smartech.invoicing.model.InvoiceDetails;
 import com.smartech.invoicing.model.Payments;
 import com.smartech.invoicing.model.TaxCodes;
 import com.smartech.invoicing.model.Udc;
+import com.smartech.invoicing.service.PaymentsService;
 import com.smartech.invoicing.service.UdcService;
 import com.smartech.invoicing.util.AppConstantsUtil;
 import com.smartech.invoicing.util.NullValidator;
@@ -37,6 +38,9 @@ public class StampedServiceImpl implements StampedService{
 	
 	@Autowired
 	NumberLetterService numberLetterService;
+	
+	@Autowired
+	PaymentsService paymentsService;
 	
 	static Logger log = Logger.getLogger(StampedServiceImpl.class.getName());
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -534,9 +538,11 @@ public class StampedServiceImpl implements StampedService{
 		            content = c.split(Pattern.quote("|"));
 		            objReader.close();
 		            Invoice inv = new Invoice();
+		            Payments payments = new Payments();
 		            //Modificar valor cuando se setean los nextNumbersCorrespondientes y se tengan los archivos reales
 		            //fileName = "MEFAC10001";
 		            Invoice getId = invoiceDao.getSingleInvoiceByFolioSerial(fileName);
+		            Payments pay = paymentsService.getPaymentByName(fileName);
 		            if(getId != null) {
 			            inv = invoiceDao.getSingleInvoiceById(getId.getId());
 			            if(inv != null) {
@@ -575,6 +581,44 @@ public class StampedServiceImpl implements StampedService{
 			            		}
 			            	}
 			            }
+		            }else if(pay != null) {
+		            	payments = paymentsService.getPaymentsById(String.valueOf(pay.getId()));
+		            	if(payments != null) {
+		            		if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
+		            			payments.setUUID(content[1]);
+		            			payments.setPaymentError("");
+		            			payments.setPaymentStatus(AppConstants.STATUS_INVOICED);
+			            		if(paymentsService.updatePayment(payments)) {
+			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
+			    		            //Pasar el archivo a otra carpeta
+			    		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+			    					FileWriter fw = new FileWriter(newArrive);
+			    		            BufferedWriter bw = new BufferedWriter(fw);
+			    		            bw.write(c);
+			    		            bw.close();	  
+			    		            fw.close();
+			    		            if(file.exists()) {
+			    		            	if(file.delete()){
+			    		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
+			    			            }
+			    			            else {
+			    			            	log.info("El fichero" + file.getName() + " no ha sido borrado");
+			    			            }
+			    		            }	
+			            		}else {
+			            			log.info("No se actualizo el COMPLEMENTO DE PAGO: " + file.getName());
+			            		}
+		            		}else {
+			            		payments.setUUID("");
+			            		payments.setPaymentError(content[1].substring(0, 250));
+			            		payments.setPaymentStatus(AppConstants.STATUS_ERROR_PAC);
+			            		if(paymentsService.updatePayment(payments)) {
+			            			log.info("Se obtuvo el error en el COMPLEMENTO DE PAGO " + file.getName());
+			            		}else {
+			            			log.info("No se actualizo el COMPLEMENTO DE PAGO, update: " + file.getName());
+			            		}
+		            		}
+		            	}
 		            }
 		            
 				}

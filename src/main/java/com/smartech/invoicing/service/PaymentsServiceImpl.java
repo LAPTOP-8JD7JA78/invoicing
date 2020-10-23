@@ -38,4 +38,14 @@ public class PaymentsServiceImpl implements PaymentsService{
 	public List<Payments> getPaymentsStatus(String status) {
 		return paymentsDao.getPaymentsByStatus(status);
 	}
+
+	@Override
+	public Payments getPaymentByName(String fileName) {
+		return paymentsDao.getPaymentsByName(fileName);
+	}
+
+	@Override
+	public Payments getPaymentsById(String id) {
+		return paymentsDao.getPaymentById(id);
+	}
 }
