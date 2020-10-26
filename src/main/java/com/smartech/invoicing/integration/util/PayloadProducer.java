@@ -251,7 +251,8 @@ public class PayloadProducer {
 							"<typ:operationMode>single</typ:operationMode>" + 
 							"<typ:object>" + 
 								"<erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>" + 
-								"<erp:ContextValue>SerieyFolio</erp:ContextValue>" + 
+								//"<erp:ContextValue>SerieyFolio</erp:ContextValue>" + 
+								"<erp:ContextValue>Serie y Folio</erp:ContextValue>" +
 								"<erp:UserKeyA>"+ receiptNumber + "</erp:UserKeyA>" + 
 								"<erp:UserKeyB>" + receiptId + "</erp:UserKeyB>" + 
 								"<erp:DFFAttributes>{\"ATTRIBUTE1\":\"" + folio + "\",\"ATTRIBUTE2\":\"" + serial + "\"}</erp:DFFAttributes>" + 
