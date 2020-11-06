@@ -73,6 +73,9 @@ public class StampedServiceImpl implements StampedService{
 			File file = new File(fileRuta + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
 			if (!file.exists()) {
              	file.createNewFile();
+             	file.setExecutable(true);
+             	file.setReadable(true);
+             	file.setWritable(true);             	
             }
 			//Saber tipo de factura
 			if(i.isInvoice()) {
@@ -110,7 +113,7 @@ public class StampedServiceImpl implements StampedService{
 					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getBranch().getZip() + AppConstantsUtil.FILES_SEPARATOR +//i.getCompany().getZip() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
+					i.getCompany().getBusinessUnitName() + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getCompany().getColony()) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getAddress() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
@@ -140,18 +143,34 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE ORDEN DE VENTA
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
 					"" + AppConstantsUtil.FILES_SEPARATOR +//JDE
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Número de cuenta del cliente
-					i.getShipToName() + AppConstantsUtil.FILES_SEPARATOR +
-					i.getCustomerTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
-					""  + AppConstantsUtil.FILES_SEPARATOR +
-					i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Interior Number
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Exterior Number
-					i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getShipToCity()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +
-					i.getShipToCountry() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR;//Localidad-----57
+					i.getCustomerPartyNumber() + AppConstantsUtil.FILES_SEPARATOR;//Número de cuenta del cliente
+					if(i.getShipToaddress() != null && !i.getShipToaddress().isEmpty()) {
+						content = content + 
+							i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
+							i.getCustomerTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+							""  + AppConstantsUtil.FILES_SEPARATOR +
+							i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Interior Number
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Exterior Number
+							i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(i.getShipToCity()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +
+							i.getShipToCountry() + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR;//Localidad-----57						
+					}else {
+						content = content +
+							i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
+							i.getCustomerTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+							""  + AppConstantsUtil.FILES_SEPARATOR +
+							i.getCustomerAddress1() + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							i.getCustomerZip() + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(i.getCustomerCity()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(i.getCustomerState()) + AppConstantsUtil.FILES_SEPARATOR +
+							i.getCustomerCountry() + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR;
+					}
 		            //Valores de los impuestos
 		            for(int h=0; h<impH.length; h++){
 		            	content = content + NullValidator.isNull(impH[h]) + "|";
@@ -167,8 +186,8 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +//65
 					"" + AppConstantsUtil.FILES_SEPARATOR +//66
 					"" + AppConstantsUtil.FILES_SEPARATOR +//67  */
-					relationType + AppConstantsUtil.FILES_SEPARATOR +
-					UUIDRelated + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(relationType) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(UUIDRelated) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//taxId Extranjero
 					i.getCFDIUse() + AppConstantsUtil.FILES_SEPARATOR +
@@ -200,8 +219,8 @@ public class StampedServiceImpl implements StampedService{
 			
 			return true;
 		}catch(Exception e) {
-			e.printStackTrace();
-			
+			log.error("ERROR AL CREAR EL ARCHIVO" + e);
+			e.printStackTrace();			
 			return false;
 		}
 	}
@@ -212,6 +231,7 @@ public class StampedServiceImpl implements StampedService{
 		String operationType = "";
 		String petitionKey  = "";
 		try {
+			Udc isComboOrMarina = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_MARINA, AppConstants.UDC_KEY_MARINA);
 			List<Udc> oType = udcService.searchBySystem(AppConstants.UDC_SYSTEM_OPERATIONTYPE);
 			List<Udc> pKey = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PETITIONKEY);
 			for(Udc uoType: oType) {
@@ -264,82 +284,96 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
-					"" + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
-					
-		        	detail = detail +
-					//Datos del complemento exterior
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//c_Motivo Traslado
-//					operationType + AppConstantsUtil.FILES_SEPARATOR +//c_Tipo de operacion
-//					petitionKey + AppConstantsUtil.FILES_SEPARATOR +//c_Clave pedimento
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//Cert origen
-//					"" + AppConstantsUtil.FILES_SEPARATOR +
-//					"" + AppConstantsUtil.FILES_SEPARATOR +
-//					NullValidator.isNull(idet.getIncotermKey()) + AppConstantsUtil.FILES_SEPARATOR +//c_Incoterm 40
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//Subdivison	
-//					NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones	
-//					idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
-//					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//Curp del emisor
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//Número del registro fiscal
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//Recidencia fiscal
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Número de identificacion fiscal
-//					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Nombre
-//					i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Calle 50
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo # Exterior 
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//shipTo # Interior
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Colony
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Localidad
-//					i.getShipToCity() + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Municipio
-//					NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +//shipTo Estado
-//					NullValidator.isNull(i.getShipToCountry()) + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Country
-//					i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Zip
-//					idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +//Número del artículo, sku
-//					NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
-//					idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
-//					idet.getItemUomCustoms() + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
-//					idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
-//					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Valor total aduana
-//					NullValidator.isNull(idet.getItemBrand())+ AppConstantsUtil.FILES_SEPARATOR +//Marca
-//					NullValidator.isNull(idet.getItemModel()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
-//					"" + AppConstantsUtil.FILES_SEPARATOR +//Submodelo
-//					NullValidator.isNull(idet.getItemSerial()) + AppConstantsUtil.FILES_SEPARATOR +//No. de seríe
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//10
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//10
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//10
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR;
+		        	if(isComboOrMarina.getUdcKey().equals(i.getCustomerTaxIdentifier()) &&
+		        			isComboOrMarina.getStrValue1().equals(i.getCustomerName())) {
+		        		detail = detail +
+	        				idet.getAddtionalDescription() + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
+	    					"" + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
+		        	}else {
+		        		detail = detail +
+	        				"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
+	    					NullValidator.isNull(idet.getAddtionalDescription()) + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
+		        	}
+					
+
+					//Datos del complemento exterior
+					if(i.isExtCom()) {
+						detail = detail +
+							"" + AppConstantsUtil.FILES_SEPARATOR +//c_Motivo Traslado
+							operationType + AppConstantsUtil.FILES_SEPARATOR +//c_Tipo de operacion
+							petitionKey + AppConstantsUtil.FILES_SEPARATOR +//c_Clave pedimento
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Cert origen
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(idet.getIncotermKey()) + AppConstantsUtil.FILES_SEPARATOR +//c_Incoterm 40
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Subdivison	
+							NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones	
+							idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
+							idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Curp del emisor
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Número del registro fiscal
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Recidencia fiscal
+							"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Número de identificacion fiscal
+							i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Nombre
+							i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Calle 50
+							"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo # Exterior 
+							"" + AppConstantsUtil.FILES_SEPARATOR +//shipTo # Interior
+							"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Colony
+							"" + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Localidad
+							i.getShipToCity() + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Municipio
+							NullValidator.isNull(i.getShipToState()) + AppConstantsUtil.FILES_SEPARATOR +//shipTo Estado
+							NullValidator.isNull(i.getShipToCountry()) + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Country
+							i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Zip
+							idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +//Número del artículo, sku
+							NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
+							idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
+							idet.getItemUomCustoms() + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
+							idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
+							idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Valor total aduana
+							NullValidator.isNull(idet.getItemBrand())+ AppConstantsUtil.FILES_SEPARATOR +//Marca
+							NullValidator.isNull(idet.getItemModel()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
+							"" + AppConstantsUtil.FILES_SEPARATOR +//Submodelo
+							NullValidator.isNull(idet.getItemSerial()) + AppConstantsUtil.FILES_SEPARATOR;//No. de seríe
+					}else {
+						detail = detail +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +//10
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +//10
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +//10
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							"" + AppConstantsUtil.FILES_SEPARATOR;
+					}
+
 		        	//Datos del complemento detallista 
 		        	if(idet.getRetailComplements() != null) {
 			        	detail = detail +								
@@ -545,7 +579,7 @@ public class StampedServiceImpl implements StampedService{
 		            Payments pay = paymentsService.getPaymentByName(fileName);
 		            if(getId != null) {
 			            inv = invoiceDao.getSingleInvoiceById(getId.getId());
-			            if(inv != null) {
+			            if(inv != null && !inv.getInvoiceType().equals(AppConstants.ORDER_TYPE_ADV)) {//FACTURAS, NC
 			            	if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
 			            		inv.setUUID(content[1]);
 			            		inv.setErrorMsg("");
@@ -560,11 +594,11 @@ public class StampedServiceImpl implements StampedService{
 			    		            bw.close();	  
 			    		            fw.close();
 			    		            if(file.exists()) {
+			    		            	log.info(file.canExecute() + "|" + file.canRead() + "|" + file.canWrite());			    		            	
 			    		            	if(file.delete()){
-			    		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
-			    			            }
-			    			            else {
-			    			            	log.info("El fichero" + file.getName() + " no ha sido borrado");
+			    		            		log.info("El fichero " + file.getName() + " ha sido borrado satisfactoriamente");
+			    			            }else {
+			    			            	log.error("El fichero " + file.getName() + " no ha sido borrado" + "|" + file.delete());
 			    			            }
 			    		            }	
 			            		}else {
@@ -577,11 +611,56 @@ public class StampedServiceImpl implements StampedService{
 			            		if(invoiceDao.updateInvoice(inv)) {
 			            			log.info("Se obtuvo el error en la factura " + file.getName());
 			            		}else {
-			            			log.info("No se actualizo el la factura, update: " + file.getName());
+			            			log.error("No se actualizo la factura, update: " + file.getName());
+			            		}
+			            	}
+			            }else if(inv.getInvoiceType().equals(AppConstants.ORDER_TYPE_ADV)) {//ANTICIPOS
+			            	Payments payment = paymentsService.getPaymentByName(fileName);			            	
+			            	if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
+			            		inv.setUUID(content[1]);
+			            		inv.setErrorMsg("");
+			            		inv.setStatus(AppConstants.STATUS_FINISHED);
+			            		if(invoiceDao.updateInvoice(inv)) {
+			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
+			    		            //Pasar el archivo a otra carpeta
+			    		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+			    					FileWriter fw = new FileWriter(newArrive);
+			    		            BufferedWriter bw = new BufferedWriter(fw);
+			    		            bw.write(c);
+			    		            bw.close();	  
+			    		            fw.close();
+			    		            if(file.exists()) {
+			    		            	if(file.delete()){
+			    		            		log.info("El fichero " + file.getName() + " ha sido borrado satisfactoriamente");
+			    			            }
+			    			            else {
+			    			            	log.error("El fichero " + file.getName() + " no ha sido borrado");
+			    			            }
+			    		            }
+			    		            if(payment != null){
+			    		            	Payments paym = paymentsService.getPaymentsById(String.valueOf(payment.getId()));
+			    		            	paym.setUUID(content[1]);
+			    		            	paym.setPaymentError("");
+			    		            	paym.setPaymentStatus(AppConstants.STATUS_INVOICED);
+			    		            	if(paymentsService.updatePayment(paym)) {
+					            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
+			    		            	}
+			    		            }
+			            		}else {
+			            			log.error("No se actualizo la factura: " + file.getName());
+			            		}
+			            	}else {
+			            		inv.setUUID("");
+			            		inv.setErrorMsg(content[1].substring(0, 250));
+			            		inv.setStatus(AppConstants.STATUS_ERROR_PAC);
+			            		if(invoiceDao.updateInvoice(inv)) {
+			            			log.info("Se obtuvo el error en la factura " + file.getName());
+			            		}else {
+			            			log.error("No se actualizo la factura, update: " + file.getName());
 			            		}
 			            	}
 			            }
-		            }else if(pay != null) {
+		            }else if(pay != null) {//COMPLEMENTO DE PAGO
 		            	payments = paymentsService.getPaymentsById(String.valueOf(pay.getId()));
 		            	if(payments != null) {
 		            		if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
@@ -634,8 +713,7 @@ public class StampedServiceImpl implements StampedService{
 	public boolean createPaymentsFile(Payments i) {
 		String fileRuta = "";
 		String fileName = "";
-		String content = "";
-		
+		String content = "";		
 		String rType ="";
 		String country = "";
 		try {

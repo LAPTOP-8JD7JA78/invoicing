@@ -48,4 +48,9 @@ public class PaymentsServiceImpl implements PaymentsService{
 	public Payments getPaymentsById(String id) {
 		return paymentsDao.getPaymentById(id);
 	}
+
+	@Override
+	public List<Payments> getPayByAdv(String uuid) {
+		return paymentsDao.PaymentsByAdv(uuid);
+	}
 }

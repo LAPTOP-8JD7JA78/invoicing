@@ -13,4 +13,5 @@ public interface PaymentsDao {
 	List<Payments> getPaymentsByStatus(String status);
 	Payments getPaymentsByName(String fileName);
 	Payments getPaymentById(String Id);
+	List<Payments> PaymentsByAdv(String uuid);
 }

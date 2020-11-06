@@ -192,6 +192,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		return criteria.list();
 	}
 	
+	@Override
 	@SuppressWarnings("unchecked")
 	public Invoice getSingleInvoiceByFolioSerial(String folio) {
 		SQLQuery query;
@@ -217,5 +218,23 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			return list.get(0);
 		}	*/	
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getInvoiceByUuid(String uuid) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.eq("UUID", uuid));	
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

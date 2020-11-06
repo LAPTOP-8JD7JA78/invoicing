@@ -187,7 +187,10 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "customerPartyNumber", nullable=true)
 	private String customerPartyNumber;
-
+	
+	@Column(name = "isExtCom", nullable=true)
+	private boolean isExtCom;
+	
 	public long getId() {
 		return id;
 	}
@@ -602,6 +605,14 @@ public class Invoice implements Serializable{
 
 	public void setCustomerPartyNumber(String customerPartyNumber) {
 		this.customerPartyNumber = customerPartyNumber;
+	}
+
+	public boolean isExtCom() {
+		return isExtCom;
+	}
+
+	public void setExtCom(boolean isExtCom) {
+		this.isExtCom = isExtCom;
 	}
 	
 }

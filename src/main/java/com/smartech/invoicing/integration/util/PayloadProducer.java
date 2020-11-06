@@ -222,6 +222,29 @@ public class PayloadProducer {
 		return SOAPRequest;
 	}
 	
+	public static String setARRegionalFlexfieldByAdvPayments(String transNumber, String val, String transactionSource, String setName) {
+		
+
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <typ:updateDffEntityDetails>\r\n" + 
+				"         <typ:operationMode>SINGLE</typ:operationMode>\r\n" + 
+				"         <typ:object>\r\n" + 
+				"            <erp:EntityName>Receivables Invoice</erp:EntityName>\r\n" + 
+				"            <erp:ContextValue>CFDI Relacionado</erp:ContextValue>\r\n" + 
+				"			 <erp:UserKeyA>"+ transNumber +"</erp:UserKeyA>" +
+				"			 <erp:UserKeyB>"+ transactionSource +"</erp:UserKeyB>" +
+				"			 <erp:UserKeyC>"+ setName +"</erp:UserKeyC>" +
+				"            <erp:DFFAttributes>{\"ATTRIBUTE2\":\"" + val + "\"}</erp:DFFAttributes>\r\n" + 
+				"         </typ:object>\r\n" + 
+				"      </typ:updateDffEntityDetails>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
+	
 	public static String setARReceiptsRegionalFlexfield(String receiptNumber, String receiptId, String UUID) {
 		
 		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">" + 
@@ -321,7 +344,11 @@ public class PayloadProducer {
 				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Receipt Entered Amount\" s_32,\r\n" + 
 				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Total Receipt Amount Pending Application\" s_33,\r\n" + 
 				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Total Unapplied Amount\" s_34,\r\n" + 
-				"   \"Receivables - Transactions Real Time\".\"- Transaction Amounts\".\"Transaction Entered Amount\" s_35\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Transaction Amounts\".\"Transaction Entered Amount\" s_35,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Details\".\"Paying Customer Email Address\" s_36,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Details\".\"Paying Customer Number\" s_37,\r\n" +
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_FORMA_DE_PAGO_\" s_38,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_SUCURSAL_\" s_39\r\n" +
 				"FROM \"Receivables - Standard Receipts Application Details Real Time\"\r\n" + 
 				"WHERE\r\n" + 
 				"(\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "')\r\n" + 

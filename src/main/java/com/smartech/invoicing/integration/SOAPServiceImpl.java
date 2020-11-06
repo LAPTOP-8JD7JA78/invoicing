@@ -2,8 +2,8 @@ package com.smartech.invoicing.integration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -191,6 +191,7 @@ public class SOAPServiceImpl implements SOAPService {
 		if(orderNumber != null && !"".contains(orderNumber)) {
 			try {
 				Udc udc = udcService.searchBySystemAndKey("XMLFLEX", "OMFLEX");
+				
 				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_SALESORDERINFO, 
 						PayloadProducer.getSalesOrderInfoBySalesNumber(orderNumber), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
 				String strResponse1 = (String) request1.get("response");
@@ -218,6 +219,7 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setTransactionalCurrencyCode(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionalCurrencyCode").toString()));
 								so.setCurrencyConversionRate(NullValidator.isNull(op.getAsJsonObject().get("ns0:CurrencyConversionRate").toString()));
 								so.setRequestedFulfillmentOrganizationCode("");
+								so.setOrderType(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionTypeCode").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
@@ -409,6 +411,7 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setTransactionalCurrencyCode(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionalCurrencyCode").toString()));
 								so.setCurrencyConversionRate(NullValidator.isNull(op.getAsJsonObject().get("ns0:CurrencyConversionRate").toString()));
 								so.setRequestedFulfillmentOrganizationCode("");
+								so.setOrderType(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionTypeCode").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");

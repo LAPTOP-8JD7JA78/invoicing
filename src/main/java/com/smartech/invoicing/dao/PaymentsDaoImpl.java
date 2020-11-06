@@ -143,4 +143,19 @@ public class PaymentsDaoImpl implements PaymentsDao{
 		return (Payments) session.get(Payments.class, Integer.valueOf(Id));
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> PaymentsByAdv(String uuid) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+			criteria.add(Restrictions.eq("UUID", uuid));
+			criteria.addOrder(Order.desc("paymentNumber"));
+			return criteria.list();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

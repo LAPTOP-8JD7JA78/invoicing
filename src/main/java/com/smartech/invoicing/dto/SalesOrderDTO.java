@@ -18,6 +18,7 @@ public class SalesOrderDTO {
 	private String usoCFDI;
 	private String metodoPago;
 	private String formaPago;
+	private String orderType;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -140,4 +141,13 @@ public class SalesOrderDTO {
 	public void setFormaPago(String formaPago) {
 		this.formaPago = formaPago;
 	}
+
+	public String getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(String orderType) {
+		this.orderType = orderType;
+	}
+	
 }

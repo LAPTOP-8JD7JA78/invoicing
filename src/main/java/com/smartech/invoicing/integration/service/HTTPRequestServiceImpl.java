@@ -160,7 +160,7 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			return modelMap;
 		}catch(IOException io) {
 			log.error("XML REQUEST FAIL - " + url, io);
-			io.printStackTrace();
+//			io.printStackTrace();
 			modelMap.put("code", 406);
 			modelMap.put("response", io.getMessage());
 			modelMap.put("httpResponse", io.getCause());
@@ -168,7 +168,7 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			
 		}catch(Exception e) {
 			log.error("XML REQUEST FAIL - " + url, e);
-			e.printStackTrace();
+//			e.printStackTrace();
 			modelMap.put("code", 500);
 			modelMap.put("response", e.getMessage());
 			modelMap.put("httpResponse", e.getCause());
