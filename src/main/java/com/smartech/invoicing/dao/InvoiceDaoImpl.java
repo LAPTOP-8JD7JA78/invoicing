@@ -12,10 +12,12 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.IntegerType;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.smartech.invoicing.dto.InvoicePayments;
 import com.smartech.invoicing.model.Invoice;
 
 @Repository("invoiceDao")
@@ -234,6 +236,30 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			return null;
 		}catch(Exception e) {
 			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public Invoice getInvoiceWithOutUuid(String id) {
+		try {
+			Invoice invoice = new Invoice();
+			SQLQuery query;
+			String sql;
+			Session session = sessionFactory.getCurrentSession();	
+			
+			sql = "select * from invoice_payments where payments_id = " + id + ";";
+			query = session.createSQLQuery(sql);
+			query.setResultTransformer(Transformers.aliasToBean(InvoicePayments.class));
+			query.addScalar("invoice_id", new IntegerType());
+			query.addScalar("payments_id", new IntegerType());
+			List<InvoicePayments> invL = query.list();
+			if(!invL.isEmpty()) {
+				return this.getSingleInvoiceById(invL.get(0).getInvoice_id());
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			Log.error("ERROR AL TRAER LA FACTURA PARA EL CPAGO: " + id + e);
 			return null;
 		}
 	}

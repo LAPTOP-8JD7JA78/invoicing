@@ -13,4 +13,5 @@ public interface PaymentsService {
 	Payments getPaymentByName(String fileName);
 	Payments getPaymentsById(String id);
 	List<Payments> getPayByAdv(String uuid);
+	
 }

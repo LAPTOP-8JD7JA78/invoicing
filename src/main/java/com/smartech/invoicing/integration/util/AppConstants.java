@@ -2,7 +2,8 @@ package com.smartech.invoicing.integration.util;
 
 public class AppConstants {
 
-	public static final String ORACLE_USER = "INTEGUSER";
+//	public static final String ORACLE_USER = "INTEGUSER";
+	public static final String ORACLE_USER = "hrocha@smartech.com.mx";
 	public static final String ORACLE_PASS = "Mexico$2020";
 	
 //	public static final String ORACLE_USER = "INTEGUSER";
@@ -21,6 +22,7 @@ public class AppConstants {
 	public static final String SERVICE_TEST1 = "TEST1";
 	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
 	public static final String SERVICE_AR_REPORT_PAYMENTS = "AR_REPORT_PAYMENTS";
+	public static final String SERVICE_AR_REPORT_TRANSFER = "AR_REPORT_TRANSFER";
 	public static final String SERVICE_REST_TEST1 = "REST_TEST1";
 	public static final String SERVICE_REST_ITEMLOT = "REST_ITEMLOT";
 	public static final String SERVICE_SALES_ORDER_1 = "SALES_ORDER_1";
@@ -50,6 +52,7 @@ public class AppConstants {
 	public static final String STATUS_ERROR_PAC = "ERROR PAC";
 	public static final String STATUS_ERROR_PETITION = "ERROR PETITION";
 	public static final String STATUS_FINISHED = "FINISHED";
+	public static final String STATUS_ERROR_DATA_PAY = "ERROR_PAY";
 
 	public static final String PAY_METHOD= "PUE";
 	
@@ -101,6 +104,7 @@ public class AppConstants {
 	public static final String ORDER_TYPE_LIV = "LIVERPOOL";
 	public static final String ORDER_TYPE_MAR = "MARINA";
 	public static final String ORDER_TYPE_ADV = "ADVPAYMENT";
+	public static final String ORDER_TYPE_TRANS = "TRANSFER";
 	
 	public static final String PAYMENTS_CPAGO = "CPAGO";
 	public static final String PAYMENTS_ADVPAY = "ADVPAY";
@@ -138,6 +142,7 @@ public class AppConstants {
 	public static final String PTERMS_CONTADO = "CONTADO";
 	public static final String UDC_SYSTEM_MARINA = "MARINA";
 	public static final String UDC_KEY_MARINA = "SNA850102TQ3";
+	public static final String UDC_KEY_TRANSFER = "TRANSFER";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";
@@ -153,7 +158,9 @@ public class AppConstants {
 	public static final String EMAIL_INVOICE_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DE FACTURAS";
 	public static final String EMAIL_PAYMENTS_SUBJECT = "ERROR EN PROCESO DE REPORTE (PAYMENTS-createPayments)";
 	public static final String EMAIL_PAYMENTS_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DE PAGOS";
-
+	public static final String EMAIL_TRANSFER_SUBJECT = "ERROR EN PROCESO DE REPORTE (TRANSFER-createTransferInvoice)";
+	public static final String EMAIL_TRANSFER_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DEL CFDI DE TRASLADOS";
+	
 	//Comercio exterior
 	public static final String INVOICE_EXTERIOR_COMPLEMENT = "IME-VTAEXPORTACION";
 }

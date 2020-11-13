@@ -11,4 +11,5 @@ public interface InvoicingService {
 //	List<RESTInvoiceRespDTO> createInvoiceByREST(Invoice i);
 	void updatePetitionInvoiceList();
 	boolean createStampedPayments(List<Row> r);
+	boolean createTransferInvoice(List<Row> r);
 }

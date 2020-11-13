@@ -20,4 +20,5 @@ public interface InvoiceDao {
 	List<Invoice> getInvoiceListByStatusCode(List<String> status, List<String> orderType);
 	public Invoice getSingleInvoiceByFolioSerial(String folioSerial);
 	Invoice getInvoiceByUuid(String uuid);
+	public Invoice getInvoiceWithOutUuid(String id);
 }

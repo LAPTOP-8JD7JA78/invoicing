@@ -1,5 +1,7 @@
 package com.smartech.invoicing.util;
 
+import java.util.Date;
+
 public class NullValidator {
 	public static boolean isNull(Boolean obj) {
 		 if (obj == null)
@@ -48,5 +50,12 @@ public class NullValidator {
 			 return 0;
 		 else
 			 return Double.valueOf(obj);
+	}
+	
+	public static Date isNull(Date obj) {
+		 if (obj == null)
+			 return null;
+		 else
+			 return obj;
 	}
 }

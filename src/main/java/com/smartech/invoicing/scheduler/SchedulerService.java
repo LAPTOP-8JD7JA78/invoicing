@@ -5,9 +5,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -56,6 +58,8 @@ public class SchedulerService {
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	final SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");	
+	final SimpleDateFormat formatterUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testSchedule() {
@@ -90,7 +94,8 @@ public class SchedulerService {
 
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void InvoicesSchedule() throws ParseException {
-		log.info("\'InvoicesSchedule\' is started*******");		
+		log.info("\'InvoicesSchedule\' is started*******");	
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
 		String nextSearch = sdf.format(new Date());
 		AnalyticsDTO analytics = new AnalyticsDTO();		
 		Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_INVOICES);
@@ -102,7 +107,6 @@ public class SchedulerService {
 					AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
 			if(!r.getRow().isEmpty()) {
 				if(!invoicingService.createStampInvoice(r.getRow())) {
-					System.out.println(false);
 					if(da.getIntValue() == 5) {		
 						List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
 						List<String> email = new ArrayList<String>();
@@ -127,6 +131,7 @@ public class SchedulerService {
 			}else {
 				log.warn("REPORTS " + r.getRow() + " WITHOUT INFORMATON");
 				da.setDateValue(sdf.parse(nextSearch));
+				da.setIntValue(0);
 				udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 			}
 		}else {
@@ -187,7 +192,7 @@ public class SchedulerService {
 		if(!cinv.isEmpty()) {
 			for(Invoice in: cinv) {
 				if(!stampedService.createFileFac(in)) {
-					log.error("PENDING STATUS (INVOICES): " + in);
+					log.error("PENDING STATUS (INVOICES): " + in.getFolio() + " - " + in.getFromSalesOrder());
 				}	
 			}
 		}else {
@@ -268,15 +273,69 @@ public class SchedulerService {
 				}else {
 					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
 					da.setDateValue(sdf.parse(nextSearch));
+					da.setIntValue(0);
 					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 				}
 			}else {
-				log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
+				log.error("ERROR EN LA BUSQUEDA DE LA UDC (PAYMENTS) PARA LAS FECHAS DEL REPORTE");
 			}			
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("ERROR DURANTE EL PROCESO DE \'createPayments\'-----------------------------", e);
 		}
 		log.info("\'createPayments\': is finished********");
+	}
+	
+	@Scheduled(fixedDelay = 2000, initialDelay = 5000)
+	public void createTransfer() {
+		log.info("\'createTransfer\' is started*******");
+		String nextSearch = sdf.format(new Date());
+		AnalyticsDTO analytics = new AnalyticsDTO();
+		try {
+			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_KEY_TRANSFER);
+//			String search = sdf.format("2020-08-05 00:15:23");
+			if(da != null) {
+				Date dateSearch = da.getDateValue();
+				String search = sdf.format(dateSearch);
+				analytics.setAr_Report_date(search);
+				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+						AppConstants.SERVICE_AR_REPORT_TRANSFER, analytics);
+				if(!r.getRow().isEmpty()) {
+					if(!invoicingService.createTransferInvoice(r.getRow())) {
+						if(da.getIntValue() == 5) {
+							List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+							List<String> email = new ArrayList<String>();
+							for(Udc u: emails) {
+								email.add(u.getUdcKey());
+							}
+							mailService.sendMail(email,
+									AppConstants.EMAIL_TRANSFER_SUBJECT,
+									AppConstants.EMAIL_TRANSFER_CONTENT + sdf.format(new Date()));
+							String date = sdf.format(new Date());
+							da.setDateValue(sdf.parse(date));
+							da.setIntValue(0);
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);							
+						}else {
+							da.setIntValue(da.getIntValue() + 1);
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+						}
+					}else {
+						da.setDateValue(sdf.parse(nextSearch));
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+					}
+				}else {
+					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+					da.setDateValue(sdf.parse(nextSearch));
+					da.setIntValue(0);
+					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+				}
+			}else {
+				log.error("ERROR EN LA BUSQUEDA DE LA UDC (createTransfer) PARA LAS FECHAS DEL REPORTE");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR AL CREAR EL CFDI DE TRASLADOS: " + e);
+		}
+		log.info("\'createTransfer\': is finished********");
 	}
 }

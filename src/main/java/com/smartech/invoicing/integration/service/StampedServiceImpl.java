@@ -78,8 +78,25 @@ public class StampedServiceImpl implements StampedService{
              	file.setWritable(true);             	
             }
 			//Saber tipo de factura
-			if(i.isInvoice()) {
+//			if(i.isInvoice()) {
+//				voucherType = AppConstantsUtil.VOUCHER_I;
+//				relationType = "";
+//				UUIDRelated = "";
+//			}else {
+//				voucherType = AppConstantsUtil.VOUCHER_E;
+//				relationType = i.getInvoiceRelationType();
+//				UUIDRelated = i.getUUIDReference();
+//			}			
+			if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_FACTURA)) {
 				voucherType = AppConstantsUtil.VOUCHER_I;
+				relationType = "";
+				UUIDRelated = "";
+			}else if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_ADV)) {
+				voucherType = AppConstantsUtil.VOUCHER_P;
+				relationType = i.getInvoiceRelationType();
+				UUIDRelated = i.getUUIDReference();
+			}else if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS)) {
+				voucherType = AppConstantsUtil.VOUCHER_T;
 				relationType = "";
 				UUIDRelated = "";
 			}else {
@@ -89,6 +106,8 @@ public class StampedServiceImpl implements StampedService{
 			}
 			//Terminos de pago
 			if(i.getPaymentMethod().equals(AppConstantsUtil.PAYMENT_METHOD)) {
+				paymentTerms = "";
+			}else if(i.getPaymentMethod() == null){
 				paymentTerms = "";
 			}else {
 				paymentTerms = i.getPaymentTerms();
@@ -103,9 +122,9 @@ public class StampedServiceImpl implements StampedService{
 					i.getInvoiceTotal() + AppConstantsUtil.FILES_SEPARATOR + 
 					i.getInvoiceSubTotal() + AppConstantsUtil.FILES_SEPARATOR +
 					voucherType + AppConstantsUtil.FILES_SEPARATOR +
-					i.getPaymentType() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getPaymentType()) + AppConstantsUtil.FILES_SEPARATOR +
 					paymentTerms + AppConstantsUtil.FILES_SEPARATOR +
-					i.getPaymentMethod() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getPaymentMethod()) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
 					date + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +//i.getInvoiceDiscount() + AppConstantsUtil.FILES_SEPARATOR +//Descuento
@@ -196,14 +215,14 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +				
-					"\n";
+					"\r\n";
 			//Lineas txt
 			for(InvoiceDetails id: i.getInvoiceDetails()) {
 				if(id != null) {
 					String lines = this.dataLines(id, i, n);
 					content = content + lines;
 					impD = new String[10];
-					n=+1;
+					n = n + 1;
 				}
 			}
 //			Contenido en base64
@@ -251,16 +270,16 @@ public class StampedServiceImpl implements StampedService{
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
 					nL + AppConstantsUtil.FILES_SEPARATOR +
 					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(idet.getItemLot()) + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
 					idet.getItemDescription() + AppConstantsUtil.FILES_SEPARATOR +
 					idet.getUomName() + AppConstantsUtil.FILES_SEPARATOR +
 					idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +
 					idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +
 					idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//10
 					idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Fecha de pedimento
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Aduana
-					"" + AppConstantsUtil.FILES_SEPARATOR +//Número de pedimento
+					NullValidator.isNull(idet.getDatePetition()) + AppConstantsUtil.FILES_SEPARATOR +//Fecha de pedimento
+					NullValidator.isNull(idet.getCustomskey()) + AppConstantsUtil.FILES_SEPARATOR +//Aduana
+					NullValidator.isNull(idet.getNumberPetiton()) + AppConstantsUtil.FILES_SEPARATOR +//Número de pedimento
 					"" + AppConstantsUtil.FILES_SEPARATOR +//Fecha caducidad lote
 					NullValidator.isNull(idet.getUnitProdServ()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(idet.getUomCode()) + AppConstantsUtil.FILES_SEPARATOR;//17
@@ -288,12 +307,12 @@ public class StampedServiceImpl implements StampedService{
 		        	if(isComboOrMarina.getUdcKey().equals(i.getCustomerTaxIdentifier()) &&
 		        			isComboOrMarina.getStrValue1().equals(i.getCustomerName())) {
 		        		detail = detail +
-	        				idet.getAddtionalDescription() + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
+	        				idet.getAddtionalDescription().replaceAll("\r\n", " ") + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
 	    					"" + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
 		        	}else {
 		        		detail = detail +
 	        				"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
-	    					NullValidator.isNull(idet.getAddtionalDescription()) + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
+	    					NullValidator.isNull(idet.getAddtionalDescription()).replaceAll("\r\n", " ") + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
 		        	}
 					
 
@@ -326,7 +345,8 @@ public class StampedServiceImpl implements StampedService{
 							NullValidator.isNull(i.getShipToCountry()) + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Country
 							i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Zip
 							idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +//Número del artículo, sku
-							NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
+//							NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
+							"89039999" + AppConstantsUtil.FILES_SEPARATOR +
 							idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
 							idet.getItemUomCustoms() + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
 							idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
@@ -376,19 +396,26 @@ public class StampedServiceImpl implements StampedService{
 
 		        	//Datos del complemento detallista 
 		        	if(idet.getRetailComplements() != null) {
+		        		if(idet.getRetailComplements().getBuyerDateFolio() == null) {
+		        			
+		        		}
 			        	detail = detail +								
 						idet.getRetailComplements().getDocumentStatus() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getTransactionType() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getInstructionCode() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getTextNote() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getReferenceId() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getReferenceDate() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getAdicionalInformation() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getAdicionalInformationNumber() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getAdicionalInformationId() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getDeliveryNote() + AppConstantsUtil.FILES_SEPARATOR +//10
-						idet.getRetailComplements().getBuyerNumberFolio() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getBuyerDateFolio() + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getReferenceId()) + AppConstantsUtil.FILES_SEPARATOR +
+//						NullValidator.isNull(idet.getRetailComplements().getReferenceDate().toString()) + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getAdicionalInformation()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getAdicionalInformationNumber()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getAdicionalInformationId()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getDeliveryNote()) + AppConstantsUtil.FILES_SEPARATOR +//10
+//						NullValidator.isNull(idet.getRetailComplements().getBuyerNumberFolio()) + AppConstantsUtil.FILES_SEPARATOR +
+						"2085157632" + AppConstantsUtil.FILES_SEPARATOR +
+//						NullValidator.isNull(idet.getRetailComplements().getBuyerDateFolio().toString()) + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getGlobalLocationNumberBuyer() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getPurchasingContact() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getSeller() + AppConstantsUtil.FILES_SEPARATOR +
@@ -396,8 +423,8 @@ public class StampedServiceImpl implements StampedService{
 						i.getCompany().getAlternativeId() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getIdentificationType() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getElementOnline() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getType() + AppConstantsUtil.FILES_SEPARATOR +//10
-						idet.getRetailComplements().getNumber() + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getType()) + AppConstantsUtil.FILES_SEPARATOR +//10
+						NullValidator.isNull(idet.getRetailComplements().getNumber()) + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getgTin() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getInovicedQuantity() + AppConstantsUtil.FILES_SEPARATOR +
 						idet.getRetailComplements().getUomCode() + AppConstantsUtil.FILES_SEPARATOR +
@@ -432,12 +459,13 @@ public class StampedServiceImpl implements StampedService{
 						"" + AppConstantsUtil.FILES_SEPARATOR +
 						"" + AppConstantsUtil.FILES_SEPARATOR +
 						"" + AppConstantsUtil.FILES_SEPARATOR +
-						"\n";
+						"\r\n";
 		        	}
 
 			return detail;
 		}catch(Exception e) {
 			e.printStackTrace();
+			log.error("ERROR AL LLENAR EL DETALLE DEL ARCHIVO TXT " + i.getFolio() + e);
 			return null;
 		}
 	}
@@ -594,7 +622,9 @@ public class StampedServiceImpl implements StampedService{
 			    		            bw.close();	  
 			    		            fw.close();
 			    		            if(file.exists()) {
-			    		            	log.info(file.canExecute() + "|" + file.canRead() + "|" + file.canWrite());			    		            	
+			    		             	file.setExecutable(true);
+			    		             	file.setReadable(true);
+			    		             	file.setWritable(true);		    		            	
 			    		            	if(file.delete()){
 			    		            		log.info("El fichero " + file.getName() + " ha sido borrado satisfactoriamente");
 			    			            }else {
@@ -677,6 +707,9 @@ public class StampedServiceImpl implements StampedService{
 			    		            bw.close();	  
 			    		            fw.close();
 			    		            if(file.exists()) {
+			    		             	file.setExecutable(true);
+			    		             	file.setReadable(true);
+			    		             	file.setWritable(true);
 			    		            	if(file.delete()){
 			    		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
 			    			            }
@@ -750,7 +783,7 @@ public class StampedServiceImpl implements StampedService{
 					i.getCreationDate() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getBranch().getZip() + AppConstantsUtil.FILES_SEPARATOR +
 					rType + AppConstantsUtil.FILES_SEPARATOR +
-					i.getUuidReference() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getUuidReference()) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getBusinessUnitName() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
@@ -775,7 +808,7 @@ public class StampedServiceImpl implements StampedService{
 					NullValidator.isNull(i.getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
 					"\n"+
 					AppConstantsUtil.PAYMENT_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
-					i.getUuidReference() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getUuidReference()) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +

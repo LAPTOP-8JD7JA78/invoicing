@@ -42,6 +42,7 @@ import com.smartech.invoicing.service.NextNumberService;
 import com.smartech.invoicing.service.PaymentsService;
 import com.smartech.invoicing.service.TaxCodesService;
 import com.smartech.invoicing.service.UdcService;
+import com.smartech.invoicing.util.AppConstantsUtil;
 import com.smartech.invoicing.util.NullValidator;
 import com.smartech.invoicing.util.StringUtils;
 
@@ -192,8 +193,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							invoice.setInvoice(false);
 							invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
 							invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
-							invoice.setFromSalesOrder(inv.getPreviousSalesOrder());
-						
+							invoice.setFromSalesOrder(inv.getPreviousSalesOrder());						
 					}
 					invoice.setInvoiceCurrency(inv.getCurrency());
 					if(inv.getExchangeRate().isEmpty()) {
@@ -216,7 +216,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					
 					//Datos para anticipos
 					List<Invoice> invPay = invoiceDao.getInvoiceListByStatusCode("", AppConstants.ORDER_TYPE_ADV);
-					if(invPay == null && invPay.size() == 0) {
+					if(invPay != null && !invPay.isEmpty()) {
 						for(Invoice in: invPay) {
 							 if(in.getCustomerName().equals(invoice.getCustomerName()) &&
 									 in.getCustomerPartyNumber().equals(invoice.getCustomerPartyNumber()) &&
@@ -237,9 +237,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 										invoice.setUUIDReference("," + p.getUUID());
 									}
 									sizePay+=1;
-								 }
-								 if(!this.createAdvPayNC(invoice)) {
-									 
 								 }
 							 }
 						}
@@ -469,9 +466,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 				}
 			}else {
 				invoice.setDetCom(false);
-			}
-			if(invoice.getTransactionNumber().equals("20000")) {
-				System.out.println();
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -902,7 +896,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 								if(lotData != null && lotData.getItems() != null && !lotData.getItems().isEmpty()) {
 									invLine.setNumberPetiton(lot);
 									invLine.setDatePetition(sdf.format(lotData.getItems().get(0).getOriginationDate()));
-									invLine.setCustomskey("NUEVO LAREDO TAMPS");
+									invLine.setCustomskey("24");
 								}else {
 									msgError = msgError + ";ITEMLOT-Error al obtener información del Lote " + lot;
 									log.warn("EL ARTICULO " + invLine.getItemNumber() + " DE LA ORDEN " + inv.getFromSalesOrder() + " ERROR AL CONSULTAR INFORMACIÓN WS DEL LOTE " + lot);
@@ -972,6 +966,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 					}
 				}			
+			}
+			
+			//Actualización del UUID en los complementos de pago
+			List<Payments> listPayments = paymentsService.getPaymentsStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+			if(listPayments != null && !listPayments.isEmpty()) {
+				for(Payments lPay: listPayments) {
+					Invoice invoiceErrorPay = new Invoice();
+					invoiceErrorPay = invoiceDao.getInvoiceWithOutUuid(String.valueOf(lPay.getId()));
+					if(invoiceErrorPay.getUUID() != null && !invoiceErrorPay.getUUID().isEmpty()) {
+						lPay.setUuidReference(invoiceErrorPay.getUUID());
+						lPay.setPaymentError("");
+						lPay.setPaymentStatus(AppConstants.STATUS_PENDING);
+						paymentsService.updatePayment(lPay);
+					}
+				}
 			}
 			return true;
 		}catch(Exception e) {
@@ -1057,9 +1066,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 					pay.setTaxIdentifier(r.getColumn1());
 					pay.setPostalCode(r.getColumn4());
 					pay.setTransactionReference(r.getColumn12());	
+					
 //					p.setPreviousBalanceAmount(r.getColumn31());
 //					p.setRemainingBalanceAmount(String.valueOf(Double.parseDouble(p.getPreviousBalanceAmount()) - Double.parseDouble(p.getPaymentAmount())));				
 					pay.setPaymentStatus(AppConstants.STATUS_PENDING);
+					
+					if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
+						pay.setPaymentError("");
+					}else {
+						pay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE UUID RELACIONADO: " );
+						pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+					}
 					
 					if(inv.getPreviousBalanceAmount() == null ) {
 						pay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
@@ -1089,8 +1106,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 					nPay.add(pay);
 					Set<Payments> realPay = new HashSet<Payments>(nPay);
 					inv.setPayments(realPay);
-					
-					
 				}	
 				return inv;
 			}else if(r.getColumn17() != null){//Saber si es anticipo
@@ -1236,5 +1251,122 @@ public class InvoicingServiceImpl implements InvoicingService{
 			return null;
 		}
 //		return invoice;
+	}
+
+	@Override
+	public boolean createTransferInvoice(List<Row> r) {
+		String timeZone = "";
+		try {
+			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
+			for(Udc u: tZone) {
+				if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_TIMEZONE)) {
+					timeZone = u.getUdcKey();
+				}
+			}
+			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
+			
+			//Llenado de objeto DTO de la respuesta del reporte de pagos	
+			for(Row ro: r) {
+				Invoice invReports = new Invoice();
+				invReports = fullTrasnferDTO(ro);
+				if(invReports != null) {		
+					if(!invoiceDao.updateInvoice(invReports)) {
+						log.error("EXISTIO ALGÚN ERROR EN EL PROCESO DE TRASLADOS");
+					}
+				}
+			}			
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR AL CREAR LA FACTURA DE TRASLADOS: " + e);
+			return false;
+		}
+	}
+	
+	public Invoice fullTrasnferDTO(Row r) {
+		Invoice inv = new Invoice();
+		InvoiceDetails invD = new InvoiceDetails();
+		String timeZone = "";
+		String msgError = "";
+		try {
+			if(r != null) {
+				//FECHAS
+				List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
+				for(Udc u: tZone) {
+					if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_TIMEZONE)) {
+						timeZone = u.getUdcKey();
+					}
+				}				
+				sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+				formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
+				Date date = sdf.parse(r.getColumn7());
+//				String dateT = formatterUTC.format(date);
+				//CFDI TRASLAODS
+				Udc traslados = udcService.searchBySystemAndKey(AppConstants.ORDER_TYPE_TRANS, AppConstantsUtil.VOUCHER_T);
+				
+				//OBTENCIÓN DE LAS SUCURSALES
+				Branch branchCede = branchService.getBranchByCode(NullValidator.isNull(r.getColumn10()));
+				Branch branchRec = branchService.getBranchByCode(NullValidator.isNull(r.getColumn13()));
+				
+				inv.setExtCom(false);
+				inv.setPayments(null);
+				inv.setCreatedBy(AppConstants.USER_DEFAULT);
+				inv.setCreationDate(date);
+				inv.setUpdatedBy(AppConstants.USER_DEFAULT);
+				inv.setUpdatedDate(new Date());
+				inv.setFolio(NullValidator.isNull(r.getColumn3()));
+				inv.setPaymentTerms(null);
+				inv.setPaymentMethod(null);
+				inv.setPaymentType(null);
+				inv.setInvoiceTotal(0);
+				inv.setInvoiceSubTotal(0);
+				inv.setInvoiceDiscount(0);
+				inv.setInvoiceTaxAmount(0);
+				inv.setBranch(branchCede);
+				inv.setCompany(branchCede.getCompany());
+				inv.setInvoice(false);
+				inv.setInvoiceRelationType(traslados.getStrValue1());
+				inv.setCFDIUse(traslados.getStrValue2());
+				//Datos de la sucursal de envío
+				inv.setCustomerName(branchRec.getName());
+				inv.setCustomerAddress1(branchRec.getAddress());
+				inv.setCustomerCity(branchRec.getCity());
+				inv.setCustomerCountry(branchRec.getCountry());
+				inv.setCustomerState(branchRec.getState());
+				inv.setCustomerZip(branchRec.getZip());
+				
+				invD.setRetailComplements(null);
+				invD.setTaxCodes(null);
+				invD.setItemDescription(NullValidator.isNull(r.getColumn0()));
+				invD.setItemNumber(NullValidator.isNull(r.getColumn1()));
+				invD.setItemLot(NullValidator.isNull(r.getColumn5()));
+				invD.setItemSerial(NullValidator.isNull(r.getColumn6()));
+				invD.setQuantity((Double.parseDouble(NullValidator.isNull(r.getColumn8())))*(-1));
+				//Unidad de medida
+				Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, NullValidator.isNull(r.getColumn4()));
+				if(satUOM != null && satUOM.getStrValue1() != null && !"".contains(satUOM.getStrValue1())) {
+					//UOM del SAT
+					invD.setUomCode(satUOM.getStrValue1());
+					//UOM de Aduana
+					invD.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
+				}else {
+					msgError = msgError + ";UOMSAT-No existe la Unidad de Medida SAT -" + invD.getUomName() + " en UDC";
+					log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER UDC UOMSAT de la linea "+ invD.getUomName() + ":" + inv.getFolio());
+				}
+				
+				Set<InvoiceDetails> invDList = new HashSet<InvoiceDetails>();
+				invDList.add(invD);
+				inv.setInvoiceDetails(invDList);
+				
+				return inv;
+			}else {
+				return null;
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR AL LLENAR EL REGISTRO INVOICE" + e);
+			return null;
+		}
 	}
 }

@@ -31,14 +31,24 @@ public class PayloadProducer {
 	}
 	
 	public static String getSessionIdSOAPXmlContent(String user, String password) {
-		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\"> " + 
-				"<soapenv:Header/> " + 
-				"<soapenv:Body> " + 
-					"<v7:logon> " + 
-						"<v7:name>" + user + "</v7:name> " + 
-						"<v7:password>" + password + "</v7:password> " + 
-					"</v7:logon> " + 
-				"</soapenv:Body> " + 
+//		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\"> " + 
+//				"<soapenv:Header/> " + 
+//				"<soapenv:Body> " + 
+//					"<v7:logon> " + 
+//						"<v7:name>" + user + "</v7:name> " + 
+//						"<v7:password>" + password + "</v7:password> " + 
+//					"</v7:logon> " + 
+//				"</soapenv:Body> " + 
+//				"</soapenv:Envelope>";
+		
+		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:logon>\r\n" + 
+				"         <v7:name>" + user + "</v7:name>\r\n" + 
+				"         <v7:password>" + password + "</v7:password>\r\n" + 
+				"      </v7:logon>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>";
 		return SOAPRequest;
 	}
@@ -448,5 +458,48 @@ public class PayloadProducer {
 			"</soapenv:Envelope>";
 		
 		return SOAPRequest;
+	}
+	
+	public static String createTransferReport(String sessionId, String date) {
+		String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"SELECT\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Main\".\"Item Description\" s_1,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Main\".\"Item Name\" s_2,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Business Unit\".\"Creation Date\" s_3,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Distribution Transaction Number\" s_4,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit of Measure\" s_5,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Transaction Details\".\"Lot Number\" s_6,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Transaction Details\".\"Serial Number\" s_7,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Transaction Details\".\"Transaction Date\" s_8,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Transaction Details\".\"Transaction Quantity\" s_9,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Cost Transaction Type\".\"Base Transaction Type Name\" s_10,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Inventory Organization\".\"Inventory Organization Name\" s_11,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Locator\".\"Locator Description\" s_12,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Subinventory\".\"Sub Inventory Name\" s_13,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"Transfer Inventory Organization\".\"Transfer Organization Name\" s_14,\r\n" + 
+				"   DESCRIPTOR_IDOF(\"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit of Measure\") s_15\r\n" + 
+				"FROM \"Costing - Cost Accounting Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"(\"Transfer Inventory Organization\".\"Transfer Organization Creation Date\" >= timestamp '" + date + "')\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return request;
 	}
 }
