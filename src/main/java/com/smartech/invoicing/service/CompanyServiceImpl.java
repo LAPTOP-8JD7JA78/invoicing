@@ -52,4 +52,9 @@ public class CompanyServiceImpl implements CompanyService{
 		}
 		return false;
 	}
+
+	@Override
+	public Company getCompanyByBook(String book) {
+		return companyDao.getCompanyByBook(book);
+	}
 }

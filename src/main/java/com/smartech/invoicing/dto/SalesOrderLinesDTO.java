@@ -9,10 +9,14 @@ public class SalesOrderLinesDTO {
 	private String orderedUOM;
 	private String productNumber;
 	private String productDescription;
+	private String productIdentifier;
 	private String taxClassificationCode;
 	private String statusCode;
 	private String additionalInformation;
 	private String freightTermsCode;
+	private String shippingMethod;
+	private String SourceTransactionLineIdentifier;
+	private String InventoryOrganizationName;
 	private List<SalesLineLotSerDTO> lotSerials;
 	
 	public String getSourceTransactionLineNumber() {
@@ -80,6 +84,30 @@ public class SalesOrderLinesDTO {
 	}
 	public void setFreightTermsCode(String freightTermsCode) {
 		this.freightTermsCode = freightTermsCode;
+	}
+	public String getShippingMethod() {
+		return shippingMethod;
+	}
+	public void setShippingMethod(String shippingMethod) {
+		this.shippingMethod = shippingMethod;
+	}
+	public String getProductIdentifier() {
+		return productIdentifier;
+	}
+	public void setProductIdentifier(String productIdentifier) {
+		this.productIdentifier = productIdentifier;
+	}
+	public String getSourceTransactionLineIdentifier() {
+		return SourceTransactionLineIdentifier;
+	}
+	public void setSourceTransactionLineIdentifier(String sourceTransactionLineIdentifier) {
+		SourceTransactionLineIdentifier = sourceTransactionLineIdentifier;
+	}
+	public String getInventoryOrganizationName() {
+		return InventoryOrganizationName;
+	}
+	public void setInventoryOrganizationName(String inventoryOrganizationName) {
+		InventoryOrganizationName = inventoryOrganizationName;
 	}
 	
 }

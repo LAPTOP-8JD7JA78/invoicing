@@ -10,6 +10,7 @@ import com.smartech.invoicing.model.Payments;
 public interface SOAPService {
 
 	public ItemsDTO getItemDataByItemNumberOrgCode(String ItemNumber, String orgCode);
+	public ItemsDTO getItemDataByItemIdOrgCode(String ItemId, String orgCode);
 	public Invoice updateUUIDToOracleERPInvoice(Invoice inv);
 	public SalesOrderDTO getSalesOrderInformation(String orderNumber);
 	public Payments updateUUIDToOracleERPPayments(Payments pay);

@@ -43,6 +43,7 @@ public class SOAPServiceImpl implements SOAPService {
 	
 	static Logger log = Logger.getLogger(SOAPService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	SimpleDateFormat FCR = new SimpleDateFormat("yyy-MM-dd");
 	
 	@Override
 	public ItemsDTO getItemDataByItemNumberOrgCode(String itemNumber, String orgCode) {
@@ -136,39 +137,77 @@ public class SOAPServiceImpl implements SOAPService {
 			if((inv.getUUID() != null && !"".contains(inv.getUUID())) && (inv.getSerial() != null && !"".contains(inv.getSerial())) 
 					&& (inv.getFolio() != null && !"".contains(inv.getFolio()))) {
 				try {
-					Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
-																		PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getUUID(), inv.getSerial(), inv.getFolio(), "", ""), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
-					String strResponse1 = (String) request1.get("response");
-					int codeResponse1 = (int) request1.get("code");
-					String strHttpResponse1 = (String) request1.get("httpResponse");
-					
-					if(codeResponse1 >= 200 && codeResponse1 < 300) {
-						if(strResponse1 != null && !"".contains(strResponse1)) {
-							xmlJSONObj = XML.toJSONObject(strResponse1, true);
-							jelement = new JsonParser().parse(xmlJSONObj.toString());
-							jobject = jelement.getAsJsonObject();
-							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
-								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
-										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
-									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
-											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
-									
-									if(!result.isJsonNull()) {
-										if(result.get("content").getAsInt() == 1) {
-											inv.setStatus(AppConstants.STATUS_FINISHED);
-											inv.setUpdatedDate(new Date());
-											inv.setUpdatedBy("SYSTEM");
-										}else {
-											log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
-										}
+					String folios = inv.getFolio();
+					if(folios.contains("-")) {
+						String[] foliosNumber = folios.split("-");
+						for(String f: foliosNumber) {
+							Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+									PayloadProducer.setARRegionalFlexfield(folios, inv.getUUID(), inv.getSerial(), f, inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+							String strResponse1 = (String) request1.get("response");
+							int codeResponse1 = (int) request1.get("code");
+							String strHttpResponse1 = (String) request1.get("httpResponse");
+							
+							if(codeResponse1 >= 200 && codeResponse1 < 300) {
+								if(strResponse1 != null && !"".contains(strResponse1)) {
+									xmlJSONObj = XML.toJSONObject(strResponse1, true);
+									jelement = new JsonParser().parse(xmlJSONObj.toString());
+									jobject = jelement.getAsJsonObject();
+									if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+										if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+										JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+												.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();									
+											if(!result.isJsonNull()) {
+												if(result.get("content").getAsInt() == 1) {
+													inv.setStatus(AppConstants.STATUS_FINISHED);
+													inv.setUpdatedDate(new Date());
+													inv.setUpdatedBy("SYSTEM");
+												}else {
+													log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
+												}
+											}
+										}																 
+									}else {
+									log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
 									}
 								}
-																 
-							}else {
+							}
+						}
+					}else {
+						Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+								PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getUUID(), inv.getSerial(), inv.getFolio(), inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+						String strResponse1 = (String) request1.get("response");
+						int codeResponse1 = (int) request1.get("code");
+						String strHttpResponse1 = (String) request1.get("httpResponse");
+						
+						if(codeResponse1 >= 200 && codeResponse1 < 300) {
+							if(strResponse1 != null && !"".contains(strResponse1)) {
+								xmlJSONObj = XML.toJSONObject(strResponse1, true);
+								jelement = new JsonParser().parse(xmlJSONObj.toString());
+								jobject = jelement.getAsJsonObject();
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+									if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+									
+										if(!result.isJsonNull()) {
+											if(result.get("content").getAsInt() == 1) {
+													inv.setStatus(AppConstants.STATUS_FINISHED);
+													inv.setUpdatedDate(new Date());
+													inv.setUpdatedBy("SYSTEM");
+											}else {
+													log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
+											}
+										}
+									}														 
+								}else {
 								log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
+								}
 							}
 						}
 					}
+					
 				}catch(Exception e) {
 					e.printStackTrace();
 					log.error("ERROR AL EJECUTAR WS DE ERPDDF - updateUUIDToOracleERP***************************", e);
@@ -176,8 +215,169 @@ public class SOAPServiceImpl implements SOAPService {
 			}else {
 				log.warn("LA FACTURA" + inv.getFolio() + " - " + inv.getOrderType() + " NO CUENTA CON UUID, SERIE O FOLI0 - updateUUIDToOracleERP***************************");
 			}
+			
+			if(inv.getErrorMsg() != null && !inv.getErrorMsg().isEmpty()) {
+				try {
+					String folios = inv.getFolio();
+					if(folios.contains("-")) {
+						String[] foliosNumber = folios.split("-");
+						for(String f: foliosNumber) {
+							Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+									PayloadProducer.setARRegionalFlexfield(folios, inv.getErrorMsg(), "", "", inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+							String strResponse2 = (String) request2.get("response");
+							int codeResponse2 = (int) request2.get("code");
+							String strHttpResponse2 = (String) request2.get("httpResponse");
+							
+							if(codeResponse2 >= 200 && codeResponse2 < 300) {
+								if(strResponse2 != null && !"".contains(strResponse2)) {
+									xmlJSONObj = XML.toJSONObject(strResponse2, true);
+									jelement = new JsonParser().parse(xmlJSONObj.toString());
+									jobject = jelement.getAsJsonObject();
+									if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+										if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+												.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+											JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+													.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+											
+											if(!result.isJsonNull()) {
+												if(result.get("content").getAsInt() == 1) {
+													inv.setUpdatedDate(new Date());
+													inv.setUpdatedBy("SYSTEM");
+												}else {
+													log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
+												}
+											}
+										}
+																		 
+									}else {
+										log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + " CON EL SIG ERROR: " + inv.getErrorMsg() + "***************************");
+									}
+								}
+							}							
+						}
+					}else {
+						Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+								PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getErrorMsg(), "", "", inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+						String strResponse2 = (String) request2.get("response");
+						int codeResponse2 = (int) request2.get("code");
+						String strHttpResponse2 = (String) request2.get("httpResponse");
+						
+						if(codeResponse2 >= 200 && codeResponse2 < 300) {
+							if(strResponse2 != null && !"".contains(strResponse2)) {
+								xmlJSONObj = XML.toJSONObject(strResponse2, true);
+								jelement = new JsonParser().parse(xmlJSONObj.toString());
+								jobject = jelement.getAsJsonObject();
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+									if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+										JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+												.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+										
+										if(!result.isJsonNull()) {
+											if(result.get("content").getAsInt() == 1) {
+												inv.setUpdatedDate(new Date());
+												inv.setUpdatedBy("SYSTEM");
+											}else {
+												log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
+											}
+										}
+									}
+																	 
+								}else {
+									log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + " CON EL SIG ERROR: " + inv.getErrorMsg() + "***************************");
+								}
+							}
+						}						
+					}
+				}catch(Exception e) {
+					e.printStackTrace();
+					log.error("ERROR AL EJECUTARR WS DE ERPDDF - UPDATEUUIDTOORACLEERP-ERRORS", e);
+				}
+			}
 		}
 		return inv;
+	}
+	
+	@Override
+	public ItemsDTO getItemDataByItemIdOrgCode(String itemId, String orgCode) {
+		ItemsDTO item = null;
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((itemId != null && !"".contains(itemId)) && (itemId != null && !"".contains(itemId))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_ITEMSV2, 
+																	PayloadProducer.getItemDataByItemIdOrgCode(itemId, orgCode),AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);;
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findItemResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findItemResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().has("ns0:Value")) {
+								JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findItemResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().get("ns0:Value").getAsJsonObject();
+								
+								if(!result.isJsonNull()) {
+									item = new ItemsDTO();
+									item.setItemNumber(result.get("ns1:ItemNumber").getAsString());
+									item.setItemDescription(result.get("ns1:ItemDescription").getAsString());
+									if(result.has("ns1:ItemCategory")) {
+										List<CategoryDTO> catList = new ArrayList<CategoryDTO>();
+										if(result.get("ns1:ItemCategory").isJsonArray()) {
+											JsonArray jsonarray = result.get("ns1:ItemCategory").getAsJsonArray();
+											for (int i = 0; i < jsonarray.size(); i++) {
+												CategoryDTO c = new CategoryDTO();
+												JsonElement op = jsonarray.get(i).getAsJsonObject();
+												c.setCatalogCode(NullValidator.isNull(op.getAsJsonObject().get("ns1:ItemCatalog").toString()));
+												c.setCategoryName(NullValidator.isNull(op.getAsJsonObject().get("ns1:CategoryName").toString()));
+												c.setCategoryCode(NullValidator.isNull(op.getAsJsonObject().get("ns1:CategoryCode").toString()));
+												if(!c.getCatalogCode().isEmpty()) {
+													catList.add(c);
+												}
+											}
+										}else {
+											CategoryDTO c = new CategoryDTO();
+											c.setCatalogCode(NullValidator.isNull(result.get("ns1:ItemCategory").getAsJsonObject().get("ns1:ItemCatalog").toString()));
+											c.setCategoryName(NullValidator.isNull(result.get("ns1:ItemCategory").getAsJsonObject().get("ns1:CategoryName").toString()));
+											c.setCategoryCode(NullValidator.isNull(result.get("ns1:ItemCategory").getAsJsonObject().get("ns1:CategoryCode").toString()));
+											if(!c.getCatalogCode().isEmpty()) {
+												catList.add(c);
+											}
+										}
+										item.setItemCategory(catList);
+									}
+									Udc udcFlex = udcService.searchBySystemAndKey("XMLFLEX", "PRODFLEX");
+									if(result.has("ns1:ItemDFF") && udcFlex != null){
+										item.setItemDFFClavProdServ(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "codigoSat").toString()));
+										//Comercio Exterior
+										item.setItemDFFFraccionArancelaria(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "fraccionArancelaria").toString()));
+										item.setItemDFFMarca(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "marca").toString()));
+										item.setItemDFFModelo(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "modelo").toString()));
+										//Importación
+										String isImported = NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "importacion").toString());
+										if(isImported != null && !"".contains(isImported) && "Si".contains(isImported)) {
+											item.setItemDFFIsImported(true);
+										}
+									}
+								}
+							}
+															 
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER WS DE ITEMS_V2 - getItemDataByItemNumberOrgCode***************************", e);
+			}
+		}
+		return item;
 	}
 
 	@Override
@@ -220,6 +420,7 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setCurrencyConversionRate(NullValidator.isNull(op.getAsJsonObject().get("ns0:CurrencyConversionRate").toString()));
 								so.setRequestedFulfillmentOrganizationCode("");
 								so.setOrderType(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionTypeCode").toString()));
+								so.setCustomerPONumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:CustomerPONumber").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
@@ -231,6 +432,25 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO")) {
 										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO")) {
+										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO")) {
+										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO")) {
+										String fecha = NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "fechacontrarecibo").toString());
+										so.setFechaContraRecibo(FCR.parse(fecha));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
+										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO")) {
+										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
+										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
+										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
+										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cP").toString()));
 									}
 								}
 								
@@ -256,6 +476,10 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 											soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
 											soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
+											soLine.setShippingMethod(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingCarrier").toString()));
+											soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
+											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
+											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -336,6 +560,10 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 										soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
 										soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
+										soLine.setShippingMethod(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingCarrier").toString()));
+										soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
+										soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
+										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -412,6 +640,7 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setCurrencyConversionRate(NullValidator.isNull(op.getAsJsonObject().get("ns0:CurrencyConversionRate").toString()));
 								so.setRequestedFulfillmentOrganizationCode("");
 								so.setOrderType(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionTypeCode").toString()));
+								so.setCustomerPONumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:CustomerPONumber").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
@@ -423,6 +652,25 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO")) {
 										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO")) {
+										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO")) {
+										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO")) {
+										String fecha = NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "fechacontrarecibo").toString());
+										so.setFechaContraRecibo(FCR.parse(fecha));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
+										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO")) {
+										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
+										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
+										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
+										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cP").toString()));
 									}
 								}
 								
@@ -446,6 +694,10 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 											soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
 											soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
+											soLine.setShippingMethod(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingCarrier").toString()));
+											soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
+											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
+											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -524,6 +776,10 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setTaxClassificationCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductDescription").toString()));
 										soLine.setStatusCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:StatusCode").toString()));
 										soLine.setFreightTermsCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FreightTermsCode").toString()));
+										soLine.setShippingMethod(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingCarrier").toString()));
+										soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
+										soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
+										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -686,6 +942,77 @@ public class SOAPServiceImpl implements SOAPService {
 			}else {
 				log.warn("EL RECIBO" + pay.getFolio() + " - " + pay.getReceiptNumber() + " NO CUENTA CON UUID, SERIE O FOLI0 - updateUUIDToOracleERPPayments***************************");
 			}
+			
+			if(pay.getPaymentError() != null && !pay.getPaymentError().isEmpty()) {
+				try {
+					Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+																		PayloadProducer.setARReceiptsRegionalFlexfield(pay.getReceiptNumber(), pay.getReceiptId(), pay.getPaymentError()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+					String strResponse1 = (String) request1.get("response");
+					int codeResponse1 = (int) request1.get("code");
+					String strHttpResponse1 = (String) request1.get("httpResponse");
+					
+					if(codeResponse1 >= 200 && codeResponse1 < 300) {
+						if(strResponse1 != null && !"".contains(strResponse1)) {
+							xmlJSONObj = XML.toJSONObject(strResponse1, true);
+							jelement = new JsonParser().parse(xmlJSONObj.toString());
+							jobject = jelement.getAsJsonObject();
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+									
+									if(!result.isJsonNull()) {
+										if(result.get("content").getAsInt() == 1) {
+											status1 = true;
+										}else {
+											log.warn("ERROR AL ACTUALIZAR EL ERRROR - " + pay.getPaymentError() + " - " + pay.getReceiptNumber() + "***************************");
+										}
+									}
+								}
+																 
+							}else {
+								log.warn("ERROR AL ACTUALIZAR EL ERROR - " + pay.getPaymentError() + " - " + pay.getReceiptNumber() + "***************************");
+							}
+						}
+					}
+					
+					Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
+							PayloadProducer.setARReceiptsSerialFolioFlexfield(pay.getReceiptNumber(), pay.getReceiptId(), pay.getSerial(), pay.getFolio()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+					
+					String strResponse2 = (String) request2.get("response");
+					int codeResponse2 = (int) request2.get("code");
+					String strHttpResponse2 = (String) request2.get("httpResponse");
+					
+					if(codeResponse2 >= 200 && codeResponse2< 300) {
+						if(strResponse2 != null && !"".contains(strResponse2)) {
+							xmlJSONObj = XML.toJSONObject(strResponse2, true);
+							jelement = new JsonParser().parse(xmlJSONObj.toString());
+							jobject = jelement.getAsJsonObject();
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:updateDffEntityDetailsResponse")) {
+								if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().has("result")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:updateDffEntityDetailsResponse").getAsJsonObject().get("result").getAsJsonObject();
+								
+									if(!result.isJsonNull()) {
+										if(result.get("content").getAsInt() == 1) {
+											status2 = true;
+										}else {
+											log.warn("ERROR AL ACTUALIZAR SERIAL - FOLIO RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
+										}
+									}
+								}			 
+							}else {
+								log.warn("ERROR AL ACTUALIZAR SERIAL - FOLIO RECEIPT RECEIPT - " + pay.getFolio() + " - " + pay.getReceiptNumber() + "***************************");
+							}
+						}
+					}
+					
+				}catch(Exception e) {
+					e.printStackTrace();
+					log.error("ERROR AL EJECUTAR WS DE ERPDDF - updateUUIDToOracleERP***************************", e);
+				}
+			}
 		}
 		
 		if(status1 && status2) {
@@ -803,6 +1130,7 @@ public class SOAPServiceImpl implements SOAPService {
 									gtin.setTradingPartnerName(NullValidator.isNull(result.get("ns1:TradingPartnerName").getAsString()));
 									gtin.setTradingPartnerNumber(NullValidator.isNull(result.get("ns1:TradingPartnerNumber").getAsString()));
 									gtin.setUomCodeValue(NullValidator.isNull(result.get("ns1:UOMCodeValue").getAsString()));
+									gtin.setItemDescription(NullValidator.isNull(result.get("ns1:GTINDescription").getAsString()));
 								}
 							}
 						}else {
@@ -819,7 +1147,5 @@ public class SOAPServiceImpl implements SOAPService {
 		}
 		return gtin;
 	}
-
-	
 	
 }

@@ -21,4 +21,5 @@ public interface InvoiceDao {
 	public Invoice getSingleInvoiceByFolioSerial(String folioSerial);
 	Invoice getInvoiceByUuid(String uuid);
 	public Invoice getInvoiceWithOutUuid(String id);
+	List<Invoice> getInvoiceToAdv(String orderType, boolean advApplied);
 }

@@ -39,7 +39,7 @@ public class RetailComplement implements Serializable {
     private String textNote;
 	
 	@Column(name = "referenceId", nullable = true)
-    private String referenceId;
+    private String referenceId;//Pedido liverpool
 	
 	@Column(name = "referenceDate", nullable = true)
 	@Temporal(TemporalType.TIMESTAMP)
@@ -58,7 +58,7 @@ public class RetailComplement implements Serializable {
     private String deliveryNote;
 	
 	@Column(name = "buyerNumberFolio", nullable = true)
-    private String buyerNumberFolio;
+    private String buyerNumberFolio;//Numero de contrarecibo
 	
 	@Column(name = "buyerDateFolio", nullable = true)
 	@Temporal(TemporalType.TIMESTAMP)

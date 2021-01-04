@@ -8,6 +8,7 @@ public class ItemGtinDTO {
 	public String tradingPartnerNumber;
 	public String uomCodeValue;
 	public String gtin;
+	public String itemDescription;
 	
 	public String getOrganizationCode() {
 		return organizationCode;
@@ -45,4 +46,11 @@ public class ItemGtinDTO {
 	public void setGtin(String gtin) {
 		this.gtin = gtin;
 	}
+	public String getItemDescription() {
+		return itemDescription;
+	}
+	public void setItemDescription(String itemDescription) {
+		this.itemDescription = itemDescription;
+	}
+	
 }

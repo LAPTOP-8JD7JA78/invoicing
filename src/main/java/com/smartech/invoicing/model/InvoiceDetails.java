@@ -126,6 +126,24 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "itemNotes", nullable=true)
 	private String itemNotes;
 	
+	@Column(name = "productTypeCode", nullable=true)
+	private String productTypeCode;
+	
+	@Column(name = "unitCost", nullable=true)
+	private String unitCost;
+	
+	@Column(name = "exchangeDailyRate", nullable=true)
+	private String exchangeDailyRate;
+	
+	@Column(name = "equipmentReference", nullable=true)
+	private String equipmentReference;
+	
+	@Column(name = "shipmentNumber", nullable=true)
+	private String shipmentNumber;
+	
+	@Column(name = "priceListWTax", nullable=true)
+	private String priceListWTax;
+	
 	@OneToOne(cascade=CascadeType.ALL)
 	RetailComplement retailComplements;
 
@@ -391,6 +409,54 @@ public class InvoiceDetails implements Serializable{
 
 	public void setRetailComplements(RetailComplement retailComplements) {
 		this.retailComplements = retailComplements;
+	}
+
+	public String getProductTypeCode() {
+		return productTypeCode;
+	}
+
+	public void setProductTypeCode(String productTypeCode) {
+		this.productTypeCode = productTypeCode;
+	}
+
+	public String getUnitCost() {
+		return unitCost;
+	}
+
+	public void setUnitCost(String unitCost) {
+		this.unitCost = unitCost;
+	}
+
+	public String getExchangeDailyRate() {
+		return exchangeDailyRate;
+	}
+
+	public void setExchangeDailyRate(String exchangeDailyRate) {
+		this.exchangeDailyRate = exchangeDailyRate;
+	}
+
+	public String getEquipmentReference() {
+		return equipmentReference;
+	}
+
+	public void setEquipmentReference(String equipmentReference) {
+		this.equipmentReference = equipmentReference;
+	}
+
+	public String getShipmentNumber() {
+		return shipmentNumber;
+	}
+
+	public void setShipmentNumber(String shipmentNumber) {
+		this.shipmentNumber = shipmentNumber;
+	}
+
+	public String getPriceListWTax() {
+		return priceListWTax;
+	}
+
+	public void setPriceListWTax(String priceListWTax) {
+		this.priceListWTax = priceListWTax;
 	}
 	
 }

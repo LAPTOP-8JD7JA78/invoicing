@@ -80,6 +80,9 @@ public class Company implements Serializable{
 	
 	@Column(name = "AlternativeId", nullable=true)
     private String AlternativeId;
+	
+	@Column(name = "assetBook", nullable=true)
+    private String assetBook;
 
 	public long getId() {
 		return id;
@@ -239,6 +242,14 @@ public class Company implements Serializable{
 
 	public void setAlternativeId(String alternativeId) {
 		AlternativeId = alternativeId;
+	}
+
+	public String getAssetBook() {
+		return assetBook;
+	}
+
+	public void setAssetBook(String assetBook) {
+		this.assetBook = assetBook;
 	}
 	
 }

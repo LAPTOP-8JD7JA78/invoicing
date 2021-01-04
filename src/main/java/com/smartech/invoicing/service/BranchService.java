@@ -13,4 +13,5 @@ public interface BranchService {
 	public boolean updateBranch(Branch branch, String user);
 	int searchBranchListInt(int start, int limit, String query);
 	public boolean isAvaiableBranch(String orgCode);
+	Branch getBranchByName(String name);
 }

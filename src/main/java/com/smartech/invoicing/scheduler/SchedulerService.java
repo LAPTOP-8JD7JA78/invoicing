@@ -1,15 +1,14 @@
 package com.smartech.invoicing.scheduler;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import com.smartech.invoicing.dao.InvoiceDao;
 import com.smartech.invoicing.integration.AnalyticsService;
@@ -18,10 +17,12 @@ import com.smartech.invoicing.integration.SOAPService;
 import com.smartech.invoicing.integration.dto.AnalyticsDTO;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.service.InvoicingService;
+import com.smartech.invoicing.integration.service.LabelService;
 import com.smartech.invoicing.integration.service.MailService;
 import com.smartech.invoicing.integration.service.NumberLetterService;
 import com.smartech.invoicing.integration.service.StampedService;
 import com.smartech.invoicing.integration.util.AppConstants;
+import com.smartech.invoicing.integration.util.ResponsiveLetter;
 import com.smartech.invoicing.integration.xml.rowset.Row;
 import com.smartech.invoicing.integration.xml.rowset.Rowset;
 import com.smartech.invoicing.model.Invoice;
@@ -55,8 +56,13 @@ public class SchedulerService {
 	MailService mailService;
 	@Autowired
 	NumberLetterService numberLetterService;
-	
+	@Autowired
+	LabelService labelService;
+	@Autowired
+	ResponsiveLetter responsiveLetter;
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
+	
+	SimpleDateFormat sdfTime = new SimpleDateFormat("yyyy-MM-dd");
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	final SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");	
 	final SimpleDateFormat formatterUTC = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -86,18 +92,29 @@ public class SchedulerService {
 //		}
 //		mailService.sendMail(email,
 //				"ERROR EN PROCESO DE REPORTE (INVOICE)",
-//				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES");
-		//Datos para pobrar el total con letra
-		String data = numberLetterService.getNumberLetter("10460224.76", true, "MXN");
-		System.out.println(data);
+//				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES",
+//				null);
+
+//		//Datos para pobrar el total con letra
+//		String data = numberLetterService.getNumberLetter("10460224.76", true, "MXN");
+//		System.out.println(data);
+
+		String date = sdfTime.format(new Date());
+		date = date.toString();
+		System.out.print(date.toString());
+		String alo = date.substring(0, 4);
+		String mes = date.substring(5, 7);
+		String dia = date.substring(8);
+		System.out.println(dia + " DE " + mes + " DEL " + alo);
 	}
 
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void InvoicesSchedule() throws ParseException {
 		log.info("\'InvoicesSchedule\' is started*******");	
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
+		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
 		String nextSearch = sdf.format(new Date());
-		AnalyticsDTO analytics = new AnalyticsDTO();		
+		AnalyticsDTO analytics = new AnalyticsDTO();
+		String errors = "";
 		Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_INVOICES);
 		if(da != null) {
 			Date dateSearch = da.getDateValue();
@@ -106,7 +123,7 @@ public class SchedulerService {
 			Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 					AppConstants.SERVICE_AR_REPORT_INVOICES, analytics);
 			if(!r.getRow().isEmpty()) {
-				if(!invoicingService.createStampInvoice(r.getRow())) {
+				if(!invoicingService.createStampInvoice(r.getRow(), errors)) {
 					if(da.getIntValue() == 5) {		
 						List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
 						List<String> email = new ArrayList<String>();
@@ -115,7 +132,8 @@ public class SchedulerService {
 						}
 						mailService.sendMail(email,
 								AppConstants.EMAIL_INVOICE_SUBJECT,
-								AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()));
+								AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()),
+								null);
 						String date = sdf.format(new Date());
 						da.setDateValue(sdf.parse(date));
 						da.setIntValue(0);
@@ -151,7 +169,7 @@ public class SchedulerService {
 		}
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
 		try {
@@ -176,7 +194,7 @@ public class SchedulerService {
 		log.info("\'getDataForPetitionOrders\' is finished*******");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void getPendingData() {
 		log.info("\'getPendingData\' is started*******");
 		List<String> arr = new ArrayList<String>();
@@ -212,7 +230,7 @@ public class SchedulerService {
 		
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
 	public void readDataPac() {
 		log.info("\'readDataPac\' is started*******");
 		if(!stampedService.readDataFromTxt()) {
@@ -221,7 +239,7 @@ public class SchedulerService {
 		log.info("\'readDataPac\': is finished********");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
+//	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
 	public void updateUUIDOracleERP() {
 		log.info("\'updateUUIDOracleERP\' is started*******");
 		try {
@@ -233,7 +251,7 @@ public class SchedulerService {
 		log.info("\'updateUUIDOracleERP\': is finished********");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=5000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void createPayments() {
 		log.info("\'createPayments\' is started*******");
 		try {
@@ -257,7 +275,8 @@ public class SchedulerService {
 							}
 							mailService.sendMail(email,
 									AppConstants.EMAIL_INVOICE_SUBJECT,
-									AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()));
+									AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()),
+									null);
 							String date = sdf.format(new Date());
 							da.setDateValue(sdf.parse(date));
 							da.setIntValue(0);
@@ -286,7 +305,7 @@ public class SchedulerService {
 		log.info("\'createPayments\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 2000, initialDelay = 5000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void createTransfer() {
 		log.info("\'createTransfer\' is started*******");
 		String nextSearch = sdf.format(new Date());
@@ -310,7 +329,7 @@ public class SchedulerService {
 							}
 							mailService.sendMail(email,
 									AppConstants.EMAIL_TRANSFER_SUBJECT,
-									AppConstants.EMAIL_TRANSFER_CONTENT + sdf.format(new Date()));
+									AppConstants.EMAIL_TRANSFER_CONTENT + sdf.format(new Date()), null);
 							String date = sdf.format(new Date());
 							da.setDateValue(sdf.parse(date));
 							da.setIntValue(0);
@@ -321,13 +340,14 @@ public class SchedulerService {
 						}
 					}else {
 						da.setDateValue(sdf.parse(nextSearch));
+						da.setIntValue(0);
 						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 					}
 				}else {
 					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
-					da.setDateValue(sdf.parse(nextSearch));
-					da.setIntValue(0);
-					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+//					da.setDateValue(sdf.parse(nextSearch));
+//					da.setIntValue(0);
+//					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 				}
 			}else {
 				log.error("ERROR EN LA BUSQUEDA DE LA UDC (createTransfer) PARA LAS FECHAS DEL REPORTE");
@@ -337,5 +357,122 @@ public class SchedulerService {
 			log.error("ERROR AL CREAR EL CFDI DE TRASLADOS: " + e);
 		}
 		log.info("\'createTransfer\': is finished********");
+	}
+	
+//	@Scheduled(fixedDelay=30000, initialDelay=30000)
+	public void labelProccessScheduler() {
+		log.info("\'labelProccessScheduler\' is started*******");
+		String nextSearch = sdf.format(new Date());
+		AnalyticsDTO analytics = new AnalyticsDTO();
+		try {
+			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_KEY_LABEL);
+			if(da != null) {
+				Date dateSearch = da.getDateValue();
+				String search = sdf.format(dateSearch);
+				analytics.setAr_Report_date(search);
+				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+						AppConstants.SERVICE_ASSET_LABEL_REPORT, analytics);
+				if(!r.getRow().isEmpty()) {
+					if(!labelService.createLabel(r.getRow())) {
+						log.error("HUBO ALGUN ERROR AL MOMENTO DE LA GENERACION DE LAS ETIQUETAS" + search + " ---" + new Date());
+						if(da.getIntValue() == 5) {
+							List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+							List<String> email = new ArrayList<String>();
+							for(Udc u: emails) {
+								email.add(u.getUdcKey());
+							}
+							mailService.sendMail(email,
+									AppConstants.EMAIL_LABEL_SUBJECT,
+									AppConstants.EMAIL_LABEL_CONTENT + sdf.format(new Date()), null);
+							String date = sdf.format(new Date());
+							da.setDateValue(sdf.parse(date));
+							da.setIntValue(0);
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);							
+						}else {
+							da.setIntValue(da.getIntValue() + 1);
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+						}
+					}else {
+						da.setDateValue(sdf.parse(nextSearch));
+						da.setIntValue(0);
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+					}
+				}else{
+					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+				}
+			}else {
+				log.error("NO SE A ENCONTRADO LA UDC CORRESPONDIENTE PARA EL PROCESA DE LAS ETIQUETAS " + new Date());
+			}
+
+		}catch(Exception e) {
+			log.error("ERROR EN LA GENERACIÓN DE LA ETIQUETA" + e);
+		}
+		log.info("\'labelProccessScheduler\': is finished********");
+	}
+	
+//	@Scheduled(fixedDelay=30000, initialDelay=30000)
+	public void createResponsiveLetter() throws IOException {
+		log.info("\'createResponsiveLetter\' is started*******");
+		String nextSearch = sdf.format(new Date());
+		AnalyticsDTO analytics = new AnalyticsDTO();
+		try {
+			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_KEY_UPDATE_LABEL);
+			if(da != null) {
+				Date dateSearch = da.getDateValue();
+				String search = sdf.format(dateSearch);
+				analytics.setAr_Report_date(search);
+				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+						AppConstants.SERVICE_RESPONSIVE_LETTER, analytics);
+				if(!r.getRow().isEmpty()) {
+					if(!responsiveLetter.createFile(r.getRow())) {
+						log.error("HUBO ALGUN ERROR AL MOMENTO DE GENERAR LA CARTA RESPONSIVA" + search + " ---" + new Date());
+						if(da.getIntValue() == 5) {
+							List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+							List<String> email = new ArrayList<String>();
+							for(Udc u: emails) {
+								email.add(u.getUdcKey());
+							}
+							mailService.sendMail(email,
+									AppConstants.EMAIL_LABEL_SUBJECT,
+									AppConstants.EMAIL_LABEL_CONTENT + sdf.format(new Date()), null);
+							String date = sdf.format(new Date());
+							da.setDateValue(sdf.parse(date));
+							da.setIntValue(0);
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);							
+						}else {
+							da.setIntValue(da.getIntValue() + 1);
+							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+						}
+					}else {
+						da.setDateValue(sdf.parse(nextSearch));
+						da.setIntValue(0);
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+					}
+				}else{
+					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+				}
+			}else {
+				log.error("NO SE A ENCONTRADO LA UDC CORRESPONDIENTE PARA EL PROCESA DE LAS ETIQUETAS " + new Date());
+			}
+
+		}catch(Exception e) {
+			log.error("ERROR PARA LA GENERACIÓN DE LA CARTA RESPONSIVA" + e);
+		}
+		log.info("\'createResponsiveLetter\': is finished********");
+//		responsiveLetter.createFile();
+//		rL.createCon();
+		
+	}
+	
+//	@Scheduled(fixedDelay=40000, initialDelay=40000)
+	public void sendAllErrors() {
+		log.info("\'sendAllErrors\' is started*******");
+		try {
+			invoicingService.sendAllErrors();
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR DURANTE EL PROCESO DE \'sendAllErrors\'-----------------------------", e);
+		}
+		log.info("\'sendAllErrors\': is finished********");
 	}
 }

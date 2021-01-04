@@ -1,5 +1,6 @@
 package com.smartech.invoicing.integration;
 
+import com.smartech.invoicing.integration.json.dailyRates.CurrencyRates;
 import com.smartech.invoicing.integration.json.invitemlot.InventoryItemLots;
 import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
@@ -11,4 +12,5 @@ public interface RESTService {
 	public SalesOrder getSalesOrderByOrderNumber(String orderNumber);
 	public SalesOrderAI getAddInfoBySalesNumber(SalesOrder salesOrder);
 	public InventoryItemLots getInventoryLot(String invOrgCode, String itemNumber, String itemLot);
+	public CurrencyRates getDailyCurrency(String date, String fromCurrency, String toCurrency);
 }

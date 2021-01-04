@@ -63,7 +63,7 @@ public class CompanyDaoImpl implements CompanyDao{
 		Query q = session.createQuery("from Company");
 	    q.setFirstResult(start);
 	    q.setMaxResults(limit);
-		return (List<Company>) q.list();
+		return q.list();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -100,6 +100,23 @@ public class CompanyDaoImpl implements CompanyDao{
 		Criteria criteria = session.createCriteria(Company.class);
 		criteria.add(Restrictions.eq("name", companyName));
 		
+		List<Company> list = criteria.list();
+		if(list != null) {
+			if(list.size() > 0) {
+				return list.get(0);
+			}
+		}else {
+			return null;
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Company getCompanyByBook(String assetBook) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Company.class);
+		criteria.add(Restrictions.eq("assetBook", assetBook));		
 		List<Company> list = criteria.list();
 		if(list != null) {
 			if(list.size() > 0) {

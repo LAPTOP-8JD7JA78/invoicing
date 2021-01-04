@@ -95,6 +95,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 					case AppConstants.SERVICE_AR_REPORT_TRANSFER:
 						request = PayloadProducer.createTransferReport(sessionId, dto.getAr_Report_date());
 						break;
+					case AppConstants.SERVICE_ASSET_LABEL_REPORT:
+						request = PayloadProducer.LabelProccess(sessionId, dto.getAr_Report_date());
+						break;
+					case AppConstants.SERVICE_RESPONSIVE_LETTER:
+						request = PayloadProducer.updateLabel(sessionId, dto.getAr_Report_date());
+						break;
 				}
 	
 				if(!"".contains(request)) {

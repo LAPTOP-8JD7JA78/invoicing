@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartech.invoicing.model.Branch;
+import com.smartech.invoicing.model.Company;
 import com.smartech.invoicing.model.NextNumber;
 
 @Repository("nextNumberDao")
@@ -76,5 +77,30 @@ public class NextNumberDaoImpl implements NextNumberDao{
 	    	return orders.get(0); 
 	     }
 	     return null;
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public synchronized NextNumber getLastNumberByItem(String OrderType, Company Organization) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria crit =  session.createCriteria(NextNumber.class); 
+	    crit.add( Restrictions.eq("OrderType", OrderType));
+	    crit.add( Restrictions.eq("company", Organization));
+	    List<NextNumber> orders = crit.list(); 
+	    if(orders != null && !orders.isEmpty()) {
+	     if(orders.get(0) != null) {
+		   	 try {
+		   		 orders.get(0).setFolio(orders.get(0).getFolio() + 1);
+		   	 }catch(Exception e) {
+		   		 e.printStackTrace();
+		   		 return null;
+		   	 }
+		    }else {
+		   	 return null;
+		    } 
+	     }else {
+	    	 return null;
+	     }
+		return orders.get(0);
 	}
 }

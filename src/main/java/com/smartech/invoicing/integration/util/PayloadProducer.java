@@ -109,16 +109,50 @@ public class PayloadProducer {
 								"<typ1:findAttribute>ItemDFF</typ1:findAttribute>" +
 								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
 								"<typ1:childFindCriteria>" + 
-//									"<typ1:filter>" + 
-//										"<typ1:group>" + 
-//											"<typ1:item>" + 
-//												"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
-//												"<typ1:attribute>ItemCatalog</typ1:attribute>" + 
-//												"<typ1:operator>=</typ1:operator>" + 
-//												"<typ1:value>IMEMSA_CATALOGO</typ1:value>" + 
-//											"</typ1:item>" + 
-//										"</typ1:group>" + 
-//									"</typ1:filter>" + 
+									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
+									"<typ1:findAttribute>CategoryCode</typ1:findAttribute>" + 
+									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
+									"<typ1:childAttrName>ItemCategory</typ1:childAttrName>" + 
+								"</typ1:childFindCriteria>" + 
+							"</typ:findCriteria>" + 
+						"</typ:findItem>" + 
+					"</soapenv:Body>" + 
+				"</soapenv:Envelope>";
+		
+		return SOAPRequest;
+	}
+	
+	public static String getItemDataByItemIdOrgCode(String itemId, String orgCode) {
+		String SOAPRequest = 
+				"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/scm/productModel/items/itemServiceV2/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">" + 
+				"<soapenv:Header/>" + 
+					"<soapenv:Body>" + 
+						"<typ:findItem>" + 
+							"<typ:findCriteria>" + 
+								"<typ1:fetchStart>0</typ1:fetchStart>" + 
+								"<typ1:fetchSize>1</typ1:fetchSize>" + 
+								"<typ1:filter>" + 
+									"<typ1:group>" + 
+										"<typ1:item>" + 
+											"<typ1:conjunction>And</typ1:conjunction>" + 
+											"<typ1:attribute>ItemId</typ1:attribute>" + 
+											"<typ1:operator>=</typ1:operator>" + 
+											"<typ1:value>" + itemId + "</typ1:value>" + 
+										"</typ1:item>" + 
+										"<typ1:item>" + 
+											"<typ1:conjunction>And</typ1:conjunction>" + 
+											"<typ1:upperCaseCompare>false</typ1:upperCaseCompare>" + 
+											"<typ1:attribute>OrganizationCode</typ1:attribute>" + 
+											"<typ1:operator>=</typ1:operator>" + 
+											"<typ1:value>" + orgCode + "</typ1:value>" + 
+										"</typ1:item>" + 
+									"</typ1:group>" + 
+								"</typ1:filter>" + 
+								"<typ1:findAttribute>ItemNumber</typ1:findAttribute>" + 
+								"<typ1:findAttribute>ItemDescription</typ1:findAttribute>" + 
+								"<typ1:findAttribute>ItemDFF</typ1:findAttribute>" +
+								"<typ1:findAttribute>ItemCategory</typ1:findAttribute>" + 
+								"<typ1:childFindCriteria>" + 
 									"<typ1:findAttribute>ItemCatalog</typ1:findAttribute>" + 
 									"<typ1:findAttribute>CategoryCode</typ1:findAttribute>" + 
 									"<typ1:findAttribute>CategoryName</typ1:findAttribute>" + 
@@ -189,7 +223,9 @@ public class PayloadProducer {
 				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_IT_RFRNC_TNL_\" s_48,\r\n" +//Tipo de Identificación --TransactionType 
 				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_NNR_NTRN_TL_PRFTR_\" s_49,\r\n" + //Número de referencia adicional  -- AdicionalInformationNumbe
 				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_REFERENCIA_ADICIONAL_\" s_50,\n\r" +
-				"	\"Receivables - Transactions Real Time\".\"- Additional Header Information\".\"Customer Transaction Reference\" s_51\n\r" +
+				"	\"Receivables - Transactions Real Time\".\"- Additional Header Information\".\"Customer Transaction Reference\" s_51,\n\r" +
+				"	\"Receivables - Transactions Real Time\".\"- Bill-to Customer Identifying Address\".\"Bill-to Customer State\" s_52,\n\r" +
+				"	\"Receivables - Transactions Real Time\".\"- Bill-to Customer Details\".\"Bill-to Customer Email Address\" s_53\n\r" +
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
 				"WHERE\r\n" + 
 				"((\"- Line Information\".\"Sales Order Number\" IS NOT NULL) AND (\"- Reference Information\".\"Creation Date\" > timestamp '" + date + "'))\r\n" + 
@@ -452,6 +488,7 @@ public class PayloadProducer {
 							"<typ1:findAttribute>TradingPartnerNumber</typ1:findAttribute>" + 
 							"<typ1:findAttribute>UOMCodeValue</typ1:findAttribute>" + 
 							"<typ1:findAttribute>GTIN</typ1:findAttribute>" + 
+							"<typ1:findAttribute>GTINDescription</typ1:findAttribute>" + 
 						"</typ:findCriteria>" + 
 					"</typ:findGTINCrossReference>" + 
 				"</soapenv:Body>" + 
@@ -466,9 +503,9 @@ public class PayloadProducer {
 				"   <soapenv:Body>\r\n" + 
 				"      <v7:executeSQLQuery>\r\n" + 
 				"         <v7:sql>\r\n" + 
-				"SELECT\r\n" + 
-				"   \"Costing - Cost Accounting Real Time\".\"Main\".\"Item Description\" s_1,\r\n" + 
-				"   \"Costing - Cost Accounting Real Time\".\"Main\".\"Item Name\" s_2,\r\n" + 
+				"         SELECT\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"-  Main\".\"Item Description\" s_1,\r\n" + 
+				"   \"Costing - Cost Accounting Real Time\".\"-  Main\".\"Item Name\" s_2,\r\n" + 
 				"   \"Costing - Cost Accounting Real Time\".\"Business Unit\".\"Creation Date\" s_3,\r\n" + 
 				"   \"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Distribution Transaction Number\" s_4,\r\n" + 
 				"   \"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit of Measure\" s_5,\r\n" + 
@@ -484,8 +521,93 @@ public class PayloadProducer {
 				"   DESCRIPTOR_IDOF(\"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit of Measure\") s_15\r\n" + 
 				"FROM \"Costing - Cost Accounting Real Time\"\r\n" + 
 				"WHERE\r\n" + 
-				"(\"Transfer Inventory Organization\".\"Transfer Organization Creation Date\" >= timestamp '" + date + "')\r\n" + 
+				"((\"Cost Transaction Details\".\"Transaction Date\" > timestamp '" + date + "') AND (\"Cost Transaction Type\".\"Base Transaction Type Name\" IN ('Intransit Shipment', 'Transfer Order Interorganization Shipment')))" + 
 				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return request;
+	}
+	
+	public static String LabelProccess(String sessionId, String date) {
+		String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"SELECT\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"- General Information\".\"Book Code\" s_1,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Asset Category Book\".\"Asset Cost Account\" s_2,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Asset Depreciation Expense Account\".\"Asset Depreciation Expense Account Description\" s_3,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Asset Location\".\"Location Concatenated Segment\" s_4,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Current Units\" s_5,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Model\" s_6,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Serial Number\" s_7,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Tag Number\" s_8,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Employee\".\"Employee Name\" s_9,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Employee\".\"Employee Number\" s_10,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Asset Number\" s_11,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Creation Date\" s_12,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Description\" s_13,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Last Update Date\" s_14,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Transaction Distribution Lines Details\".\"Units Assigned\" s_15\r\n" + 
+				"FROM \"Fixed Assets - Asset Transactions Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"(\"General Information\".\"Creation Date\" > timestamp '" + date + "')" +
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage>?</v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return request;
+	}
+	
+	public static String updateLabel(String sessionId, String date) {
+		String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"SELECT\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"- General Information\".\"Book Code\" s_1,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Asset Category Book\".\"Asset Cost Account\" s_2,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Asset Depreciation Expense Account\".\"Asset Depreciation Expense Account Description\" s_3,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Asset Location\".\"Location Concatenated Segment\" s_4,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Current Units\" s_5,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Model\" s_6,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Serial Number\" s_7,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Descriptive Details\".\"Tag Number\" s_8,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Employee\".\"Employee Name\" s_9,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Employee\".\"Employee Number\" s_10,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Asset Number\" s_11,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Creation Date\" s_12,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Description\" s_13,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"General Information\".\"Last Update Date\" s_14,\r\n" + 
+				"   \"Fixed Assets - Asset Transactions Real Time\".\"Transaction Distribution Lines Details\".\"Units Assigned\" s_15\r\n" + 
+				"FROM \"Fixed Assets - Asset Transactions Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"((\"General Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"Employee\".\"Employee Name\" IS NOT NULL))" +
+//				"(\"General Information\".\"Last Update Date\" > timestamp '" + date + "')\r\n" + 
 				"         </v7:sql>\r\n" + 
 				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
 				"         <v7:executionOptions>\r\n" + 

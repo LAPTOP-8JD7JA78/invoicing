@@ -119,4 +119,17 @@ public class BranchDaoImpl implements BranchDao{
 		}
 		return null;
 	}
+	
+	@Override
+	public Branch getBranchByName(String name) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Branch.class);
+		
+		criteria.add(Restrictions.eq("name", name));
+		
+		if(!criteria.list().isEmpty()) {
+			return (Branch) criteria.list().get(0);
+		}
+		return null;
+	}
 }

@@ -12,4 +12,5 @@ public interface CompanyDao {
 	Company getCompanyById(int id);
 	List<Company> listCompaniesByName(String name);
 	Company getCompanyByName(String companyName);
+	Company getCompanyByBook(String assetBook);
 }

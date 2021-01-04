@@ -1,5 +1,6 @@
 package com.smartech.invoicing.dto;
 
+import java.util.Date;
 import java.util.List;
 
 public class SalesOrderDTO {
@@ -19,6 +20,16 @@ public class SalesOrderDTO {
 	private String metodoPago;
 	private String formaPago;
 	private String orderType;
+	
+	private String susticionCFDI;
+	private String pedidoLiverpool;
+	private String contraRecibo;
+	private Date fechaContraRecibo;
+	private String customerName;
+	private String customerTaxIden;
+	private String customerEmail;
+	private String CustomerPONumber;
+	private String customerZip;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -148,6 +159,78 @@ public class SalesOrderDTO {
 
 	public void setOrderType(String orderType) {
 		this.orderType = orderType;
+	}
+
+	public String getSusticionCFDI() {
+		return susticionCFDI;
+	}
+
+	public void setSusticionCFDI(String susticionCFDI) {
+		this.susticionCFDI = susticionCFDI;
+	}
+
+	public String getPedidoLiverpool() {
+		return pedidoLiverpool;
+	}
+
+	public void setPedidoLiverpool(String pedidoLiverpool) {
+		this.pedidoLiverpool = pedidoLiverpool;
+	}
+
+	public String getContraRecibo() {
+		return contraRecibo;
+	}
+
+	public void setContraRecibo(String contraRecibo) {
+		this.contraRecibo = contraRecibo;
+	}
+
+	public Date getFechaContraRecibo() {
+		return fechaContraRecibo;
+	}
+
+	public void setFechaContraRecibo(Date fechaContraRecibo) {
+		this.fechaContraRecibo = fechaContraRecibo;
+	}
+
+	public String getCustomerName() {
+		return customerName;
+	}
+
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
+
+	public String getCustomerTaxIden() {
+		return customerTaxIden;
+	}
+
+	public void setCustomerTaxIden(String customerTaxIden) {
+		this.customerTaxIden = customerTaxIden;
+	}
+
+	public String getCustomerEmail() {
+		return customerEmail;
+	}
+
+	public void setCustomerEmail(String customerEmail) {
+		this.customerEmail = customerEmail;
+	}
+
+	public String getCustomerPONumber() {
+		return CustomerPONumber;
+	}
+
+	public void setCustomerPONumber(String customerPONumber) {
+		CustomerPONumber = customerPONumber;
+	}
+
+	public String getCustomerZip() {
+		return customerZip;
+	}
+
+	public void setCustomerZip(String customerZip) {
+		this.customerZip = customerZip;
 	}
 	
 }

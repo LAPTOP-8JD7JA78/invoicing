@@ -130,6 +130,9 @@ public class Payments implements Serializable{
 	
 	@Column(name = "paymentError", nullable = true)
 	private String paymentError;
+	
+	@Column(name = "advanceApplied", nullable = true)
+	private boolean advanceApplied;
 
 	public int getId() {
 		return id;
@@ -409,6 +412,14 @@ public class Payments implements Serializable{
 
 	public void setPaymentError(String paymentError) {
 		this.paymentError = paymentError;
+	}
+
+	public boolean isAdvanceApplied() {
+		return advanceApplied;
+	}
+
+	public void setAdvanceApplied(boolean advanceApplied) {
+		this.advanceApplied = advanceApplied;
 	}
 	
 }

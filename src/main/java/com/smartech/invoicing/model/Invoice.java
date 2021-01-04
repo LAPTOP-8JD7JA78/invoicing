@@ -140,6 +140,9 @@ public class Invoice implements Serializable{
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private Set<Payments> payments;
 	
+//	@ManyToMany
+//	private Set<Payments> payments;
+	
 	@Column(name = "setName", nullable=false)
 	private String setName;
 	
@@ -190,6 +193,21 @@ public class Invoice implements Serializable{
 	
 	@Column(name = "isExtCom", nullable=true)
 	private boolean isExtCom;
+	
+	@Column(name = "notes", nullable=true)
+	private String notes;
+	
+	@Column(name = "shippingMethod", nullable=true)
+	private String shippingMethod;
+	
+	@Column(name = "productType", nullable=true)
+	private String productType;	
+	
+	@Column(name = "purchaseOrder", nullable=true)
+	private String purchaseOrder;	
+	
+	@Column(name = "advanceAplied", nullable=true)
+	private boolean advanceAplied;	
 	
 	public long getId() {
 		return id;
@@ -613,6 +631,46 @@ public class Invoice implements Serializable{
 
 	public void setExtCom(boolean isExtCom) {
 		this.isExtCom = isExtCom;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
+	public String getShippingMethod() {
+		return shippingMethod;
+	}
+
+	public void setShippingMethod(String shippingMethod) {
+		this.shippingMethod = shippingMethod;
+	}
+
+	public String getProductType() {
+		return productType;
+	}
+
+	public void setProductType(String productType) {
+		this.productType = productType;
+	}
+
+	public String getPurchaseOrder() {
+		return purchaseOrder;
+	}
+
+	public void setPurchaseOrder(String purchaseOrder) {
+		this.purchaseOrder = purchaseOrder;
+	}
+
+	public boolean isAdvanceAplied() {
+		return advanceAplied;
+	}
+
+	public void setAdvanceAplied(boolean advanceAplied) {
+		this.advanceAplied = advanceAplied;
 	}
 	
 }

@@ -13,4 +13,5 @@ public interface BranchDao {
 	public boolean isAvaiableBranch(String orgCode);
 	public boolean updateBranch(Branch branch);
 	public Branch getBranchByCode(String code);
+	Branch getBranchByName(String name);
 }

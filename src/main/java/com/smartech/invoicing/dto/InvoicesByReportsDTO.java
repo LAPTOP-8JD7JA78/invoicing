@@ -3,10 +3,12 @@ package com.smartech.invoicing.dto;
 public class InvoicesByReportsDTO {
 	private String customerName;
 	private String customerNumber;
+	private String customerState;
 	private String customerTaxIdentifier;
 	private String customerCountry;
 	private String customerPostalCode;
 	private String customerAddress1;
+	private String customerEmail;
 	private String transactionDate;
 	private String transactionNumber;
 	private String transactionSource;
@@ -473,6 +475,18 @@ public class InvoicesByReportsDTO {
 	}
 	public void setTotal(String total) {
 		this.total = total;
+	}
+	public String getCustomerState() {
+		return customerState;
+	}
+	public void setCustomerState(String customerState) {
+		this.customerState = customerState;
+	}
+	public String getCustomerEmail() {
+		return customerEmail;
+	}
+	public void setCustomerEmail(String customerEmail) {
+		this.customerEmail = customerEmail;
 	}
 	
 }

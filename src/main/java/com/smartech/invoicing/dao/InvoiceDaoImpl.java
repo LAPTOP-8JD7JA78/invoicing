@@ -240,6 +240,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}
 	}
 	
+	@Override
 	public Invoice getInvoiceWithOutUuid(String id) {
 		try {
 			Invoice invoice = new Invoice();
@@ -262,5 +263,22 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			Log.error("ERROR AL TRAER LA FACTURA PARA EL CPAGO: " + id + e);
 			return null;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Invoice> getInvoiceToAdv(String orderType, boolean advApplied) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Invoice.class).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+		try {
+			criteria.add(Restrictions.eq("invoiceType",orderType));
+			criteria.add(Restrictions.eq("advanceAplied",advApplied));
+			
+			criteria.addOrder(Order.desc("folio"));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return criteria.list();
 	}
 }

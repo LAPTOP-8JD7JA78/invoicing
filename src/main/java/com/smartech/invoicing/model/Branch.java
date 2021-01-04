@@ -64,6 +64,9 @@ public class Branch implements Serializable {
 	
 	@Column(name = "email", nullable=true)
     private String email;
+	
+	@Column(name = "cellPhoneNumber", nullable=true)
+    private String cellPhoneNumber;
 
 	public long getId() {
 		return id;
@@ -184,6 +187,13 @@ public class Branch implements Serializable {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	
-	
+
+	public String getCellPhoneNumber() {
+		return cellPhoneNumber;
+	}
+
+	public void setCellPhoneNumber(String cellPhoneNumber) {
+		this.cellPhoneNumber = cellPhoneNumber;
+	}
+		
 }

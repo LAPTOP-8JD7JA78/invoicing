@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.smartech.invoicing.dao.NextNumberDao;
 import com.smartech.invoicing.model.Branch;
+import com.smartech.invoicing.model.Company;
 import com.smartech.invoicing.model.NextNumber;
 
 @Service("nextNumberService")
@@ -26,5 +27,11 @@ public class NextNumberServiceImpl implements NextNumberService{
 	@Override
 	public NextNumber getNumber(String orderType, Branch org) {
 		return nextNumberDao.getNumber(orderType, org);
+	}
+	
+	@Override
+	public NextNumber getNextNumberByItem(String orderType, Company organization) {
+		return nextNumberDao.getLastNumberByItem(orderType, organization);
+		//return 0;
 	}
 }
