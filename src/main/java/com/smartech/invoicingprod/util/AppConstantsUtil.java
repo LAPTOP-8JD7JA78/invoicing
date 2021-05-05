@@ -1,8 +1,6 @@
-package com.smartech.invoicing.util;
+package com.smartech.invoicingprod.util;
 
 public class AppConstantsUtil {
-	public static final String URL_ORACLE = "";
-	public static final String CLOUD_CREDENTIALS = "";
 	public static final String RUTA_FILES_STAMPED = "FAC";
 	public static final String RUTA_FILES = "STAMPED";
 	public static final String RUTA_FILES_EXTENSION = ".txt";

@@ -1,8 +1,8 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.TaxCodes;
+import com.smartech.invoicingprod.model.TaxCodes;
 
 public interface TaxCodesService {
 	boolean saveTC(TaxCodes r);

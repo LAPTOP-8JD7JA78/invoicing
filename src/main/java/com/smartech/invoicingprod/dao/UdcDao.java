@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Udc;
+import com.smartech.invoicingprod.model.Udc;
 
 public interface UdcDao {
 	Udc getUDCById(int id);

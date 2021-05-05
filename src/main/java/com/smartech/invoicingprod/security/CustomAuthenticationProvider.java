@@ -1,10 +1,9 @@
-package com.smartech.invoicing.security;
+package com.smartech.invoicingprod.security;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class CustomAuthenticationProvider {
-	
 //	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 // 
 //        String name = authentication.getName();

@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dto;
+package com.smartech.invoicingprod.dto;
 
 import java.util.Date;
 import java.util.List;
@@ -20,6 +20,8 @@ public class SalesOrderDTO {
 	private String metodoPago;
 	private String formaPago;
 	private String orderType;
+	private String receivables;
+	private String salesOrderNumber;
 	
 	private String susticionCFDI;
 	private String pedidoLiverpool;
@@ -30,6 +32,12 @@ public class SalesOrderDTO {
 	private String customerEmail;
 	private String CustomerPONumber;
 	private String customerZip;
+	private String customerAddress;
+	private String certificadoOrigen;
+	private String valorCerOrigen;
+	
+	private String discountValueText;
+	private String salesPerson;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -231,6 +239,62 @@ public class SalesOrderDTO {
 
 	public void setCustomerZip(String customerZip) {
 		this.customerZip = customerZip;
+	}
+
+	public String getDiscountValueText() {
+		return discountValueText;
+	}
+
+	public void setDiscountValueText(String discountValueText) {
+		this.discountValueText = discountValueText;
+	}
+
+	public String getReceivables() {
+		return receivables;
+	}
+
+	public void setReceivables(String receivables) {
+		this.receivables = receivables;
+	}
+
+	public String getSalesOrderNumber() {
+		return salesOrderNumber;
+	}
+
+	public void setSalesOrderNumber(String salesOrderNumber) {
+		this.salesOrderNumber = salesOrderNumber;
+	}
+
+	public String getSalesPerson() {
+		return salesPerson;
+	}
+
+	public void setSalesPerson(String salesPerson) {
+		this.salesPerson = salesPerson;
+	}
+
+	public String getCustomerAddress() {
+		return customerAddress;
+	}
+
+	public void setCustomerAddress(String customerAddress) {
+		this.customerAddress = customerAddress;
+	}
+
+	public String getCertificadoOrigen() {
+		return certificadoOrigen;
+	}
+
+	public void setCertificadoOrigen(String certificadoOrigen) {
+		this.certificadoOrigen = certificadoOrigen;
+	}
+
+	public String getValorCerOrigen() {
+		return valorCerOrigen;
+	}
+
+	public void setValorCerOrigen(String valorCerOrigen) {
+		this.valorCerOrigen = valorCerOrigen;
 	}
 	
 }

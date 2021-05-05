@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.TaxCodes;
+import com.smartech.invoicingprod.model.TaxCodes;
 
 public interface TaxCodesDao {
 	boolean saveTaxCodes(TaxCodes tc);

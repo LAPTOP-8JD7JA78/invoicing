@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -17,8 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smartech.invoicing.dto.InvoicePayments;
-import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicingprod.dto.InvoicePayments;
+import com.smartech.invoicingprod.model.Invoice;
 
 @Repository("invoiceDao")
 @Transactional
@@ -36,21 +36,9 @@ public class InvoiceDaoImpl implements InvoiceDao{
 	@Override
 	public Invoice getSingleInvoiceByFolio(String folio) {
 		try {
-//			SQLQuery query;
-//			String sql;
-//			Session session = sessionFactory.getCurrentSession();	
-//			
-//			sql = "SELECT * FROM invoice where folio = '" + folio + "'";
-//			query = session.createSQLQuery(sql);
-//			query.setResultTransformer(Transformers.aliasToBean(Invoice.class));
-//			query.addScalar("id", new IntegerType());
-//			List<Invoice> invL = query.list();
-//			if(!invL.isEmpty()) {
-//				return invL.get(0);
-//			}
 			Session session = this.sessionFactory.getCurrentSession();
-			Criteria criteria = session.createCriteria(Invoice.class);	
-			criteria.add( Restrictions.eq("folio", folio));	
+			Criteria criteria = session.createCriteria(Invoice.class);
+			criteria.add( Restrictions.like("folio",  folio ));	
 			List<Invoice> list =  criteria.list();
 			if(!list.isEmpty()){
 				return list.get(0);
@@ -211,14 +199,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			}
 		}catch(Exception e) {
 			e.printStackTrace();
-		}
-		/*Session session = this.sessionFactory.getCurrentSession();
-		Criteria criteria = session.createCriteria(Invoice.class);	
-		criteria.add(Restrictions.eq("folio", folio));	
-		List<Invoice> list =  criteria.list();
-		if(!list.isEmpty()){
-			return list.get(0);
-		}	*/	
+		}	
 		return null;
 	}
 
@@ -240,14 +221,14 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}
 	}
 	
+	@SuppressWarnings({ "unused", "unchecked" })
 	@Override
 	public Invoice getInvoiceWithOutUuid(String id) {
 		try {
 			Invoice invoice = new Invoice();
 			SQLQuery query;
 			String sql;
-			Session session = sessionFactory.getCurrentSession();	
-			
+			Session session = sessionFactory.getCurrentSession();				
 			sql = "select * from invoice_payments where payments_id = " + id + ";";
 			query = session.createSQLQuery(sql);
 			query.setResultTransformer(Transformers.aliasToBean(InvoicePayments.class));
@@ -280,5 +261,60 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}
 		
 		return criteria.list();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getInvoiceByOtFolio(String orderType, String salesOrder, String customerName) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.eq("orderType", orderType));	
+			criteria.add( Restrictions.eq("fromSalesOrder", salesOrder));
+			criteria.add( Restrictions.eq("customerName", customerName));
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Invoice> getAllError(boolean isError) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Invoice.class).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+		try {
+			criteria.add(Restrictions.eq("errorActive",isError));
+			
+			criteria.addOrder(Order.desc("folio"));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return criteria.list();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getSingleInvoiceByFolioAndType(String folio, String orderType) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.like("folio",  folio ));
+			criteria.add( Restrictions.eq("invoiceType", orderType));
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

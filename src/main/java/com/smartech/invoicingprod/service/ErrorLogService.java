@@ -1,8 +1,8 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.ErrorLog;
+import com.smartech.invoicingprod.model.ErrorLog;
 
 public interface ErrorLogService {
 	boolean saveError(ErrorLog er);

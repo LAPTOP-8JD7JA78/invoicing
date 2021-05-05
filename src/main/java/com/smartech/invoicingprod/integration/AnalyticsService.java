@@ -1,7 +1,7 @@
-package com.smartech.invoicing.integration;
+package com.smartech.invoicingprod.integration;
 
-import com.smartech.invoicing.integration.dto.AnalyticsDTO;
-import com.smartech.invoicing.integration.xml.rowset.Rowset;
+import com.smartech.invoicingprod.integration.dto.AnalyticsDTO;
+import com.smartech.invoicingprod.integration.xml.rowset.Rowset;
 
 public interface AnalyticsService {
 

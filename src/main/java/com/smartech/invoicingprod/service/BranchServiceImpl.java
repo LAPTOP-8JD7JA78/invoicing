@@ -1,12 +1,12 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smartech.invoicing.dao.BranchDao;
-import com.smartech.invoicing.model.Branch;
+import com.smartech.invoicingprod.dao.BranchDao;
+import com.smartech.invoicingprod.model.Branch;
 
 @Service("branchService")
 public class BranchServiceImpl implements BranchService{

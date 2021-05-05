@@ -1,8 +1,8 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Company;
+import com.smartech.invoicingprod.model.Company;
 
 public interface CompanyService {
 	List<Company> getAllCompanies(int start, int limit);

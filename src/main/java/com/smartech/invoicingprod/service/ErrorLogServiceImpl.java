@@ -1,12 +1,12 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smartech.invoicing.dao.ErrorLogDao;
-import com.smartech.invoicing.model.ErrorLog;
+import com.smartech.invoicingprod.dao.ErrorLogDao;
+import com.smartech.invoicingprod.model.ErrorLog;
 
 @Service("errorLogService")
 public class ErrorLogServiceImpl implements ErrorLogService{

@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smartech.invoicing.model.Branch;
+import com.smartech.invoicingprod.model.Branch;
 
 @Repository("branchDao")
 @Transactional

@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration;
+package com.smartech.invoicingprod.integration;
 
 import java.io.StringReader;
 import java.util.Map;
@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.smartech.invoicing.integration.dto.AnalyticsDTO;
-import com.smartech.invoicing.integration.service.HTTPRequestService;
-import com.smartech.invoicing.integration.util.AppConstants;
-import com.smartech.invoicing.integration.util.PayloadProducer;
-import com.smartech.invoicing.integration.xml.rowset.Rowset;
+import com.smartech.invoicingprod.integration.dto.AnalyticsDTO;
+import com.smartech.invoicingprod.integration.service.HTTPRequestService;
+import com.smartech.invoicingprod.integration.util.AppConstants;
+import com.smartech.invoicingprod.integration.util.PayloadProducer;
+import com.smartech.invoicingprod.integration.xml.rowset.Rowset;
 
 @Service("analyticsService")
 public class AnalyticsServiceImpl implements AnalyticsService {
@@ -29,6 +29,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 	
 	static Logger log = Logger.getLogger(AnalyticsServiceImpl.class.getName());
 	
+	@SuppressWarnings("unused")
 	@Override
 	public Rowset executeAnalyticsWS(String user, String pass, String service, AnalyticsDTO dto) {
 		
@@ -100,6 +101,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 						break;
 					case AppConstants.SERVICE_RESPONSIVE_LETTER:
 						request = PayloadProducer.updateLabel(sessionId, dto.getAr_Report_date());
+						break;
+					case AppConstants.SERVICE_ITEM_COST_FOR_SO:
+						request = PayloadProducer.getItemCostByReportSo(sessionId, dto.getItemId(), dto.getSalesOrder());
+						break;
+					case AppConstants.SERVICE_AR_REPORT_INITIAL_CHARGE:
+						request = PayloadProducer.getArReportInitialCharge(sessionId, dto.getAr_Report_date());
 						break;
 				}
 	

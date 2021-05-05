@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.json.dailyRates;
+package com.smartech.invoicingprod.integration.json.dailyRates;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

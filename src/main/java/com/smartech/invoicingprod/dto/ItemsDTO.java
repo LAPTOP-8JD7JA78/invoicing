@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dto;
+package com.smartech.invoicingprod.dto;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.xml.rowset;
+package com.smartech.invoicingprod.integration.xml.rowset;
 
 import java.util.ArrayList;
 import java.util.List;

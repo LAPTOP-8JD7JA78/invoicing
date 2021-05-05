@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicingprod.model.Invoice;
 
 public interface InvoiceDao {
 	Invoice getSingleInvoiceById(long id);
@@ -22,4 +22,7 @@ public interface InvoiceDao {
 	Invoice getInvoiceByUuid(String uuid);
 	public Invoice getInvoiceWithOutUuid(String id);
 	List<Invoice> getInvoiceToAdv(String orderType, boolean advApplied);
+	Invoice getInvoiceByOtFolio(String orderType, String salesOrder, String customerName);
+	List<Invoice> getAllError(boolean isError);
+	Invoice getSingleInvoiceByFolioAndType(String folio, String orderType);
 }

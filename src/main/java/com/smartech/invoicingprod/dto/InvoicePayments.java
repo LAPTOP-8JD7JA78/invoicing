@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dto;
+package com.smartech.invoicingprod.dto;
 
 public class InvoicePayments {
 	int invoice_id;

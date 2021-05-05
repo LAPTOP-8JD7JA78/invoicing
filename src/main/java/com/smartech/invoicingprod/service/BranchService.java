@@ -1,8 +1,8 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Branch;
+import com.smartech.invoicingprod.model.Branch;
 
 public interface BranchService {
 	public List<Branch> searchBranchList(int start, int limit);

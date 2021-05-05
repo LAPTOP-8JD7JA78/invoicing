@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smartech.invoicing.model.Payments;
+import com.smartech.invoicingprod.model.Payments;
 
 @Repository("paymentsDao")
 @Transactional
@@ -153,6 +153,58 @@ public class PaymentsDaoImpl implements PaymentsDao{
 			criteria.addOrder(Order.desc("paymentNumber"));
 			return criteria.list();
 		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Payments getPayByUuidRNumber(String receipt, String uuid) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);	
+			criteria.add(Restrictions.eq("receiptNumber", receipt));	
+			criteria.add(Restrictions.eq("uuidReference", uuid));			
+			List<Payments> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> getAllError(boolean error) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+			criteria.add(Restrictions.eq("errorActive", error));
+			return criteria.list();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Payments getPayByRecNumberAndCustomer(String receipt, String customerName) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);	
+			criteria.add(Restrictions.eq("receiptNumber", receipt));	
+			criteria.add(Restrictions.eq("customerName", customerName));			
+			List<Payments> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
 			e.printStackTrace();
 		}
 		return null;

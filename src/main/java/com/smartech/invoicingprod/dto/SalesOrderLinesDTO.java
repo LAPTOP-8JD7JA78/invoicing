@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dto;
+package com.smartech.invoicingprod.dto;
 
 import java.util.List;
 
@@ -18,6 +18,7 @@ public class SalesOrderLinesDTO {
 	private String SourceTransactionLineIdentifier;
 	private String InventoryOrganizationName;
 	private List<SalesLineLotSerDTO> lotSerials;
+	private boolean isUsedTheLine;
 	
 	public String getSourceTransactionLineNumber() {
 		return sourceTransactionLineNumber;
@@ -108,6 +109,12 @@ public class SalesOrderLinesDTO {
 	}
 	public void setInventoryOrganizationName(String inventoryOrganizationName) {
 		InventoryOrganizationName = inventoryOrganizationName;
+	}
+	public boolean isUsedTheLine() {
+		return isUsedTheLine;
+	}
+	public void setUsedTheLine(boolean isUsedTheLine) {
+		this.isUsedTheLine = isUsedTheLine;
 	}
 	
 }

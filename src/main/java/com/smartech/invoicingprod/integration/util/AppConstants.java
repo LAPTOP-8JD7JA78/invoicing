@@ -1,10 +1,6 @@
-package com.smartech.invoicing.integration.util;
+package com.smartech.invoicingprod.integration.util;
 
 public class AppConstants {
-
-//	public static final String ORACLE_USER = "INTEGUSER";
-//	public static final String ORACLE_USER = "hrocha@smartech.com.mx";
-//	public static final String ORACLE_PASS = "Mexico$2020";
 	
 	public static final String ORACLE_USER = "INTEGUSER";
 	public static final String ORACLE_PASS = "Mexico$2020";
@@ -23,6 +19,9 @@ public class AppConstants {
 	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
 	public static final String SERVICE_AR_REPORT_PAYMENTS = "AR_REPORT_PAYMENTS";
 	public static final String SERVICE_AR_REPORT_TRANSFER = "AR_REPORT_TRANSFER";
+	public static final String SERVICE_AR_REPORT_INITIAL_CHARGE = "AR_REPORT_INITIAL_CHARGE";
+	public static final String SERVICE_ITEM_COST_FOR_SO = "ITEM_COST_FOR_SO";
+	public static final String SERVICE_ITEM_COST_FOR_TRANSFER = "ITEM_COST_FOR_TRANSFER";
 	public static final String SERVICE_ASSET_LABEL_REPORT = "ASSET_LABEL";
 	public static final String SERVICE_RESPONSIVE_LETTER = "RESPONSIVE_LETTER";
 	public static final String SERVICE_REST_TEST1 = "REST_TEST1";
@@ -30,19 +29,29 @@ public class AppConstants {
 	public static final String SERVICE_SALES_ORDER_1 = "SALES_ORDER_1";
 	public static final String SERVICE_SALES_ORDER_AI_1 = "SALES_ORDER_AI_1";
 	public static final String SERVICE_REST_CURRENCY_RATES = "REST_CURRENCY_RATES";
-	
+	public static final String SERVICE_REST_PRICE_LIST = "REST_PRICE_LIST";
+	public static final String SERVICE_REST_PRICE_LIST_BY_ITEM = "REST_PRICE_LIST_BY_ITEM";
+	public static final String SERVICE_REST_SALES_ORDER_INCOTERM = "SALES_ORDER_INCOTERM";
+	public static final String SERVICE_REST_ITEM_CATEGORY = "SERVICE_ITEM_CATEGORY";
+	public static final String SERVICE_REST_ITEM_SERIAL_NUMBER = "SERVICE_ITEM_SERIAL_NUMBER";
+	public static final String SERVICE_REST_ITEM_COSTS = "ITEM_COSTS";
 	//REST API
 	public static final String URL_REST_INVORG = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryOrganizations";
 	public static final String URL_REST_SALESORDER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
 	public static final String URL_REST_SALESORDER_ADDINF = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub/ORDER_ID/child/additionalInformation";
 	public static final String URL_REST_ITEMLOT = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryItemLots";
 	public static final String URL_REST_CURRENCYRATES = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/currencyRates";
+	public static final String URL_REST_PRICELIST = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/priceLists";
+	public static final String URL_REST_ITEM_CATEGORY = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/itemCategories";
+	public static final String URL_REST_ITEM_SERIAL_NUMBER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryItemSerialNumbers";
+	public static final String URL_REST_ITEM_COSTS = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/itemCosts";
 	//SOAP SERVICE
 	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + ":443/fscmService/ItemServiceV2?invoke=";
 	public static final String URL_SOAP_DFFFIN =  ORACLE_URL + "/fscmService/ErpObjectDFFUpdateService?invoke=";
-	public static final String URL_SOAP_SALESORDERINFO =  ORACLE_URL + "/fscmService/OrderInformationService?invoke=";
+	public static final String URL_SOAP_SALESORDERINFO =  ORACLE_URL + ":443/fscmService/OrderInformationService?invoke=";
 	public static final String URL_SOAP_ITEMRELATIONSHIP = ORACLE_URL + "/fscmService/ItemRelationshipService?invoke=";
 	public static final String URL_SOAP_ITEMCATALOG = ORACLE_URL + "/fscmService/ItemCatalogService?invoke=";
+	public static final String URL_SOAP_FOUNDATION_PARTIES = ORACLE_URL + "/crmService/FoundationPartiesOrganizationService?invoke=";
 	
 	//Estado de facturacion
 	public static final String STATUS_START = "START";
@@ -58,6 +67,8 @@ public class AppConstants {
 	public static final String STATUS_FINISHED = "FINISHED";
 	public static final String STATUS_ERROR_DATA_PAY = "ERROR_PAY";
 	public static final String STATUS_ERROR_DATA_TRANSFER = "ERROR_TRANSFER";
+	
+	public static final String STATUS_PAYMENT_LIST_START = "PAY_START";
 
 	public static final String PAY_METHOD= "PUE";
 	
@@ -123,11 +134,13 @@ public class AppConstants {
 	public static final String INVOICE_SAT_TYPE_I = "I"; 
 	public static final String INVOICE_SAT_TYPE_E = "E";
 	public static final String IS_ADVANCE_PAYMENT = "Y";
+	public static final String CHOICE_TAX = "Y";
 	
 	//TIPO DE CAMBIO ESTANDAR
 	public static final double INVOICE_EXCHANGE_RATE= 1.00;
 
 	//Datos para anticipos
+	public static final double INVOICE_TAX_CODE_000 = 0;
 	public static final double INVOICE_TAX_CODE_016 = 0.16;
 	public static final double INVOICE_TAX_CODE_116 = 1.16;
 	public static final String INVOICE_ADVPAY_DEFAULT_UOM = "PZ";
@@ -160,7 +173,13 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_IMEMSAPRDTYPE = "IMEMSAPRDTYPE";
 	public static final String UDC_SYSTEM_REPINVOICE = "REPINVOICE";
 	public static final String UDC_KEY_NOIVA = "NO IVA";
-	public static final String UDC_KEY_UPDATE_LABEL = "UPDATELABEL";	
+	public static final String UDC_KEY_ANTICIPOS = "ANTICIPOS";
+	public static final String UDC_KEY_UPDATE_LABEL = "UPDATELABEL";
+	public static final String UDC_KEY_FIXED_ASSET = "ACTIVO FIJO";	
+	public static final String UDC_KEY_SERVICE1 = "SERVICIOS1";	
+	public static final String UDC_KEY_SERVICE_SEAMEX = "SERVICIOSSEAMEX";
+	public static final String UDC_KEY_OTHERS_PRODUCTS = "OTROS PRODUCTOS";
+	public static final String UDC_KEY_INITIAL_CHARGE = "INITIAL_CHARGE";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";
@@ -168,7 +187,7 @@ public class AppConstants {
 
 	//User defaul
 	public static final String USER_DEFAULT = "SYSTEM";
-	
+	public static final String CROSS_REFERENCE_TYPE_LIV = "SKU CLIENTE";
 	public static final String BRANCH_DEFUALT = "CEDIS";
 	
 	//Enviar errores por correo para aviso
@@ -189,14 +208,14 @@ public class AppConstants {
 	public static final String DEFAUL_CURRENCY = "MXN";
 	
 	//LEYENDAS
-	public static final String LEY_EMB_COM = "EMBARCACIÓN COMPLETA PARA USO COMERCIAL \"DESTINADA PARA PESCA\",\r\n" + 
-			"SE GRABA A TASA 0% DE IVA CON FUNDAMENTO\r\n" + 
-			"LEGAL EN EL ART. 2-A, FRACC. I, INCISO E, DE LA LEY DEL IMPUESTO\r\n" + 
-			"AL VALOR AGREGADO Y SU ART. 8 DEL REGLAMENTO DE LA MISMA LEY.\r\n" + 
-			"EL EQUIPO FACTURADO ES EL SIGUIENTE:\r\n";
+	public static final String LEY_EMB_COM = "EMBARCACIÓN COMPLETA PARA USO COMERCIAL \"DESTINADA PARA PESCA\", \r\n" + 
+			"SE GRABA A TASA 0% DE IVA CON FUNDAMENTO\r\n " + 
+			"LEGAL EN EL ART. 2-A, FRACC. I, INCISO E, DE LA LEY DEL IMPUESTO\r\n " + 
+			"AL VALOR AGREGADO Y SU ART. 8 DEL REGLAMENTO DE LA MISMA LEY.\r\n " + 
+			"EL EQUIPO FACTURADO ES EL SIGUIENTE:\r\n ";
 	public static final String LEY_INV_CAT_LAN = "LANCHA";
 	public static final String LEY_INV_CAT_EMB = "MOTOR";
-	public static final String LEY_LANCHAS = "EMBARCACIÓN PARA PESCA COMERCIAL, SE GRAVA A TASA 0% DE IVA\r\n" + 
-			"CON FUNDAMENTO LEGAL EN EL ART. 2-A, FRACC. I. INCISO E, DE LA LEY DEL IMPUESTO AL VALOR AGREGADO Y SU\r\n" + 
+	public static final String LEY_LANCHAS = "EMBARCACIÓN PARA PESCA COMERCIAL, SE GRAVA A TASA 0% DE IVA\r\n " + 
+			"CON FUNDAMENTO LEGAL EN EL ART. 2-A, FRACC. I. INCISO E, DE LA LEY DEL IMPUESTO AL VALOR AGREGADO Y SU\r\n " + 
 			"ART. 8 DEL REGLAMENTO DE LA MISMA LEY.";
 }

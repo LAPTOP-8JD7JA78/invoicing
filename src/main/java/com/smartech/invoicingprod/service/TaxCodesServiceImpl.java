@@ -1,12 +1,12 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smartech.invoicing.dao.TaxCodesDao;
-import com.smartech.invoicing.model.TaxCodes;
+import com.smartech.invoicingprod.dao.TaxCodesDao;
+import com.smartech.invoicingprod.model.TaxCodes;
 
 @Service("taxCodesService")
 public class TaxCodesServiceImpl implements TaxCodesService{
@@ -15,7 +15,6 @@ public class TaxCodesServiceImpl implements TaxCodesService{
 	
 	@Override
 	public boolean saveTC(TaxCodes r) {
-		//Corroborar actionsRoles
 		if(taxCodesDao.saveTaxCodes(r)) {
 			return true;
 		}
@@ -24,7 +23,6 @@ public class TaxCodesServiceImpl implements TaxCodesService{
 
 	@Override
 	public boolean updateTC(TaxCodes r) {
-		//Corroborar actionsRoles
 		if(taxCodesDao.updateTaxCodes(r)) {
 			return true;
 		}

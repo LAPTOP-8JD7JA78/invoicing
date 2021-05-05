@@ -1,4 +1,4 @@
-package com.smartech.invoicing.util;
+package com.smartech.invoicingprod.util;
 
 import java.util.Date;
 
@@ -17,6 +17,13 @@ public class NullValidator {
 			 return Double.valueOf(obj);
 	}
 
+	public static double isNullPrice(Double obj) {
+		 if (obj == null)
+			 return 1.00;
+		 else
+			 return Double.valueOf(obj);
+	}
+	
 	public static String isNull(String obj) {
 		 if (obj != null) {
 			 String nil = "{\"xsi:nil\":\"true\"}";
@@ -57,5 +64,19 @@ public class NullValidator {
 			 return null;
 		 else
 			 return obj;
+	}
+	
+	public static String isNullUnitCost(String obj) {
+		 if (obj != null) {
+			 String nil = "{\"xsi:nil\":\"true\"}";
+			 if(obj.contains(nil)){
+				 return "0";
+			 }else {
+				 String str = obj.replace("\"", "");
+				 return str;
+			 }
+		 }	
+		 else 
+			 return "0";
 	}
 }

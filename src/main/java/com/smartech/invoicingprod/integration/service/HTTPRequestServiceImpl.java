@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.service;
+package com.smartech.invoicingprod.integration.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,68 +25,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
-import com.smartech.invoicing.integration.dto.HeadersRestDTO;
-import com.smartech.invoicing.integration.dto.ParamsRestDTO;
-import com.smartech.invoicing.integration.json.dailyRates.CurrencyRates;
-import com.smartech.invoicing.integration.json.invitemlot.InventoryItemLots;
-import com.smartech.invoicing.integration.json.invorg.InventoryOrganization;
-import com.smartech.invoicing.integration.json.salesorder.SalesOrder;
-import com.smartech.invoicing.integration.json.salesorderai.SalesOrderAI;
-import com.smartech.invoicing.integration.util.AppConstants;
+import com.smartech.invoicingprod.integration.dto.HeadersRestDTO;
+import com.smartech.invoicingprod.integration.dto.ParamsRestDTO;
+import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
+import com.smartech.invoicingprod.integration.json.dailyRates.CurrencyRates;
+import com.smartech.invoicingprod.integration.json.inventoryItemSerialNumbers.InventoryItemSerialNumbers;
+import com.smartech.invoicingprod.integration.json.invitemlot.InventoryItemLots;
+import com.smartech.invoicingprod.integration.json.invorg.InventoryOrganization;
+import com.smartech.invoicingprod.integration.json.itemCategories.ItemCategory;
+import com.smartech.invoicingprod.integration.json.priceList.PriceLists;
+import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByItem;
+import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
+import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
+import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
+import com.smartech.invoicingprod.integration.util.AppConstants;
 
 @Service("hTTPRequestService")
 public class HTTPRequestServiceImpl implements HTTPRequestService {
 	
 	static Logger log = Logger.getLogger(HTTPRequestServiceImpl.class.getName());
-
-//	@Override
-//	@SuppressWarnings({ "restriction", "static-access" })
-//	public String httpXmlRequest(String destUrl, String body, String authStr) {
-//		
-//		try {
-//			System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2");
-//			URL url = new URL(null, destUrl, new sun.net.www.protocol.https.Handler());
-//			HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-//
-//			if (conn == null) {
-//				return null;
-//			}
-//			
-//			conn.setRequestProperty("Content-Type", "text/xml; charset=UTF-8");
-//			conn.setRequestProperty("Accept", "*/*");
-//			conn.setRequestProperty("User-Agent", "Java Client");
-//			conn.setDoOutput(true);
-//			conn.setDoInput(true);
-//			conn.setUseCaches(false);
-//			conn.setFollowRedirects(true);
-//			conn.setAllowUserInteraction(false);
-//			conn.setConnectTimeout(600000);
-//
-//			if(!"".equals(authStr)) {
-//				byte[] authBytes = authStr.getBytes("UTF-8");
-//				String auth = Base64.getEncoder().encodeToString(authBytes);
-//				conn.setRequestProperty("Authorization", "Basic " + auth);
-//			}
-//
-//			OutputStream out = conn.getOutputStream();
-//			OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-//			
-//			if(body != null) {
-//				writer.write(body);
-//			}else {
-//				return "Body is null";
-//			}
-//			writer.close();
-//			out.close();
-//			String response = readFullyAsString(conn.getInputStream(), "UTF-8");
-//			conn.disconnect();
-//			return response;
-//		}catch(Exception e) {
-//			e.printStackTrace();
-//			return e.toString();
-//		}
-//		
-//	}
 	
 	@Override
 	public String readFullyAsString(InputStream inputStream, String encoding) throws IOException {
@@ -161,7 +118,6 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			return modelMap;
 		}catch(IOException io) {
 			log.error("XML REQUEST FAIL - " + url, io);
-//			io.printStackTrace();
 			modelMap.put("code", 406);
 			modelMap.put("response", io.getMessage());
 			modelMap.put("httpResponse", io.getCause());
@@ -169,7 +125,6 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 			
 		}catch(Exception e) {
 			log.error("XML REQUEST FAIL - " + url, e);
-//			e.printStackTrace();
 			modelMap.put("code", 500);
 			modelMap.put("response", e.getMessage());
 			modelMap.put("httpResponse", e.getCause());
@@ -261,7 +216,42 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 					map.put("response", respSO4.hasBody()?respSO4.getBody():null);
 					map.put("httpResponse", respSO4.getHeaders());
 					break;
-				
+				case AppConstants.SERVICE_REST_PRICE_LIST:
+					ResponseEntity<PriceLists> respSO5 = rt.exchange(url, method, re, PriceLists.class);
+					map.put("code", respSO5.getStatusCode().value());
+					map.put("response", respSO5.hasBody()?respSO5.getBody():null);
+					map.put("httpResponse", respSO5.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_PRICE_LIST_BY_ITEM:
+					ResponseEntity<PriceListByItem> respSO6 = rt.exchange(url, method, re, PriceListByItem.class);
+					map.put("code", respSO6.getStatusCode().value());
+					map.put("response", respSO6.hasBody()?respSO6.getBody():null);
+					map.put("httpResponse", respSO6.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_SALES_ORDER_INCOTERM:
+					ResponseEntity<IncotermByRest> respSO7 = rt.exchange(url, method, re, IncotermByRest.class);
+					map.put("code", respSO7.getStatusCode().value());
+					map.put("response", respSO7.hasBody()?respSO7.getBody():null);
+					map.put("httpResponse", respSO7.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_ITEM_CATEGORY:
+					ResponseEntity<ItemCategory> respSO8 = rt.exchange(url, method, re, ItemCategory.class);
+					map.put("code", respSO8.getStatusCode().value());
+					map.put("response", respSO8.hasBody()?respSO8.getBody():null);
+					map.put("httpResponse", respSO8.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_ITEM_SERIAL_NUMBER:
+					ResponseEntity<InventoryItemSerialNumbers> respSO9 = rt.exchange(url, method, re, InventoryItemSerialNumbers.class);
+					map.put("code", respSO9.getStatusCode().value());
+					map.put("response", respSO9.hasBody()?respSO9.getBody():null);
+					map.put("httpResponse", respSO9.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_ITEM_COSTS:
+					ResponseEntity<ItemCosts> respS10 = rt.exchange(url, method, re, ItemCosts.class);
+					map.put("code", respS10.getStatusCode().value());
+					map.put("response", respS10.hasBody()?respS10.getBody():null);
+					map.put("httpResponse", respS10.getHeaders());
+					break;
 			}		
 		}catch(Exception e) {
 			log.error("REST REQUEST FAIL - " + service + "********************");

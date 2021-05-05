@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Branch;
+import com.smartech.invoicingprod.model.Branch;
 
 public interface BranchDao {
 	public List<Branch> searchBranchList(int start, int limit);

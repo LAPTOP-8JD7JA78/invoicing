@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Payments;
+import com.smartech.invoicingprod.model.Payments;
 
 public interface PaymentsDao {
 	List<Payments> getPayments(String uuid);
@@ -14,4 +14,7 @@ public interface PaymentsDao {
 	Payments getPaymentsByName(String fileName);
 	Payments getPaymentById(String Id);
 	List<Payments> PaymentsByAdv(String uuid);
+	Payments getPayByUuidRNumber(String receipt, String uuid);
+	List<Payments> getAllError(boolean error);
+	Payments getPayByRecNumberAndCustomer(String receipt, String customerName);
 }

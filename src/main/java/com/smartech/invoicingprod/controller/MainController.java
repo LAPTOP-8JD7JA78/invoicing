@@ -1,4 +1,4 @@
-package com.smartech.invoicing.controller;
+package com.smartech.invoicingprod.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;

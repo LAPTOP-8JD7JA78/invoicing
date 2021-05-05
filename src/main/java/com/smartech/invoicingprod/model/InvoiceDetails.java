@@ -1,4 +1,4 @@
-package com.smartech.invoicing.model;
+package com.smartech.invoicingprod.model;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -34,6 +34,7 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "itemNumber", nullable=true)
 	private String itemNumber;
 	
+	@Lob
 	@Column(name = "itemDescription", nullable=true)
 	private String itemDescription;
 	
@@ -129,6 +130,7 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "productTypeCode", nullable=true)
 	private String productTypeCode;
 	
+	@Lob
 	@Column(name = "unitCost", nullable=true)
 	private String unitCost;
 	
@@ -143,6 +145,18 @@ public class InvoiceDetails implements Serializable{
 	
 	@Column(name = "priceListWTax", nullable=true)
 	private String priceListWTax;
+	
+	@Column(name = "isVehicleControl", nullable=true)
+	private String isVehicleControl;
+	
+	@Column(name = "isInvoiceLine", nullable=true)
+	private String isInvoiceLine;
+	
+	@Column(name = "serialPdf", nullable=true)
+	private String serialPdf;
+	
+	@Column(name = "certificateOrigin", nullable=true)
+	private String certificateOrigin;
 	
 	@OneToOne(cascade=CascadeType.ALL)
 	RetailComplement retailComplements;
@@ -457,6 +471,38 @@ public class InvoiceDetails implements Serializable{
 
 	public void setPriceListWTax(String priceListWTax) {
 		this.priceListWTax = priceListWTax;
+	}
+
+	public String getIsVehicleControl() {
+		return isVehicleControl;
+	}
+
+	public void setIsVehicleControl(String isVehicleControl) {
+		this.isVehicleControl = isVehicleControl;
+	}
+
+	public String getIsInvoiceLine() {
+		return isInvoiceLine;
+	}
+
+	public void setIsInvoiceLine(String isInvoiceLine) {
+		this.isInvoiceLine = isInvoiceLine;
+	}
+
+	public String getSerialPdf() {
+		return serialPdf;
+	}
+
+	public void setSerialPdf(String serialPdf) {
+		this.serialPdf = serialPdf;
+	}
+
+	public String getCertificateOrigin() {
+		return certificateOrigin;
+	}
+
+	public void setCertificateOrigin(String certificateOrigin) {
+		this.certificateOrigin = certificateOrigin;
 	}
 	
 }

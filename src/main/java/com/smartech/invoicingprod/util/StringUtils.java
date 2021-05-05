@@ -1,4 +1,4 @@
-package com.smartech.invoicing.util;
+package com.smartech.invoicingprod.util;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +9,7 @@ public class StringUtils {
 	
 	static Logger log = Logger.getLogger(StringUtils.class.getName());
 
+	@SuppressWarnings("unused")
 	public static boolean isNumeric(String strNum) {
 	    if (strNum == null) {
 	        return false;

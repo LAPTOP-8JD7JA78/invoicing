@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.json.dailyRates;
+package com.smartech.invoicingprod.integration.json.dailyRates;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

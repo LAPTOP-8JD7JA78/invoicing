@@ -1,4 +1,4 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.Date;
 import java.util.List;
@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smartech.invoicing.dao.UdcDao;
-import com.smartech.invoicing.model.Udc;
+import com.smartech.invoicingprod.dao.UdcDao;
+import com.smartech.invoicingprod.model.Udc;
 
 @Service("udcService")
 public class UdcServiceImpl implements UdcService{
@@ -63,7 +63,6 @@ public class UdcServiceImpl implements UdcService{
 		udc.setCreatedBy(user);
 		udc.setUpdatedDate(date);
 		udc.setUpdatedBy(user);
-		//boolean isTrue = udcDao.saveUDC(udc);
 		if(udcDao.saveUDC(udc)) {
 			return true;
 		}
@@ -74,7 +73,6 @@ public class UdcServiceImpl implements UdcService{
 	public boolean update(Udc udc, Date date, String user){
 		udc.setUpdatedDate(date);
 		udc.setUpdatedBy(user);
-		//boolean isTrue = udcDao.updateUDC(udc);
 		if(udcDao.updateUDC(udc)) {
 			return true;
 		}
@@ -83,7 +81,6 @@ public class UdcServiceImpl implements UdcService{
 	
 	@Override
 	public boolean delete(int id){
-		//boolean isTrue = udcDao.deleteUDC(id);
 		if(udcDao.deleteUDC(id)) {
 			return true;
 		}

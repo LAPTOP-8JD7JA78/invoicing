@@ -1,4 +1,4 @@
-package com.smartech.invoicing.model;
+package com.smartech.invoicingprod.model;
 
 import java.io.Serializable;
 
@@ -134,6 +134,15 @@ public class Payments implements Serializable{
 	@Column(name = "advanceApplied", nullable = true)
 	private boolean advanceApplied;
 
+	@Column(name = "errorActive", nullable = true)
+	private boolean errorActive;
+	
+	@Column(name = "folioRel", nullable = true)
+	private String folioRel;
+	
+	@Column(name = "serialRel", nullable = true)
+	private String serialRel;
+	
 	public int getId() {
 		return id;
 	}
@@ -420,6 +429,30 @@ public class Payments implements Serializable{
 
 	public void setAdvanceApplied(boolean advanceApplied) {
 		this.advanceApplied = advanceApplied;
+	}
+
+	public boolean isErrorActive() {
+		return errorActive;
+	}
+
+	public void setErrorActive(boolean errorActive) {
+		this.errorActive = errorActive;
+	}
+
+	public String getFolioRel() {
+		return folioRel;
+	}
+
+	public void setFolioRel(String folioRel) {
+		this.folioRel = folioRel;
+	}
+
+	public String getSerialRel() {
+		return serialRel;
+	}
+
+	public void setSerialRel(String serialRel) {
+		this.serialRel = serialRel;
 	}
 	
 }

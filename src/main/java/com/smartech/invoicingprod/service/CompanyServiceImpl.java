@@ -1,12 +1,12 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smartech.invoicing.dao.CompanyDao;
-import com.smartech.invoicing.model.Company;
+import com.smartech.invoicingprod.dao.CompanyDao;
+import com.smartech.invoicingprod.model.Company;
 
 @Service("companyService")
 public class CompanyServiceImpl implements CompanyService{

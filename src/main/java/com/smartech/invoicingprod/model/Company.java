@@ -1,4 +1,4 @@
-package com.smartech.invoicing.model;
+package com.smartech.invoicingprod.model;
 
 import java.io.Serializable;
 
@@ -83,6 +83,9 @@ public class Company implements Serializable{
 	
 	@Column(name = "assetBook", nullable=true)
     private String assetBook;
+	
+	@Column(name = "valorationUnit", nullable=true)
+    private String valorationUnit;
 
 	public long getId() {
 		return id;
@@ -250,6 +253,14 @@ public class Company implements Serializable{
 
 	public void setAssetBook(String assetBook) {
 		this.assetBook = assetBook;
+	}
+
+	public String getValorationUnit() {
+		return valorationUnit;
+	}
+
+	public void setValorationUnit(String valorationUnit) {
+		this.valorationUnit = valorationUnit;
 	}
 	
 }

@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.ErrorLog;
+import com.smartech.invoicingprod.model.ErrorLog;
 
 public interface ErrorLogDao {
 	boolean saveError(ErrorLog e);

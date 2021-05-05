@@ -1,11 +1,12 @@
-package com.smartech.invoicing.integration;
+package com.smartech.invoicingprod.integration;
 
-import com.smartech.invoicing.dto.CategoryDTO;
-import com.smartech.invoicing.dto.ItemGtinDTO;
-import com.smartech.invoicing.dto.ItemsDTO;
-import com.smartech.invoicing.dto.SalesOrderDTO;
-import com.smartech.invoicing.model.Invoice;
-import com.smartech.invoicing.model.Payments;
+import com.smartech.invoicingprod.dto.CategoryDTO;
+import com.smartech.invoicingprod.dto.CustomerInformationDTO;
+import com.smartech.invoicingprod.dto.ItemGtinDTO;
+import com.smartech.invoicingprod.dto.ItemsDTO;
+import com.smartech.invoicingprod.dto.SalesOrderDTO;
+import com.smartech.invoicingprod.model.Invoice;
+import com.smartech.invoicingprod.model.Payments;
 
 public interface SOAPService {
 
@@ -16,4 +17,6 @@ public interface SOAPService {
 	public Payments updateUUIDToOracleERPPayments(Payments pay);
 	public CategoryDTO getCategoryDataFrom(String categoryCode);
 	public ItemGtinDTO getItemGTINData(String itemNumber, String orgCode, String partyNumber);
+	public String getItemId(String itemId);
+	public CustomerInformationDTO getEmaiAdress(String customerName, String customerPatyNumber);
 }

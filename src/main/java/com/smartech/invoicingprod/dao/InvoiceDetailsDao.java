@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.InvoiceDetails;
+import com.smartech.invoicingprod.model.InvoiceDetails;
 
 public interface InvoiceDetailsDao {
 	boolean saveInvoiceDetails(InvoiceDetails r);

@@ -1,5 +1,5 @@
 
-package com.smartech.invoicing.integration.json.invitemlot;
+package com.smartech.invoicingprod.integration.json.invitemlot;
 
 import java.util.HashMap;
 import java.util.Map;

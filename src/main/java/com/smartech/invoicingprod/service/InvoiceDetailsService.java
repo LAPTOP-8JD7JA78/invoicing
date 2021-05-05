@@ -1,8 +1,8 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.InvoiceDetails;
+import com.smartech.invoicingprod.model.InvoiceDetails;
 
 public interface InvoiceDetailsService {
 	boolean saveInvoiceDetails(InvoiceDetails r);

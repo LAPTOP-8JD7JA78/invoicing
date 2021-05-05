@@ -1,4 +1,4 @@
-package com.smartech.invoicing.model;
+package com.smartech.invoicingprod.model;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -135,13 +136,11 @@ public class Invoice implements Serializable{
 	private String orderSource;
 		
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	@OrderBy("transactionLineNumber ASC, isInvoiceLine DESC")
 	private Set<InvoiceDetails> invoiceDetails;
 	
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private Set<Payments> payments;
-	
-//	@ManyToMany
-//	private Set<Payments> payments;
 	
 	@Column(name = "setName", nullable=false)
 	private String setName;
@@ -207,7 +206,17 @@ public class Invoice implements Serializable{
 	private String purchaseOrder;	
 	
 	@Column(name = "advanceAplied", nullable=true)
-	private boolean advanceAplied;	
+	private boolean advanceAplied;
+	
+	@Column(name = "customerClass", nullable=true)
+	private String customerClass;
+	
+	@Column(name = "errorActive", nullable=true)
+	private boolean errorActive;
+	
+	@Lob
+	@Column(name = "longDescription", nullable=true)
+	private String longDescription;
 	
 	public long getId() {
 		return id;
@@ -671,6 +680,30 @@ public class Invoice implements Serializable{
 
 	public void setAdvanceAplied(boolean advanceAplied) {
 		this.advanceAplied = advanceAplied;
+	}
+
+	public String getCustomerClass() {
+		return customerClass;
+	}
+
+	public void setCustomerClass(String customerClass) {
+		this.customerClass = customerClass;
+	}
+
+	public boolean isErrorActive() {
+		return errorActive;
+	}
+
+	public void setErrorActive(boolean errorActive) {
+		this.errorActive = errorActive;
+	}
+
+	public String getLongDescription() {
+		return longDescription;
+	}
+
+	public void setLongDescription(String longDescription) {
+		this.longDescription = longDescription;
 	}
 	
 }

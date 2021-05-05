@@ -1,12 +1,12 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.smartech.invoicing.dto.InvoicesByReportsDTO;
-import com.smartech.invoicing.model.Invoice;
+import com.smartech.invoicingprod.dto.InvoicesByReportsDTO;
+import com.smartech.invoicingprod.model.Invoice;
 
 public interface InvoiceService {
 	public List<Invoice> createInvoiceProcess(HttpServletRequest request, InvoicesByReportsDTO[] obj, String invoiceTotal, String invoiceCustomer,

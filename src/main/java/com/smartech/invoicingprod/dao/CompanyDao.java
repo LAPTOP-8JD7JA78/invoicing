@@ -1,8 +1,8 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Company;
+import com.smartech.invoicingprod.model.Company;
 
 public interface CompanyDao {
 	boolean createCompany(Company o);

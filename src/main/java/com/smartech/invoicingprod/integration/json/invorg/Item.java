@@ -1,5 +1,5 @@
 
-package com.smartech.invoicing.integration.json.invorg;
+package com.smartech.invoicingprod.integration.json.invorg;
 
 import java.util.HashMap;
 import java.util.List;

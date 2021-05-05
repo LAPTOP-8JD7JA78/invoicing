@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smartech.invoicing.model.Udc;
+import com.smartech.invoicingprod.model.Udc;
 
 @Repository("UdcDao")
 @Transactional

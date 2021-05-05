@@ -1,5 +1,6 @@
-package com.smartech.invoicing.integration;
+package com.smartech.invoicingprod.integration;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -17,21 +18,23 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.smartech.invoicing.dto.CatAttachmentDTO;
-import com.smartech.invoicing.dto.CategoryDTO;
-import com.smartech.invoicing.dto.ItemGtinDTO;
-import com.smartech.invoicing.dto.ItemsDTO;
-import com.smartech.invoicing.dto.SalesLineLotSerDTO;
-import com.smartech.invoicing.dto.SalesOrderDTO;
-import com.smartech.invoicing.dto.SalesOrderLinesDTO;
-import com.smartech.invoicing.integration.service.HTTPRequestService;
-import com.smartech.invoicing.integration.util.AppConstants;
-import com.smartech.invoicing.integration.util.PayloadProducer;
-import com.smartech.invoicing.model.Invoice;
-import com.smartech.invoicing.model.Payments;
-import com.smartech.invoicing.model.Udc;
-import com.smartech.invoicing.service.UdcService;
-import com.smartech.invoicing.util.NullValidator;
+import com.smartech.invoicingprod.dto.CatAttachmentDTO;
+import com.smartech.invoicingprod.dto.CategoryDTO;
+import com.smartech.invoicingprod.dto.CustomerInformationDTO;
+import com.smartech.invoicingprod.dto.EmailAdressDTO;
+import com.smartech.invoicingprod.dto.ItemGtinDTO;
+import com.smartech.invoicingprod.dto.ItemsDTO;
+import com.smartech.invoicingprod.dto.SalesLineLotSerDTO;
+import com.smartech.invoicingprod.dto.SalesOrderDTO;
+import com.smartech.invoicingprod.dto.SalesOrderLinesDTO;
+import com.smartech.invoicingprod.integration.service.HTTPRequestService;
+import com.smartech.invoicingprod.integration.util.AppConstants;
+import com.smartech.invoicingprod.integration.util.PayloadProducer;
+import com.smartech.invoicingprod.model.Invoice;
+import com.smartech.invoicingprod.model.Payments;
+import com.smartech.invoicingprod.model.Udc;
+import com.smartech.invoicingprod.service.UdcService;
+import com.smartech.invoicingprod.util.NullValidator;
 
 @Service("soapService")
 public class SOAPServiceImpl implements SOAPService {
@@ -44,7 +47,9 @@ public class SOAPServiceImpl implements SOAPService {
 	static Logger log = Logger.getLogger(SOAPService.class.getName());
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	SimpleDateFormat FCR = new SimpleDateFormat("yyy-MM-dd");
+	DecimalFormat df = new DecimalFormat("#.00");
 	
+	@SuppressWarnings("unused")
 	@Override
 	public ItemsDTO getItemDataByItemNumberOrgCode(String itemNumber, String orgCode) {
 		ItemsDTO item = null;
@@ -109,7 +114,7 @@ public class SOAPServiceImpl implements SOAPService {
 										item.setItemDFFModelo(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "modelo").toString()));
 										//Importación
 										String isImported = NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "importacion").toString());
-										if(isImported != null && !"".contains(isImported) && "Si".contains(isImported)) {
+										if(isImported != null && !"".contains(isImported) && "SI".contains(isImported)) {
 											item.setItemDFFIsImported(true);
 										}
 									}
@@ -127,6 +132,7 @@ public class SOAPServiceImpl implements SOAPService {
 		return item;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public Invoice updateUUIDToOracleERPInvoice(Invoice inv) {
 		JSONObject xmlJSONObj;
@@ -142,7 +148,7 @@ public class SOAPServiceImpl implements SOAPService {
 						String[] foliosNumber = folios.split("-");
 						for(String f: foliosNumber) {
 							Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
-									PayloadProducer.setARRegionalFlexfield(folios, inv.getUUID(), inv.getSerial(), f, inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+									PayloadProducer.setARRegionalFlexfield(f, inv.getUUID(), inv.getSerial(), foliosNumber[0], inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
 							String strResponse1 = (String) request1.get("response");
 							int codeResponse1 = (int) request1.get("code");
 							String strHttpResponse1 = (String) request1.get("httpResponse");
@@ -171,6 +177,11 @@ public class SOAPServiceImpl implements SOAPService {
 									log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
 									}
 								}
+							}else{
+								String setName = inv.getSetName();
+								if(setName.equals("Common Set")) {
+									inv.setSetName("Juego Común");
+								}							
 							}
 						}
 					}else {
@@ -205,6 +216,11 @@ public class SOAPServiceImpl implements SOAPService {
 								log.warn("ERROR AL ACTUALIZAR UUID TRANSNUM - " + inv.getFolio() + " - " + inv.getOrderType() + "***************************");
 								}
 							}
+						}else{
+							String setName = inv.getSetName();
+							if(setName.equals("Common Set")) {
+								inv.setSetName("Juego Común");
+							}							
 						}
 					}
 					
@@ -298,6 +314,7 @@ public class SOAPServiceImpl implements SOAPService {
 		return inv;
 	}
 	
+	@SuppressWarnings("unused")
 	@Override
 	public ItemsDTO getItemDataByItemIdOrgCode(String itemId, String orgCode) {
 		ItemsDTO item = null;
@@ -362,7 +379,7 @@ public class SOAPServiceImpl implements SOAPService {
 										item.setItemDFFModelo(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "modelo").toString()));
 										//Importación
 										String isImported = NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "importacion").toString());
-										if(isImported != null && !"".contains(isImported) && "Si".contains(isImported)) {
+										if(isImported != null && !"".contains(isImported) && "SI".contains(isImported)) {
 											item.setItemDFFIsImported(true);
 										}
 									}
@@ -380,6 +397,7 @@ public class SOAPServiceImpl implements SOAPService {
 		return item;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public SalesOrderDTO getSalesOrderInformation(String orderNumber) {
 		SalesOrderDTO so = null;
@@ -421,9 +439,12 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setRequestedFulfillmentOrganizationCode("");
 								so.setOrderType(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionTypeCode").toString()));
 								so.setCustomerPONumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:CustomerPONumber").toString()));
+								so.setSalesPerson(NullValidator.isNull(op.getAsJsonObject().get("ns0:Salesperson").toString()));
+								so.setSalesOrderNumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:OrderNumber").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
+									//Ambiente test
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 									}
@@ -432,6 +453,7 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO")) {
 										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
+										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionAnticipo").toString()));
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO")) {
 										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
@@ -451,7 +473,41 @@ public class SOAPServiceImpl implements SOAPService {
 										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
 										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
 										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cP").toString()));
+										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
 									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO")) {
+										so.setCertificadoOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "certificadoOrigen").toString()));
+										so.setValorCerOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "valorCertificadoOrigen").toString()));
+									}/*
+									//Ambiente productivo
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
+										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
+										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));
+										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
+										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionAnticipo").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO")) {
+										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
+										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
+										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
+										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cp").toString()));
+										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO")) {
+										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
+										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
+										String fecha = NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "fechacontrarecibo").toString());
+										if(fecha != null && !fecha.isEmpty()) {
+											so.setFechaContraRecibo(FCR.parse(fecha));
+										}else {
+											String fechaContra = FCR.format(new Date());
+											so.setFechaContraRecibo(FCR.parse(fechaContra));
+										}
+										
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
+										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
+									}*/
 								}
 								
 								if(op.getAsJsonObject().has("ns0:OrderLine")) {
@@ -480,6 +536,7 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
 											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
+											soLine.setUsedTheLine(false);
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -564,6 +621,7 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
 										soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
+										soLine.setUsedTheLine(false);
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -641,9 +699,12 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setRequestedFulfillmentOrganizationCode("");
 								so.setOrderType(NullValidator.isNull(op.getAsJsonObject().get("ns0:TransactionTypeCode").toString()));
 								so.setCustomerPONumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:CustomerPONumber").toString()));
+								so.setSalesPerson(NullValidator.isNull(op.getAsJsonObject().get("ns0:Salesperson").toString()));
+								so.setSalesOrderNumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:OrderNumber").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
+									//Ambiente test
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 									}
@@ -652,6 +713,7 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO")) {
 										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
+										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionanticipo").toString()));
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO")) {
 										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
@@ -671,7 +733,40 @@ public class SOAPServiceImpl implements SOAPService {
 										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
 										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
 										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cP").toString()));
+										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
 									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO")) {
+										so.setCertificadoOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "certificadoOrigen").toString()));
+										so.setValorCerOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "valorCertificadoOrigen").toString()));
+									}/*
+									//Ambiente productivo
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
+										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
+										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));
+										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
+										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionAnticipo").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO")) {
+										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
+										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
+										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
+										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cp").toString()));
+										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO")) {
+										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
+										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
+										String fecha = NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "fechacontrarecibo").toString());
+										if(fecha != null && !fecha.isEmpty()) {
+											so.setFechaContraRecibo(FCR.parse(fecha));
+										}else {
+											String fechaContra = FCR.format(new Date());
+											so.setFechaContraRecibo(FCR.parse(fechaContra));
+										}
+									}
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
+										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
+									}*/
 								}
 								
 								if(op.getAsJsonObject().has("ns0:OrderLine")) {
@@ -698,6 +793,7 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
 											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
+											soLine.setUsedTheLine(false);
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -780,6 +876,7 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setProductIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ProductIdentifier").toString()));
 										soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
+										soLine.setUsedTheLine(false);
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -860,6 +957,7 @@ public class SOAPServiceImpl implements SOAPService {
 		return so;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public Payments updateUUIDToOracleERPPayments(Payments pay) {
 		JSONObject xmlJSONObj;
@@ -905,7 +1003,7 @@ public class SOAPServiceImpl implements SOAPService {
 					}
 					
 					Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
-							PayloadProducer.setARReceiptsSerialFolioFlexfield(pay.getReceiptNumber(), pay.getReceiptId(), pay.getSerial(), pay.getFolio()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+							PayloadProducer.setARReceiptsSerialFolioFlexfield(pay.getReceiptNumber(), pay.getReceiptId(), pay.getFolio(), pay.getSerial()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
 					
 					String strResponse2 = (String) request2.get("response");
 					int codeResponse2 = (int) request2.get("code");
@@ -1023,6 +1121,7 @@ public class SOAPServiceImpl implements SOAPService {
 		return pay;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public CategoryDTO getCategoryDataFrom(String categoryCode) {
 		CategoryDTO cat = null;
@@ -1095,6 +1194,7 @@ public class SOAPServiceImpl implements SOAPService {
 		return cat;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public ItemGtinDTO getItemGTINData(String itemNumber, String orgCode, String partyNumber) {
 		ItemGtinDTO gtin = null;
@@ -1116,21 +1216,17 @@ public class SOAPServiceImpl implements SOAPService {
 						xmlJSONObj = XML.toJSONObject(strResponse1, true);
 						jelement = new JsonParser().parse(xmlJSONObj.toString());
 						jobject = jelement.getAsJsonObject();
-						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findGTINCrossReferenceResponse")) {
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findItemCrossReferenceRelationshipResponse")) {
 							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
-									.get("ns0:findGTINCrossReferenceResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().has("ns0:Value")) {
+									.get("ns0:findItemCrossReferenceRelationshipResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().has("ns0:Value")) {
 								JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
-										.get("ns0:findGTINCrossReferenceResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().get("ns0:Value").getAsJsonObject();
+										.get("ns0:findItemCrossReferenceRelationshipResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().get("ns0:Value").getAsJsonObject();
 								
 								if(!result.isJsonNull()) {
 									gtin = new ItemGtinDTO();
-									gtin.setGtin(NullValidator.isNull(result.get("ns1:GTIN").getAsString()));
+									gtin.setGtin(NullValidator.isNull(result.get("ns1:CrossReferenceValue").getAsString()));
 									gtin.setItemNumber(NullValidator.isNull(result.get("ns1:ItemNumber").getAsString()));
 									gtin.setOrganizationCode(NullValidator.isNull(result.get("ns1:OrganizationCode").getAsString()));
-									gtin.setTradingPartnerName(NullValidator.isNull(result.get("ns1:TradingPartnerName").getAsString()));
-									gtin.setTradingPartnerNumber(NullValidator.isNull(result.get("ns1:TradingPartnerNumber").getAsString()));
-									gtin.setUomCodeValue(NullValidator.isNull(result.get("ns1:UOMCodeValue").getAsString()));
-									gtin.setItemDescription(NullValidator.isNull(result.get("ns1:GTINDescription").getAsString()));
 								}
 							}
 						}else {
@@ -1147,5 +1243,112 @@ public class SOAPServiceImpl implements SOAPService {
 		}
 		return gtin;
 	}
+
+	@SuppressWarnings("unused")
+	@Override
+	public String getItemId(String itemNumber) {
+		String item = null;
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((itemNumber != null && !"".contains(itemNumber)) && (itemNumber != null && !"".contains(itemNumber))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_ITEMSV2, 
+																	PayloadProducer.getItemIdByWs(itemNumber, AppConstants.ORACLE_ITEMMASTER),AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);;
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findItemResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findItemResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().has("ns0:Value")) {
+								JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findItemResponse").getAsJsonObject().get("ns2:result").getAsJsonObject().get("ns0:Value").getAsJsonObject();
+								
+								if(!result.isJsonNull()) {
+									item = result.get("ns1:ItemId").getAsString();
+								}
+							}															 
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER WS DE ITEMS_V2 - getItemDataByItemNumberOrgCode***************************", e);
+			}
+		}
+		return item;
+	}
 	
+	@Override
+	public com.smartech.invoicingprod.dto.CustomerInformationDTO getEmaiAdress(String customerName, String customerPatyNumber) {
+		CustomerInformationDTO item = new CustomerInformationDTO();
+		JSONObject xmlJSONObj;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((customerName != null && !"".contains(customerName)) && (customerPatyNumber != null && !"".contains(customerPatyNumber))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_FOUNDATION_PARTIES, 
+																	PayloadProducer.getCustomerEmail(customerName, customerPatyNumber),AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);;
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findOrganizationResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject().has("ns2:Value")) {
+								
+//								JsonObject op = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+//										.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject().get("ns2:Value").getAsJsonObject();
+								JsonObject op = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject();
+//								System.out.println(op.toString());
+								if(op.toString().contains("ns2:Relationship")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject().get("ns2:Value").getAsJsonObject();
+									if(result.getAsJsonObject().has("ns2:Relationship")) {
+										List<EmailAdressDTO> emailLines = new ArrayList<EmailAdressDTO>();
+										if(result.getAsJsonObject().get("ns2:Relationship").isJsonArray()) {
+											JsonArray jaLines = result.getAsJsonObject().get("ns2:Relationship").getAsJsonArray();
+											for(int i = 0; i < jaLines.size(); i++) {
+												JsonElement oeLine = jaLines.get(i).getAsJsonObject();
+												EmailAdressDTO soLine = new EmailAdressDTO();
+												
+												soLine.setPartyName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns8:PartyName").toString()));
+												soLine.setObjectEmailAddress(NullValidator.isNull(oeLine.getAsJsonObject().get("ns8:ObjectEmailAddress").toString()));
+												emailLines.add(soLine);
+											}
+										}else {
+											JsonElement oeLine = result.getAsJsonObject().get("ns2:Relationship").getAsJsonObject();
+											EmailAdressDTO soLine = new EmailAdressDTO();
+											
+											soLine.setPartyName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns8:PartyName").toString()));
+											soLine.setObjectEmailAddress(NullValidator.isNull(oeLine.getAsJsonObject().get("ns8:ObjectEmailAddress").toString()));
+											emailLines.add(soLine);
+										}
+										item.setEmailAdress(emailLines);
+									}
+								}								
+							}															 
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER WS DE ITEMS_V2 - getItemDataByItemNumberOrgCode***************************", e);
+			}
+		}
+		return item;
+	}
 }

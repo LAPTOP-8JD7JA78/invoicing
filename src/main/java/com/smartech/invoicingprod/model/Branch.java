@@ -1,4 +1,4 @@
-package com.smartech.invoicing.model;
+package com.smartech.invoicingprod.model;
 
 import java.io.Serializable;
 
@@ -67,6 +67,9 @@ public class Branch implements Serializable {
 	
 	@Column(name = "cellPhoneNumber", nullable=true)
     private String cellPhoneNumber;
+	
+	@Column(name = "zipAddressPdf", nullable=true)
+    private String zipAddressPdf;
 
 	public long getId() {
 		return id;
@@ -194,6 +197,14 @@ public class Branch implements Serializable {
 
 	public void setCellPhoneNumber(String cellPhoneNumber) {
 		this.cellPhoneNumber = cellPhoneNumber;
+	}
+
+	public String getZipAddressPdf() {
+		return zipAddressPdf;
+	}
+
+	public void setZipAddressPdf(String zipAddressPdf) {
+		this.zipAddressPdf = zipAddressPdf;
 	}
 		
 }

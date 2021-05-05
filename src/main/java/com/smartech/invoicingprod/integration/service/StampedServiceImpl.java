@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.service;
+package com.smartech.invoicingprod.integration.service;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,20 +25,22 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.smartech.invoicing.dao.InvoiceDao;
-import com.smartech.invoicing.integration.util.AppConstants;
-import com.smartech.invoicing.model.Invoice;
-import com.smartech.invoicing.model.InvoiceDetails;
-import com.smartech.invoicing.model.NextNumber;
-import com.smartech.invoicing.model.Payments;
-import com.smartech.invoicing.model.TaxCodes;
-import com.smartech.invoicing.model.Udc;
-import com.smartech.invoicing.service.NextNumberService;
-import com.smartech.invoicing.service.PaymentsService;
-import com.smartech.invoicing.service.TaxCodesService;
-import com.smartech.invoicing.service.UdcService;
-import com.smartech.invoicing.util.AppConstantsUtil;
-import com.smartech.invoicing.util.NullValidator;
+import com.smartech.invoicingprod.dao.InvoiceDao;
+import com.smartech.invoicingprod.integration.util.AppConstants;
+import com.smartech.invoicingprod.model.Invoice;
+import com.smartech.invoicingprod.model.InvoiceDetails;
+import com.smartech.invoicingprod.model.NextNumber;
+import com.smartech.invoicingprod.model.Payments;
+import com.smartech.invoicingprod.model.PaymentsList;
+import com.smartech.invoicingprod.model.TaxCodes;
+import com.smartech.invoicingprod.model.Udc;
+import com.smartech.invoicingprod.service.NextNumberService;
+import com.smartech.invoicingprod.service.PaymentsListService;
+import com.smartech.invoicingprod.service.PaymentsService;
+import com.smartech.invoicingprod.service.TaxCodesService;
+import com.smartech.invoicingprod.service.UdcService;
+import com.smartech.invoicingprod.util.AppConstantsUtil;
+import com.smartech.invoicingprod.util.NullValidator;
 
 @Service("stampedService")
 public class StampedServiceImpl implements StampedService{
@@ -60,9 +63,13 @@ public class StampedServiceImpl implements StampedService{
 	@Autowired
 	TaxCodesService taxCodesService;
 	
+	@Autowired
+	PaymentsListService paymentsListService;
+	
 	static Logger log = Logger.getLogger(StampedServiceImpl.class.getName());
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	DecimalFormat numberFormat = new DecimalFormat("#.00");
 	public String[ ] impH = new String[10];
 	public String[ ] impH2 = new String[5];
 	public String[ ] impD = new String[10];
@@ -96,15 +103,6 @@ public class StampedServiceImpl implements StampedService{
 				}
 			}
 			//Saber tipo de factura
-//			if(i.isInvoice()) {
-//				voucherType = AppConstantsUtil.VOUCHER_I;
-//				relationType = "";
-//				UUIDRelated = "";
-//			}else {
-//				voucherType = AppConstantsUtil.VOUCHER_E;
-//				relationType = i.getInvoiceRelationType();
-//				UUIDRelated = i.getUUIDReference();
-//			}
 			if(i.getFolio().contains("-")) {
 				folio = i.getFolio().substring(0, i.getFolio().indexOf("-"));
 			}else {
@@ -129,9 +127,9 @@ public class StampedServiceImpl implements StampedService{
 			}
 			//Terminos de pago
 			if(i.getPaymentMethod().equals(AppConstantsUtil.PAYMENT_METHOD)) {
-				paymentTerms = "";
+				paymentTerms = "CONTADO";
 			}else if(i.getPaymentMethod() == null){
-				paymentTerms = "";
+				paymentTerms = "CONTADO";
 			}else {
 				paymentTerms = i.getPaymentTerms();
 			}
@@ -142,13 +140,11 @@ public class StampedServiceImpl implements StampedService{
 			getTaxes(i.getInvoiceDetails());
 			//Formato de fecha
 			String date = dateFormat.format(new Date());
-//			//Obtener los datos de las lineas para el envío
-//			List<InvoiceDetails> invDetails = new ArrayList<InvoiceDetails>(i.getInvoiceDetails());
 			//Cabecero txt
 			content = AppConstantsUtil.FILES_HEADER + AppConstantsUtil.FILES_SEPARATOR +
 					folio + AppConstantsUtil.FILES_SEPARATOR +
-					i.getInvoiceTotal() + AppConstantsUtil.FILES_SEPARATOR + 
-					i.getInvoiceSubTotal() + AppConstantsUtil.FILES_SEPARATOR +
+					numberFormat.format(i.getInvoiceTotal()) + AppConstantsUtil.FILES_SEPARATOR + 
+					numberFormat.format(i.getInvoiceSubTotal()) + AppConstantsUtil.FILES_SEPARATOR +
 					voucherType + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getPaymentType()) + AppConstantsUtil.FILES_SEPARATOR +
 					paymentTerms + AppConstantsUtil.FILES_SEPARATOR +
@@ -223,16 +219,6 @@ public class StampedServiceImpl implements StampedService{
 		            	content = content + NullValidator.isNull(impH[h]) + "|";
 		            }
 					content = content +
-					/*"" + AppConstantsUtil.FILES_SEPARATOR +//58
-					"" + AppConstantsUtil.FILES_SEPARATOR +//59
-					"" + AppConstantsUtil.FILES_SEPARATOR +//60
-					"" + AppConstantsUtil.FILES_SEPARATOR +//61
-					"" + AppConstantsUtil.FILES_SEPARATOR +//62
-					"" + AppConstantsUtil.FILES_SEPARATOR +//63
-					"" + AppConstantsUtil.FILES_SEPARATOR +//64
-					"" + AppConstantsUtil.FILES_SEPARATOR +//65
-					"" + AppConstantsUtil.FILES_SEPARATOR +//66
-					"" + AppConstantsUtil.FILES_SEPARATOR +//67  */
 					NullValidator.isNull(relationType) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(UUIDRelated) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
@@ -243,20 +229,20 @@ public class StampedServiceImpl implements StampedService{
 					NullValidator.isNull(i.getBranch().getAddress()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getBranch().getColony()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getBranch().getState()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getZip()) + AppConstantsUtil.FILES_SEPARATOR +
+//					NullValidator.isNull(i.getBranch().getZip()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getBranch().getZipAddressPdf()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getBranch().getCountry()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getBranch().getCellPhoneNumber()) + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR;
+					NullValidator.isNull(i.getLongDescription()).replaceAll("\n", "").replaceAll("\r", "") + AppConstantsUtil.FILES_SEPARATOR;
 					for(int h=0; h<impH2.length; h++) {
-						content = content + NullValidator.isNull(impH2[h]) + "|";
+						content = content + NullValidator.isNull(impH2[h]) + AppConstantsUtil.FILES_SEPARATOR;
 					}
 					content = content + 
-					"\r\n";
-			//Lineas txt
+							"\r\n";
 			for(InvoiceDetails id: i.getInvoiceDetails()) {
 				if(id != null) {
 					String lines = this.dataLines(id, i, n);
-					if(lines == null && lines.isEmpty()) {
+					if(lines == null) {
 						i.setStatus(AppConstants.STATUS_ERROR_CREATE_FILE);
 						invoiceDao.updateInvoice(i);
 						return false;
@@ -276,16 +262,9 @@ public class StampedServiceImpl implements StampedService{
              	file.setReadable(true);
              	file.setWritable(true);             	
             }
-//			Contenido en base64
-//			String encodedString = Base64.getEncoder().encodeToString(content.getBytes());
-			//Escribir contenido en el archivo creado
-//			FileWriter fw = new FileWriter(file);
-//            BufferedWriter bw = new BufferedWriter(fw);
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
             out.write(content);
             out.close();
-//            bw.write(content);
-//            bw.close();
             //Actualizar estado de la factura
             i.setStatus(AppConstants.STATUS_UPDUUID);
             invoiceDao.updateInvoice(i);
@@ -309,7 +288,6 @@ public class StampedServiceImpl implements StampedService{
 		String itemExtraDescription = "";
 		String folio = "";
 		try {
-//			Udc isComboOrMarina = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_MARINA, AppConstants.UDC_KEY_MARINA);
 			List<Udc> oType = udcService.searchBySystem(AppConstants.UDC_SYSTEM_OPERATIONTYPE);
 			List<Udc> pKey = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PETITIONKEY);
 			for(Udc uoType: oType) {
@@ -331,27 +309,39 @@ public class StampedServiceImpl implements StampedService{
 			}
 			if(idet.getAddtionalDescription() != null) {
 				if(idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").length() > 1000) {
-					itemDescription = idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").substring(0,1000);
+					if(idet.getAddtionalDescription().contains("Content-Type: text/plain")) {
+						itemDescription = idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").substring(0,1000).replace("?", "").replace("Content-Type: text/plain", "");
+					}else {
+						itemDescription = idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").substring(0,1000).replace("?", "");
+					}
 					itemExtraDescription = idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").substring(1000);
 				}else {
-					itemDescription = idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "");
+					if(idet.getAddtionalDescription().contains("Content-Type: text/plain")) {
+						itemDescription = NullValidator.isNull(idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").replace("?", "").replace("Content-Type: text/plain", ""));
+					}else {
+						itemDescription = NullValidator.isNull(idet.getAddtionalDescription().replaceAll("\n", "").replaceAll("\r", "").replace("?", ""));
+					}
 					itemExtraDescription = "";
 				}
 			}else {
-				itemDescription = idet.getItemDescription().replaceAll("\n", "").replaceAll("\r", "");
+//				if(NullValidator.isNull(idet.getItemDescription()).contains("Content-Type: text/plain")) {
+//					itemDescription = NullValidator.isNull(idet.getItemDescription().replaceAll("\n", "").replaceAll("\r", "").replace("?", "").replace("Content-Type: text/plain", ""));
+//				}else {
+					itemDescription = NullValidator.isNull(NullValidator.isNull(idet.getItemDescription()).replaceAll("\n", "").replaceAll("\r", "").replace("?", ""));
+//				}
 			}
 			
-			detail = AppConstantsUtil.FILES_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
+			detail = NullValidator.isNull(idet.getIsInvoiceLine()) + AppConstantsUtil.FILES_SEPARATOR +
 					folio + AppConstantsUtil.FILES_SEPARATOR +
-					nL + AppConstantsUtil.FILES_SEPARATOR +
-					idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(idet.getTransactionLineNumber()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(numberFormat.format(idet.getTotalAmount())) + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
-					itemDescription + AppConstantsUtil.FILES_SEPARATOR +
-					idet.getUomName() + AppConstantsUtil.FILES_SEPARATOR +
-					idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +
-					idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +
-					idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//10
-					idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(itemDescription) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(idet.getUomName()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(numberFormat.format(idet.getUnitPrice())) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(idet.getQuantity()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(idet.getExchangeRate()) + AppConstantsUtil.FILES_SEPARATOR +//10
+					NullValidator.isNull(idet.getItemNumber()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(idet.getDatePetition()) + AppConstantsUtil.FILES_SEPARATOR +//Fecha de pedimento
 					NullValidator.isNull(idet.getCustomskey()) + AppConstantsUtil.FILES_SEPARATOR +//Aduana
 					NullValidator.isNull(idet.getNumberPetiton()) + AppConstantsUtil.FILES_SEPARATOR +//Número de pedimento
@@ -362,17 +352,6 @@ public class StampedServiceImpl implements StampedService{
 		        		detail = detail + NullValidator.isNull(impD[j]) + "|";
 		        	}
 		        	detail = detail +
-					/*"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +
-					idet.getTotalDiscount() + AppConstantsUtil.FILES_SEPARATOR +//28*/
 		        	"" + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Notes
 					"" + AppConstantsUtil.FILES_SEPARATOR +
@@ -380,18 +359,7 @@ public class StampedServiceImpl implements StampedService{
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					"" + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(itemExtraDescription) + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR;
-//		        	if(isComboOrMarina.getUdcKey().equals(i.getCustomerTaxIdentifier()) &&
-//		        			isComboOrMarina.getStrValue1().equals(i.getCustomerName())) {
-//		        		detail = detail +
-//	        				idet.getAddtionalDescription().replaceAll("\r\n", " ") + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
-//	    					"" + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
-//		        	}else {
-//		        		detail = detail +
-//	        				"" + AppConstantsUtil.FILES_SEPARATOR +//Campo para marina
-//	    					NullValidator.isNull(idet.getAddtionalDescription()).replaceAll("\r\n", " ") + AppConstantsUtil.FILES_SEPARATOR;//Campo para combo
-//		        	}
-					
+					"" + AppConstantsUtil.FILES_SEPARATOR;					
 
 					//Datos del complemento exterior
 					if(i.isExtCom()) {
@@ -399,14 +367,14 @@ public class StampedServiceImpl implements StampedService{
 							"" + AppConstantsUtil.FILES_SEPARATOR +//c_Motivo Traslado
 							operationType + AppConstantsUtil.FILES_SEPARATOR +//c_Tipo de operacion
 							petitionKey + AppConstantsUtil.FILES_SEPARATOR +//c_Clave pedimento
-							"" + AppConstantsUtil.FILES_SEPARATOR +//Cert origen
+							"0" + AppConstantsUtil.FILES_SEPARATOR +//Cert origen
 							"" + AppConstantsUtil.FILES_SEPARATOR +
 							"" + AppConstantsUtil.FILES_SEPARATOR +
 							NullValidator.isNull(idet.getIncotermKey()) + AppConstantsUtil.FILES_SEPARATOR +//c_Incoterm 40
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Subdivison	
 							NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones	
-							idet.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
-							idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
+							NullValidator.isNull(idet.getExchangeRate()) + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
+							NullValidator.isNull(idet.getTotalAmount()) + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Curp del emisor
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Número del registro fiscal
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Recidencia fiscal
@@ -422,15 +390,22 @@ public class StampedServiceImpl implements StampedService{
 							NullValidator.isNull(i.getShipToCountry()) + AppConstantsUtil.FILES_SEPARATOR +//ShipTo Country
 							i.getShipToZip() + AppConstantsUtil.FILES_SEPARATOR +//shipTo Zip
 							idet.getItemNumber() + AppConstantsUtil.FILES_SEPARATOR +//Número del artículo, sku
-//							NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
-							"89039999" + AppConstantsUtil.FILES_SEPARATOR +
-							idet.getQuantity() + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
-							idet.getItemUomCustoms() + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
-							idet.getUnitPrice() + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
-							idet.getTotalAmount() + AppConstantsUtil.FILES_SEPARATOR +//Valor total aduana
-							NullValidator.isNull(idet.getItemBrand())+ AppConstantsUtil.FILES_SEPARATOR +//Marca
-							NullValidator.isNull(idet.getItemModel()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
-							"" + AppConstantsUtil.FILES_SEPARATOR;//Submodelo							
+							NullValidator.isNull(idet.getFraccionArancelaria()) + AppConstantsUtil.FILES_SEPARATOR +//c_FraccionArancelaria 60
+							NullValidator.isNull(idet.getQuantity()) + AppConstantsUtil.FILES_SEPARATOR +//Cantidad Aduana
+							NullValidator.isNull(idet.getItemUomCustoms()) + AppConstantsUtil.FILES_SEPARATOR +//c_Unidad de medida aduana
+							NullValidator.isNull(idet.getUnitPrice()) + AppConstantsUtil.FILES_SEPARATOR +//Valor unitario de aduana
+							NullValidator.isNull(idet.getTotalAmount()) + AppConstantsUtil.FILES_SEPARATOR +//Valor total aduana
+							NullValidator.isNull(idet.getItemBrand()) + AppConstantsUtil.FILES_SEPARATOR;//Marca
+						if(NullValidator.isNull(idet.getEquipmentReference()).equals("E")) {
+							detail = detail + 
+									NullValidator.isNull(idet.getItemNumber()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
+									"" + AppConstantsUtil.FILES_SEPARATOR;//Submodelo	
+						}else {
+							detail = detail + 
+							NullValidator.isNull(idet.getItemNumber()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
+							"" + AppConstantsUtil.FILES_SEPARATOR;//Submodelo	
+						}
+													
 					}else {
 						detail = detail +
 							"" + AppConstantsUtil.FILES_SEPARATOR +
@@ -464,9 +439,16 @@ public class StampedServiceImpl implements StampedService{
 							"" + AppConstantsUtil.FILES_SEPARATOR +
 							"" + AppConstantsUtil.FILES_SEPARATOR +//10
 							"" + AppConstantsUtil.FILES_SEPARATOR +
-							"" + AppConstantsUtil.FILES_SEPARATOR +
-							"" + AppConstantsUtil.FILES_SEPARATOR +
 							"" + AppConstantsUtil.FILES_SEPARATOR;
+						if(NullValidator.isNull(idet.getEquipmentReference()).equals("E")) {
+							detail = detail + 
+									NullValidator.isNull(idet.getItemNumber()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
+									"" + AppConstantsUtil.FILES_SEPARATOR;//Submodelo	
+						}else {
+							detail = detail + 
+							NullValidator.isNull(idet.getItemNumber()) + AppConstantsUtil.FILES_SEPARATOR +//Modelo
+							"" + AppConstantsUtil.FILES_SEPARATOR;//Submodelo	
+						}
 					}
 					detail = detail + 
 							NullValidator.isNull(idet.getItemSerial()) + AppConstantsUtil.FILES_SEPARATOR;//No. de seríe
@@ -475,10 +457,10 @@ public class StampedServiceImpl implements StampedService{
 		        	if(idet.getRetailComplements() != null) {
 		        		String refDate = df.format(idet.getRetailComplements().getReferenceDate());
 			        	detail = detail +								
-						idet.getRetailComplements().getDocumentStatus() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getTransactionType() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getInstructionCode() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getTextNote() + AppConstantsUtil.FILES_SEPARATOR +
+			        	NullValidator.isNull(idet.getRetailComplements().getDocumentStatus()) + AppConstantsUtil.FILES_SEPARATOR +
+			        	NullValidator.isNull(idet.getRetailComplements().getTransactionType()) + AppConstantsUtil.FILES_SEPARATOR +
+			        	NullValidator.isNull(idet.getRetailComplements().getInstructionCode()) + AppConstantsUtil.FILES_SEPARATOR +
+			        	NullValidator.isNull(idet.getRetailComplements().getTextNote()) + AppConstantsUtil.FILES_SEPARATOR +
 						NullValidator.isNull(idet.getRetailComplements().getReferenceId()) + AppConstantsUtil.FILES_SEPARATOR +
 						NullValidator.isNull(refDate) + AppConstantsUtil.FILES_SEPARATOR +
 						NullValidator.isNull(idet.getRetailComplements().getAdicionalInformation()) + AppConstantsUtil.FILES_SEPARATOR +
@@ -487,42 +469,54 @@ public class StampedServiceImpl implements StampedService{
 						NullValidator.isNull(idet.getRetailComplements().getDeliveryNote()) + AppConstantsUtil.FILES_SEPARATOR +//10
 						NullValidator.isNull(idet.getRetailComplements().getBuyerNumberFolio()) + AppConstantsUtil.FILES_SEPARATOR +//"2085157632" + AppConstantsUtil.FILES_SEPARATOR +
 						"" + AppConstantsUtil.FILES_SEPARATOR +//	NullValidator.isNull(idet.getRetailComplements().getBuyerDateFolio().toString()) + AppConstantsUtil.FILES_SEPARATOR +					
-						idet.getRetailComplements().getGlobalLocationNumberBuyer() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getPurchasingContact() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getSeller() + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getGlobalLocationNumberBuyer()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getPurchasingContact()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getSeller()) + AppConstantsUtil.FILES_SEPARATOR +
 						i.getCompany().getGlobalLocationNumberProvider() + AppConstantsUtil.FILES_SEPARATOR +
 						i.getCompany().getAlternativeId() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getIdentificationType() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getElementOnline() + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getIdentificationType()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getElementOnline()) + AppConstantsUtil.FILES_SEPARATOR +
 						NullValidator.isNull(idet.getRetailComplements().getType()) + AppConstantsUtil.FILES_SEPARATOR +//10
 						NullValidator.isNull(idet.getRetailComplements().getNumber()) + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getgTin() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getInovicedQuantity() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getUomCode() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getPriceTotal() + AppConstantsUtil.FILES_SEPARATOR +
-						idet.getRetailComplements().getTotal() + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getgTin()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getInovicedQuantity()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getUomCode()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getPriceTotal()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(idet.getRetailComplements().getTotal()) + AppConstantsUtil.FILES_SEPARATOR +
 						"" + AppConstantsUtil.FILES_SEPARATOR +
 						"" + AppConstantsUtil.FILES_SEPARATOR +
 						"TN" + AppConstantsUtil.FILES_SEPARATOR;
+			        	String isImported = null;
+			        	if(idet.isImport()) {
+		        			isImported = "1";
+		        		}else {
+		        			isImported = "0";
+		        		}
 			        	if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS)) {
 				        	detail = detail +
+				        			isImported + AppConstantsUtil.FILES_SEPARATOR +
 				        			i.getBranch().getInvOrganizationId() + AppConstantsUtil.FILES_SEPARATOR +//sucursal
 				        			NullValidator.isNull(idet.getProductTypeCode()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de producto
 				        			NullValidator.isNull(idet.getUnitCost()) + AppConstantsUtil.FILES_SEPARATOR +//total venta costo unitario
 				        			NullValidator.isNull(idet.getExchangeDailyRate()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de cambio
 				        			NullValidator.isNull(idet.getEquipmentReference()) + AppConstantsUtil.FILES_SEPARATOR +//referencia equipo
-									i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +//Número de envío
+									i.getFromSalesOrder() + AppConstantsUtil.FILES_SEPARATOR +//Número de envío
 									NullValidator.isNull(idet.getPriceListWTax()) + AppConstantsUtil.FILES_SEPARATOR +//Precio Unitario sin iva
+									NullValidator.isNull(idet.getIsVehicleControl()) + AppConstantsUtil.FILES_SEPARATOR +
+									NullValidator.isNull(idet.getSerialPdf()) + AppConstantsUtil.FILES_SEPARATOR +
 									"\n";
 			        	}else {
 				        	detail = detail +
-				        			i.getBranch().getInvOrganizationCode() + AppConstantsUtil.FILES_SEPARATOR +//sucursal
+				        			isImported + AppConstantsUtil.FILES_SEPARATOR +
+				        			i.getBranch().getInvOrganizationId() + AppConstantsUtil.FILES_SEPARATOR +//sucursal
 				        			NullValidator.isNull(idet.getProductTypeCode()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de producto
 				        			NullValidator.isNull(idet.getUnitCost()) + AppConstantsUtil.FILES_SEPARATOR +//total venta costo unitario
 				        			NullValidator.isNull(idet.getExchangeDailyRate()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de cambio
 				        			NullValidator.isNull(idet.getEquipmentReference()) + AppConstantsUtil.FILES_SEPARATOR +//referencia equipo
 									"" + AppConstantsUtil.FILES_SEPARATOR +//Número de envío
 									NullValidator.isNull(idet.getPriceListWTax()) + AppConstantsUtil.FILES_SEPARATOR +//Precio Unitario sin iva
+									NullValidator.isNull(idet.getIsVehicleControl()) + AppConstantsUtil.FILES_SEPARATOR +
+									NullValidator.isNull(idet.getSerialPdf()) + AppConstantsUtil.FILES_SEPARATOR +
 									"\n";
 			        	}
 		        	}else {
@@ -557,12 +551,12 @@ public class StampedServiceImpl implements StampedService{
 						"" + AppConstantsUtil.FILES_SEPARATOR +
 						"" + AppConstantsUtil.FILES_SEPARATOR;
 			        	String isImported = "";
+			        	if(idet.isImport()) {
+		        			isImported = "1";
+		        		}else {
+		        			isImported = "0";
+		        		}
 			        	if(i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS)) {
-			        		if(idet.isImport()) {
-			        			isImported = "1";
-			        		}else {
-			        			isImported = "0";
-			        		}
 				        	detail = detail +
 				        			isImported + AppConstantsUtil.FILES_SEPARATOR + 
 				        			i.getBranch().getInvOrganizationId() + AppConstantsUtil.FILES_SEPARATOR +//sucursal
@@ -570,24 +564,23 @@ public class StampedServiceImpl implements StampedService{
 				        			NullValidator.isNull(idet.getUnitCost()) + AppConstantsUtil.FILES_SEPARATOR +//total venta costo unitario
 				        			NullValidator.isNull(idet.getExchangeDailyRate()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de cambio
 				        			NullValidator.isNull(idet.getEquipmentReference()) + AppConstantsUtil.FILES_SEPARATOR +//referencia equipo
-									i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +//Número de envío
+									i.getFromSalesOrder() + AppConstantsUtil.FILES_SEPARATOR +//Número de envío
 									NullValidator.isNull(idet.getPriceListWTax()) + AppConstantsUtil.FILES_SEPARATOR +//Precio Unitario sin iva
+									NullValidator.isNull(idet.getIsVehicleControl()) + AppConstantsUtil.FILES_SEPARATOR +
+									NullValidator.isNull(idet.getSerialPdf()) + AppConstantsUtil.FILES_SEPARATOR +
 									"\n";
 			        	}else {
-			        		if(idet.isImport()) {
-			        			isImported = "1";
-			        		}else {
-			        			isImported = "0";
-			        		}
 				        	detail = detail +
 				        			isImported + AppConstantsUtil.FILES_SEPARATOR +
-				        			i.getBranch().getInvOrganizationCode() + AppConstantsUtil.FILES_SEPARATOR +//sucursal
+				        			i.getBranch().getInvOrganizationId() + AppConstantsUtil.FILES_SEPARATOR +//sucursal
 				        			NullValidator.isNull(idet.getProductTypeCode()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de producto
 				        			NullValidator.isNull(idet.getUnitCost()) + AppConstantsUtil.FILES_SEPARATOR +//total venta costo unitario
 				        			NullValidator.isNull(idet.getExchangeDailyRate()) + AppConstantsUtil.FILES_SEPARATOR +//tipo de cambio
 				        			NullValidator.isNull(idet.getEquipmentReference()) + AppConstantsUtil.FILES_SEPARATOR +//referencia equipo
 									"" + AppConstantsUtil.FILES_SEPARATOR +//Número de envío
 									NullValidator.isNull(idet.getPriceListWTax()) + AppConstantsUtil.FILES_SEPARATOR +//Precio Unitario sin iva
+									NullValidator.isNull(idet.getIsVehicleControl()) + AppConstantsUtil.FILES_SEPARATOR +
+									NullValidator.isNull(idet.getSerialPdf()) + AppConstantsUtil.FILES_SEPARATOR +
 									"\n";
 			        	}
 		        	}
@@ -645,6 +638,16 @@ public class StampedServiceImpl implements StampedService{
 					}
 				}
 			}
+			
+			if(impH[3] != null) {
+				impH[2] = numberFormat.format(NullValidator.isNullD(impH[2]));
+				impH[3] = numberFormat.format(NullValidator.isNullD(impH[2]));
+			}
+			
+			if(impH2[3] != null) {
+				impH2[3] = numberFormat.format(NullValidator.isNullD(impH2[2]));
+			}
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -700,6 +703,7 @@ public class StampedServiceImpl implements StampedService{
 		}
 	}
 
+	@SuppressWarnings({ "resource", "unused" })
 	@Override
 	public boolean readDataFromTxt() {
 		String filePathResponse = "";
@@ -716,173 +720,6 @@ public class StampedServiceImpl implements StampedService{
 					filePathPay = u.getStrValue2();
 				}
 			}
-//			File f = new File(filePathResponse);
-//			if(f.isDirectory()) {
-//				File[] resFiles = f.listFiles();
-//				for(File file: resFiles) {
-//					String[] content = new String[3];
-//					fileName = file.getName().substring(0, file.getName().length()-4);
-//					BufferedReader objReader = new BufferedReader(new FileReader(file));  
-//		            while ((contentFile = objReader.readLine()) != null) {
-//		                c = contentFile;
-//		            }
-//		            content = c.split(Pattern.quote("|"));
-//		            objReader.close();
-//		            Invoice inv = new Invoice();
-//		            Payments payments = new Payments();
-//		            //Modificar valor cuando se setean los nextNumbersCorrespondientes y se tengan los archivos reales
-//		            //fileName = "MEFAC10001";
-//		            Invoice getId = invoiceDao.getSingleInvoiceByFolioSerial(fileName);
-//		            Payments pay = paymentsService.getPaymentByName(fileName);
-//		            if(getId != null) {
-//			            inv = invoiceDao.getSingleInvoiceById(getId.getId());
-//			            if(inv != null && !inv.getInvoiceType().equals(AppConstants.ORDER_TYPE_ADV)) {//FACTURAS, NC
-//			            	if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
-//			            		inv.setUUID(content[1]);
-//			            		inv.setErrorMsg("");
-//			            		inv.setStatus(AppConstants.STATUS_INVOICED);
-//			            		if(invoiceDao.updateInvoice(inv)) {
-//			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
-//			    		            //Pasar el archivo a otra carpeta
-//			    		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
-//			    					FileWriter fw = new FileWriter(newArrive);
-//			    		            BufferedWriter bw = new BufferedWriter(fw);
-//			    		            bw.write(c);
-//			    		            bw.close();	  
-//			    		            fw.close();
-//			    		            if(file.exists()) {
-//			    		             	file.setExecutable(true);
-//			    		             	file.setReadable(true);
-//			    		             	file.setWritable(true);		    		            	
-//			    		            	if(file.delete()){
-//			    		            		log.info("El fichero " + file.getName() + " ha sido borrado satisfactoriamente");
-//			    			            }else {
-//			    			            	log.error("El fichero " + file.getName() + " no ha sido borrado" + "|" + file.delete());
-//			    			            }
-//			    		            }	
-//			            		}else {
-//			            			log.info("No se actualizo la factura: " + file.getName());
-//			            		}
-//			            	}else {
-//			            		inv.setUUID("");
-//			            		inv.setErrorMsg(content[1].substring(0, 250));
-//			            		inv.setStatus(AppConstants.STATUS_ERROR_PAC);
-//			            		if(invoiceDao.updateInvoice(inv)) {
-//			            			log.info("Se obtuvo el error en la factura " + file.getName());
-//			            		}else {
-//			            			log.error("No se actualizo la factura, update: " + file.getName());
-//			            		}
-//			            	}
-//			            }else if(inv.getInvoiceType().equals(AppConstants.ORDER_TYPE_ADV)) {//ANTICIPOS
-//			            	Payments payment = paymentsService.getPaymentByName(fileName);			            	
-//			            	if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
-//			            		inv.setUUID(content[1]);
-//			            		inv.setErrorMsg("");
-//			            		inv.setStatus(AppConstants.STATUS_FINISHED);
-//			            		if(invoiceDao.updateInvoice(inv)) {
-//			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
-//			    		            //Pasar el archivo a otra carpeta
-//			    		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
-//			    					FileWriter fw = new FileWriter(newArrive);
-//			    		            BufferedWriter bw = new BufferedWriter(fw);
-//			    		            bw.write(c);
-//			    		            bw.close();	  
-//			    		            fw.close();
-//			    		            if(file.exists()) {
-//			    		            	if(file.delete()){
-//			    		            		log.info("El fichero " + file.getName() + " ha sido borrado satisfactoriamente");
-//			    			            }
-//			    			            else {
-//			    			            	log.error("El fichero " + file.getName() + " no ha sido borrado");
-//			    			            }
-//			    		            }
-//			    		            if(payment != null){
-//			    		            	Payments paym = paymentsService.getPaymentsById(String.valueOf(payment.getId()));
-//			    		            	paym.setUUID(content[1]);
-//			    		            	paym.setPaymentError("");
-//			    		            	paym.setPaymentStatus(AppConstants.STATUS_INVOICED);
-//			    		            	if(paymentsService.updatePayment(paym)) {
-//					            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
-//			    		            	}
-//			    		            }
-//			            		}else {
-//			            			log.error("No se actualizo la factura: " + file.getName());
-//			            		}
-//			            	}else {
-//			            		inv.setUUID("");
-//			            		inv.setErrorMsg(content[1].substring(0, 250));
-//			            		inv.setStatus(AppConstants.STATUS_ERROR_PAC);
-//			            		if(invoiceDao.updateInvoice(inv)) {
-//			            			log.info("Se obtuvo el error en la factura " + file.getName());
-//			            		}else {
-//			            			log.error("No se actualizo la factura, update: " + file.getName());
-//			            		}
-//			            	}
-//			            }
-//		            }else if(pay != null) {//COMPLEMENTO DE PAGO
-//		            	payments = paymentsService.getPaymentsById(String.valueOf(pay.getId()));
-//		            	if(payments != null) {
-//		            		if(!AppConstantsUtil.STAMPED_CODES.toString().contains(content[0])) {
-//		            			payments.setUUID(content[1]);
-//		            			payments.setPaymentError("");
-//		            			payments.setPaymentStatus(AppConstants.STATUS_INVOICED);
-//			            		if(paymentsService.updatePayment(payments)) {
-//			            			log.info("Se guardo el UUID correspondiente satisfactoriamente: " + file.getName());
-//			    		            //Pasar el archivo a otra carpeta
-//			    		            File newArrive = new File(filePathSuccess + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
-//			    					FileWriter fw = new FileWriter(newArrive);
-//			    		            BufferedWriter bw = new BufferedWriter(fw);
-//			    		            bw.write(c);
-//			    		            bw.close();	  
-//			    		            fw.close();
-//			    		            if(file.exists()) {
-//			    		             	file.setExecutable(true);
-//			    		             	file.setReadable(true);
-//			    		             	file.setWritable(true);
-//			    		            	if(file.delete()){
-//			    		            		log.info("El fichero" + file.getName() + " ha sido borrado satisfactoriamente");
-//			    			            }
-//			    			            else {
-//			    			            	log.info("El fichero" + file.getName() + " no ha sido borrado");
-//			    			            }
-//			    		            }	
-//			            		}else {
-//			            			log.info("No se actualizo el COMPLEMENTO DE PAGO: " + file.getName());
-//			            		}
-//		            		}else {
-//			            		payments.setUUID("");
-//			            		payments.setPaymentError(content[1].substring(0, 250));
-//			            		payments.setPaymentStatus(AppConstants.STATUS_ERROR_PAC);
-//			            		if(paymentsService.updatePayment(payments)) {
-//			            			log.info("Se obtuvo el error en el COMPLEMENTO DE PAGO " + file.getName());
-//			            		}else {
-//			            			log.info("No se actualizo el COMPLEMENTO DE PAGO, update: " + file.getName());
-//			            		}
-//		            		}
-//		            	}
-//		            }
-//		            
-//				}
-//			}
-//			return true;
-			
-//			JsonObject jobject = jelement.getAsJsonObject();
-//			JsonElement soapEnvelope = jobject.get("cfdi:Comprobante").getAsJsonObject().get("cfdi:Complemento");
-//			JsonElement bdy = soapEnvelope.getAsJsonObject().get("tfd:TimbreFiscalDigital");
-//			String uuid = "";
-//			if(bdy != null) {
-//				if(bdy instanceof JsonArray) {
-//					JsonArray jsonarray = bdy.getAsJsonArray();
-//					for (int i = 0; i < jsonarray.size(); i++) {
-//						JsonElement op = jsonarray.get(i).getAsJsonObject();
-//						uuid = String.valueOf(op.getAsJsonObject().get("UUID"));
-//					}
-//				}else {
-//					
-//					uuid = String.valueOf(bdy.getAsJsonObject().get("UUID"));	
-//				}
-//			}
-//			return uuid;
 			
 			List<Invoice> updateInv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_UPDUUID, "");
 			List<Payments> updatePay = paymentsService.getPaymentsStatus(AppConstants.STATUS_UPDUUID);
@@ -937,7 +774,6 @@ public class StampedServiceImpl implements StampedService{
 					}	
 					if(uuid != null && !uuid.isEmpty()) {
 						uuid = uuid.replaceAll("\"", "");
-//						log.warn(inv.getInvoiceType() + " " + AppConstants.ORDER_TYPE_FACTURA );
 						String option =  inv.getInvoiceType();
 						switch(option) {
 							case AppConstants.ORDER_TYPE_FACTURA:
@@ -952,15 +788,13 @@ public class StampedServiceImpl implements StampedService{
 									inv.setUUID(uuid);
 									inv.setErrorMsg(null);
 									inv.setStatus(AppConstants.STATUS_INVOICED);
-									this.createAdvPayNC(inv);
-//									log.warn(uuid + " " + inv.getFolio());
+//									this.createAdvPayNC(inv);
 									invoiceDao.updateInvoice(inv);
 								}
 								break;
 							case AppConstants.ORDER_TYPE_NC:
 								inv.setUUID(uuid);
 								inv.setErrorMsg(null);
-//								log.warn(uuid + " " + inv.getFolio());
 								inv.setStatus(AppConstants.STATUS_INVOICED);
 								invoiceDao.updateInvoice(inv);
 								break;		
@@ -982,7 +816,6 @@ public class StampedServiceImpl implements StampedService{
 							case AppConstants.ORDER_TYPE_TRANS:
 								inv.setUUID(uuid);
 								inv.setErrorMsg(null);
-//								log.warn(uuid + " " + inv.getFolio());
 								inv.setStatus(AppConstants.STATUS_FINISHED);
 								invoiceDao.updateInvoice(inv);
 								break;								
@@ -1034,10 +867,23 @@ public class StampedServiceImpl implements StampedService{
 						pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
 						paymentsService.updatePayment(pay);
 					}					
-//					System.out.println(uuid);
 				}catch(Exception e) {
 					log.info("NOSE A ENCONTRADO NADA" + e);
 				}
+			}
+			
+			List<PaymentsList> pllist = new ArrayList<PaymentsList>();
+			pllist = paymentsListService.getAllPayList(AppConstants.STATUS_UPDUUID);
+			for(PaymentsList pl: pllist) {
+				for(Payments p: pl.getPayments()) {
+					if(p.getUUID()!= null && !p.getUUID().isEmpty()) {
+						pl.setUuid(p.getUUID());
+						pl.setStatus(AppConstants.STATUS_FINISHED);
+						paymentsListService.updatePaymentsList(pl);
+						break;
+					}
+				}
+
 			}
 			return true;
 		}catch(Exception e) {
@@ -1046,6 +892,7 @@ public class StampedServiceImpl implements StampedService{
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	@Override
 	public boolean createPaymentsFile(Payments i) {
 		String fileRuta = "";
@@ -1078,8 +925,8 @@ public class StampedServiceImpl implements StampedService{
 					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
 					dateFormat.format(new Date()) + AppConstantsUtil.FILES_SEPARATOR +
 					i.getBranch().getZip() + AppConstantsUtil.FILES_SEPARATOR +
-					rType + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getUuidReference()) + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
+					"" + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getBusinessUnitName() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
@@ -1105,8 +952,8 @@ public class StampedServiceImpl implements StampedService{
 					"\n"+
 					AppConstantsUtil.PAYMENT_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getUuidReference()) + AppConstantsUtil.FILES_SEPARATOR +
-					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
-					i.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getSerialRel() + AppConstantsUtil.FILES_SEPARATOR +
+					i.getFolioRel() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getPaymentMethod() + AppConstantsUtil.FILES_SEPARATOR +//Método de pago PUE
@@ -1122,10 +969,6 @@ public class StampedServiceImpl implements StampedService{
 			if (!file.exists()) {
              	file.createNewFile();
             }
-//			FileWriter fw = new FileWriter(file);
-//            BufferedWriter bw = new BufferedWriter(fw);
-//            bw.write(content);
-//            bw.close();
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
             out.write(content);
             out.close();
@@ -1142,113 +985,317 @@ public class StampedServiceImpl implements StampedService{
 	public boolean createAdvPayNC(Invoice invoice) {
 		Invoice newInv = new Invoice();
 		try {
-			Invoice i = invoiceDao.getInvoiceByUuid(invoice.getUUIDReference());
-			NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_NC, invoice.getBranch());
-			Udc creditNote = udcService.searchBySystemAndKey(AppConstants.PAYMENTS_ADVPAY,
-					AppConstants.INVOICE_SAT_TYPE_E);
-//			Udc noteCredite = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_RTYPE, AppConstants.INVOICE_SAT_TYPE_E);
-			if (creditNote != null) {
-				newInv.setCustomerName(invoice.getCustomerName());
-				newInv.setCustomerPartyNumber(invoice.getCustomerPartyNumber());
-				newInv.setCustomerTaxIdentifier(invoice.getCustomerTaxIdentifier());
-				newInv.setCustomerAddress1(invoice.getCustomerAddress1());
-				newInv.setCustomerCity(invoice.getCustomerCity());
-				newInv.setCustomerCountry(invoice.getCustomerCountry());
-				newInv.setCustomerEmail(invoice.getCustomerEmail());
-				newInv.setCustomerState(invoice.getCustomerState());
-				newInv.setCustomerZip(invoice.getCustomerZip());
-				
-				newInv.setShipToName(NullValidator.isNull(invoice.getShipToName()));
-				newInv.setShipToaddress(NullValidator.isNull(invoice.getShipToaddress()));
-				newInv.setShipToCity(NullValidator.isNull(invoice.getShipToCity()));
-				newInv.setShipToCountry(NullValidator.isNull(invoice.getShipToCountry()));
-				newInv.setShipToState(NullValidator.isNull(invoice.getShipToState()));
-				newInv.setShipToZip(NullValidator.isNull(invoice.getShipToZip()));
-				
-				newInv.setCFDIUse(invoice.getCFDIUse());
-				newInv.setBranch(invoice.getBranch());
-				newInv.setCompany(invoice.getCompany());
-				newInv.setCreatedBy(invoice.getCreatedBy());
-				newInv.setCreationDate(dateFormat.parse(dateFormat.format(new Date())));
-				newInv.setUpdatedBy(invoice.getUpdatedBy());
-				newInv.setUpdatedDate(newInv.getCreationDate());
-//				newInv.setInvoiceRelationType(noteCredite.getStrValue1());
-				newInv.setInvoiceRelationType("07");
-				newInv.setUUIDReference(invoice.getUUID());
-				newInv.setPayments(null);
-				
-				newInv.setInvoiceTotal(i.getInvoiceTotal());
-				newInv.setInvoiceSubTotal(i.getInvoiceSubTotal());
-				newInv.setInvoiceTaxAmount(i.getInvoiceTaxAmount());
-				newInv.setInvoiceDiscount(0);
-				
-				newInv.setSetName(invoice.getSetName());
-				newInv.setPaymentTerms("");
-				newInv.setFolio(String.valueOf(nNumber.getFolio()));
-				newInv.setSerial(nNumber.getSerie());
-				newInv.setStatus(AppConstants.STATUS_PENDING);
-				newInv.setInvoice(false);
-				newInv.setInvoiceType(AppConstants.ORDER_TYPE_NC);
-				newInv.setFromSalesOrder(null);
-				newInv.setInvoiceCurrency(invoice.getInvoiceCurrency());
-				newInv.setInvoiceExchangeRate(invoice.getInvoiceExchangeRate());
-				newInv.setOrderSource(NullValidator.isNull(invoice.getOrderSource()));
-				newInv.setOrderType(AppConstants.ORDER_TYPE_NC);
-				newInv.setProductType(NullValidator.isNull(invoice.getProductType()));
-				newInv.setExtCom(invoice.isExtCom());
-				newInv.setPaymentMethod(AppConstants.PAY_METHOD);
-				newInv.setPaymentType(creditNote.getDescription());
-				
-				for(InvoiceDetails idetails: i.getInvoiceDetails()) {
-					InvoiceDetails iD = new InvoiceDetails();
-					iD.setItemNumber("");
-					iD.setItemDescription(creditNote.getStrValue1());
-					iD.setUnitProdServ(String.valueOf(creditNote.getIntValue()));
-					iD.setUnitPrice(idetails.getUnitPrice());
-					iD.setTotalTaxAmount(idetails.getTotalTaxAmount());
-					iD.setTotalAmount(idetails.getTotalAmount());
-					iD.setTotalDiscount(0);
-					iD.setUomName(AppConstants.INVOICE_ADVPAY_DEFAULT_UOM);
-					iD.setUomCode(creditNote.getStrValue2());
-					iD.setCurrency(idetails.getCurrency());
-					iD.setExchangeRate(idetails.getExchangeRate());
-					iD.setImport(false);
-					iD.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
-					iD.setQuantity(AppConstants.INVOICE_ADVPAY_DEFAULT_QUANTITY);
-					iD.setTransactionLineNumber(AppConstants.INVOICE_ADVPAY_DEFAULT_TRANSLINNUMBER);
-					iD.setRetailComplements(null);
-					
-					List<TaxCodes> tcs = new ArrayList<TaxCodes>();
-					tcs = taxCodesService.getTCList(0, 10);
-					for(TaxCodes tc: tcs) {
-						if(tc.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
-							List<TaxCodes> taxCodes = new ArrayList<TaxCodes>();
-							taxCodes.add(tc);
-							Set<TaxCodes> tCodes = new HashSet<TaxCodes>(taxCodes);
-							iD.setTaxCodes(tCodes);
-							break;
+			if(invoice.getUUIDReference().contains(",")) {
+				String[ ] invoicesRef = invoice.getUUIDReference().split(",");
+				for(String iR: invoicesRef) {
+					Invoice i = invoiceDao.getInvoiceByUuid(iR);
+					NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_NC, invoice.getBranch());
+					Udc creditNote = udcService.searchBySystemAndKey(AppConstants.PAYMENTS_ADVPAY,
+							AppConstants.INVOICE_SAT_TYPE_E);
+					if (creditNote != null) {
+						newInv.setCustomerName(invoice.getCustomerName());
+						newInv.setCustomerPartyNumber(invoice.getCustomerPartyNumber());
+						newInv.setCustomerTaxIdentifier(invoice.getCustomerTaxIdentifier());
+						newInv.setCustomerAddress1(invoice.getCustomerAddress1());
+						newInv.setCustomerCity(invoice.getCustomerCity());
+						newInv.setCustomerCountry(invoice.getCustomerCountry());
+						newInv.setCustomerEmail(invoice.getCustomerEmail());
+						newInv.setCustomerState(invoice.getCustomerState());
+						newInv.setCustomerZip(invoice.getCustomerZip());
+						
+						newInv.setShipToName(NullValidator.isNull(invoice.getShipToName()));
+						newInv.setShipToaddress(NullValidator.isNull(invoice.getShipToaddress()));
+						newInv.setShipToCity(NullValidator.isNull(invoice.getShipToCity()));
+						newInv.setShipToCountry(NullValidator.isNull(invoice.getShipToCountry()));
+						newInv.setShipToState(NullValidator.isNull(invoice.getShipToState()));
+						newInv.setShipToZip(NullValidator.isNull(invoice.getShipToZip()));
+						
+						newInv.setCFDIUse("G02");
+						newInv.setBranch(invoice.getBranch());
+						newInv.setCompany(invoice.getCompany());
+						newInv.setCreatedBy(invoice.getCreatedBy());
+						newInv.setCreationDate(dateFormat.parse(dateFormat.format(new Date())));
+						newInv.setUpdatedBy(invoice.getUpdatedBy());
+						newInv.setUpdatedDate(newInv.getCreationDate());
+						newInv.setInvoiceRelationType("07");
+						newInv.setUUIDReference(invoice.getUUID());
+						newInv.setPayments(null);
+						
+						newInv.setInvoiceTotal(Double.parseDouble(numberFormat.format(i.getInvoiceTotal())));
+						newInv.setInvoiceSubTotal(Double.parseDouble(numberFormat.format(i.getInvoiceSubTotal())));
+						newInv.setInvoiceTaxAmount(Double.parseDouble(numberFormat.format(i.getInvoiceTaxAmount())));
+						newInv.setInvoiceDiscount(0);
+						
+						newInv.setSetName(invoice.getSetName());
+						newInv.setPaymentTerms("CONTADO");
+						newInv.setFolio(String.valueOf(nNumber.getFolio()));
+						newInv.setSerial(nNumber.getSerie());
+						newInv.setStatus(AppConstants.STATUS_PENDING);
+						newInv.setInvoice(false);
+						newInv.setInvoiceType(AppConstants.ORDER_TYPE_NC);
+						newInv.setFromSalesOrder(null);
+						newInv.setInvoiceCurrency(invoice.getInvoiceCurrency());
+						newInv.setInvoiceExchangeRate(invoice.getInvoiceExchangeRate());
+						newInv.setOrderSource(NullValidator.isNull(invoice.getOrderSource()));
+						newInv.setOrderType(AppConstants.ORDER_TYPE_NC);
+						newInv.setProductType("");
+						newInv.setExtCom(invoice.isExtCom());
+						newInv.setPaymentMethod(AppConstants.PAY_METHOD);
+						newInv.setPaymentType(creditNote.getDescription());
+						
+						for(InvoiceDetails idetails: i.getInvoiceDetails()) {
+							InvoiceDetails iD = new InvoiceDetails();
+							iD.setIsInvoiceLine("D");
+							iD.setItemNumber("");
+							iD.setItemDescription(creditNote.getStrValue1());
+							iD.setUnitProdServ(String.valueOf(creditNote.getIntValue()));
+							iD.setUnitPrice(Double.parseDouble(numberFormat.format(idetails.getUnitPrice())));
+							iD.setTotalTaxAmount(Double.parseDouble(numberFormat.format(idetails.getTotalTaxAmount())));
+							iD.setTotalAmount(Double.parseDouble(numberFormat.format(idetails.getTotalAmount())));
+							iD.setTotalDiscount(0);
+							iD.setUomName(AppConstants.INVOICE_ADVPAY_DEFAULT_UOM);
+							iD.setUomCode(creditNote.getStrValue2());
+							iD.setCurrency(idetails.getCurrency());
+							iD.setExchangeRate(idetails.getExchangeRate());
+							iD.setImport(false);
+							iD.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+							iD.setQuantity(AppConstants.INVOICE_ADVPAY_DEFAULT_QUANTITY);
+							iD.setTransactionLineNumber(AppConstants.INVOICE_ADVPAY_DEFAULT_TRANSLINNUMBER);
+							iD.setRetailComplements(null);
+							iD.setIsVehicleControl("0");
+							
+							List<TaxCodes> tcs = new ArrayList<TaxCodes>();
+							tcs = taxCodesService.getTCList(0, 10);
+							for(TaxCodes tc: tcs) {
+								if(tc.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+									List<TaxCodes> taxCodes = new ArrayList<TaxCodes>();
+									taxCodes.add(tc);
+									Set<TaxCodes> tCodes = new HashSet<TaxCodes>(taxCodes);
+									iD.setTaxCodes(tCodes);
+									break;
+								}
+							}
+							
+							List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
+							idList.add(iD);
+							Set<InvoiceDetails> sId = new HashSet<InvoiceDetails>(idList);
+							newInv.setInvoiceDetails(sId);
 						}
+						
+						if(!invoiceDao.saveInvoice(newInv)){
+							log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+							+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+						}
+						
+					} else {
+						log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+								+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+					}
+				}
+			}else {
+				Invoice i = invoiceDao.getInvoiceByUuid(invoice.getUUIDReference());
+				NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_NC, invoice.getBranch());
+				Udc creditNote = udcService.searchBySystemAndKey(AppConstants.PAYMENTS_ADVPAY,
+						AppConstants.INVOICE_SAT_TYPE_E);
+				if (creditNote != null) {
+					newInv.setCustomerName(invoice.getCustomerName());
+					newInv.setCustomerPartyNumber(invoice.getCustomerPartyNumber());
+					newInv.setCustomerTaxIdentifier(invoice.getCustomerTaxIdentifier());
+					newInv.setCustomerAddress1(invoice.getCustomerAddress1());
+					newInv.setCustomerCity(invoice.getCustomerCity());
+					newInv.setCustomerCountry(invoice.getCustomerCountry());
+					newInv.setCustomerEmail(invoice.getCustomerEmail());
+					newInv.setCustomerState(invoice.getCustomerState());
+					newInv.setCustomerZip(invoice.getCustomerZip());
+					
+					newInv.setShipToName(NullValidator.isNull(invoice.getShipToName()));
+					newInv.setShipToaddress(NullValidator.isNull(invoice.getShipToaddress()));
+					newInv.setShipToCity(NullValidator.isNull(invoice.getShipToCity()));
+					newInv.setShipToCountry(NullValidator.isNull(invoice.getShipToCountry()));
+					newInv.setShipToState(NullValidator.isNull(invoice.getShipToState()));
+					newInv.setShipToZip(NullValidator.isNull(invoice.getShipToZip()));
+					
+					newInv.setCFDIUse(invoice.getCFDIUse());
+					newInv.setBranch(invoice.getBranch());
+					newInv.setCompany(invoice.getCompany());
+					newInv.setCreatedBy(invoice.getCreatedBy());
+					newInv.setCreationDate(dateFormat.parse(dateFormat.format(new Date())));
+					newInv.setUpdatedBy(invoice.getUpdatedBy());
+					newInv.setUpdatedDate(newInv.getCreationDate());
+					newInv.setInvoiceRelationType("07");
+					newInv.setUUIDReference(invoice.getUUID());
+					newInv.setPayments(null);
+					
+					newInv.setInvoiceTotal(i.getInvoiceTotal());
+					newInv.setInvoiceSubTotal(i.getInvoiceSubTotal());
+					newInv.setInvoiceTaxAmount(i.getInvoiceTaxAmount());
+					newInv.setInvoiceDiscount(0);
+					
+					newInv.setSetName(invoice.getSetName());
+					newInv.setPaymentTerms("CONTADO");
+					newInv.setFolio(String.valueOf(nNumber.getFolio()));
+					newInv.setSerial(nNumber.getSerie());
+					newInv.setStatus(AppConstants.STATUS_PENDING);
+					newInv.setInvoice(false);
+					newInv.setInvoiceType(AppConstants.ORDER_TYPE_NC);
+					newInv.setFromSalesOrder(null);
+					newInv.setInvoiceCurrency(invoice.getInvoiceCurrency());
+					newInv.setInvoiceExchangeRate(invoice.getInvoiceExchangeRate());
+					newInv.setOrderSource(NullValidator.isNull(invoice.getOrderSource()));
+					newInv.setOrderType(AppConstants.ORDER_TYPE_NC);
+					newInv.setProductType("");
+					newInv.setExtCom(invoice.isExtCom());
+					newInv.setPaymentMethod(AppConstants.PAY_METHOD);
+					newInv.setPaymentType(creditNote.getDescription());
+					
+					for(InvoiceDetails idetails: i.getInvoiceDetails()) {
+						InvoiceDetails iD = new InvoiceDetails();
+						iD.setIsInvoiceLine("D");
+						iD.setItemNumber("");
+						iD.setItemDescription(creditNote.getStrValue1());
+						iD.setUnitProdServ(String.valueOf(creditNote.getIntValue()));
+						iD.setUnitPrice(idetails.getUnitPrice());
+						iD.setTotalTaxAmount(idetails.getTotalTaxAmount());
+						iD.setTotalAmount(idetails.getTotalAmount());
+						iD.setTotalDiscount(0);
+						iD.setUomName(AppConstants.INVOICE_ADVPAY_DEFAULT_UOM);
+						iD.setUomCode(creditNote.getStrValue2());
+						iD.setCurrency(idetails.getCurrency());
+						iD.setExchangeRate(idetails.getExchangeRate());
+						iD.setImport(false);
+						iD.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+						iD.setQuantity(AppConstants.INVOICE_ADVPAY_DEFAULT_QUANTITY);
+						iD.setTransactionLineNumber(AppConstants.INVOICE_ADVPAY_DEFAULT_TRANSLINNUMBER);
+						iD.setRetailComplements(null);
+						iD.setIsVehicleControl("0");
+						
+						List<TaxCodes> tcs = new ArrayList<TaxCodes>();
+						tcs = taxCodesService.getTCList(0, 10);
+						for(TaxCodes tc: tcs) {
+							if(tc.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+								List<TaxCodes> taxCodes = new ArrayList<TaxCodes>();
+								taxCodes.add(tc);
+								Set<TaxCodes> tCodes = new HashSet<TaxCodes>(taxCodes);
+								iD.setTaxCodes(tCodes);
+								break;
+							}
+						}
+						
+						List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
+						idList.add(iD);
+						Set<InvoiceDetails> sId = new HashSet<InvoiceDetails>(idList);
+						newInv.setInvoiceDetails(sId);
 					}
 					
-					List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
-					idList.add(iD);
-					Set<InvoiceDetails> sId = new HashSet<InvoiceDetails>(idList);
-					newInv.setInvoiceDetails(sId);
-				}
-				
-				if(!invoiceDao.saveInvoice(newInv)){
-					log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
-					+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
-				}
-				
-			} else {
-				log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+					if(!invoiceDao.saveInvoice(newInv)){
+						log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
 						+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
-			}
+					}
+					
+				} else {
+					log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+							+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+				}
+			}			
 			return true;
 		}catch(Exception e) {
 			log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder() + " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
 			return false;
 		}
 	}
+
+	@Override
+	public boolean creatPaymentListFile(List<PaymentsList> pl) {
+		String fileRuta = "";
+		String fileName = "";
+		String content = "";		
+		String country = "";
+		String rfc = "";
+		try {
+			//Obtener ruta para dejar los archivos
+			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
+			for(Udc ud: u) {
+				if(ud.getStrValue1().equals(AppConstantsUtil.RUTA_FILES_STAMPED)) {
+					fileRuta = ud.getStrValue2();
+				}
+			}	
+						
+			for(PaymentsList plist: pl) {
+				if(plist.getCustomerCountry().equals(AppConstantsUtil.COUNTRY_DEFAULT)) {
+					country = "";
+					rfc = "";
+				}else {
+					country = plist.getCustomerCountry();
+					rfc = plist.getCustomerTaxId();
+				}
+				List<Payments> pay = new ArrayList<Payments>(plist.getPayments());
+				content = AppConstantsUtil.PAYMENT_HEADER + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getFolio() + AppConstantsUtil.FILES_SEPARATOR +
+						dateFormat.format(new Date()) + AppConstantsUtil.FILES_SEPARATOR +
+						pay.get(0).getBranch().getZip() + AppConstantsUtil.FILES_SEPARATOR +
+						""  + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +
+						pay.get(0).getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+						pay.get(0).getCompany().getBusinessUnitName() + AppConstantsUtil.FILES_SEPARATOR +
+						pay.get(0).getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getCustomerTaxId() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
+						country + AppConstantsUtil.FILES_SEPARATOR +
+						rfc + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
+						pay.get(0).getPartyNumber() + AppConstantsUtil.FILES_SEPARATOR +
+						pay.get(0).getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +
+						"\r\n" +
+						AppConstantsUtil.PAYMENT_PAYMENT + AppConstantsUtil.FILES_SEPARATOR +
+						pay.get(0).getCreationDate() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getPaymentForm() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
+						plist.getPaymentAmount() + AppConstantsUtil.FILES_SEPARATOR +
+						"" + AppConstantsUtil.FILES_SEPARATOR +//Transaction Reference
+						NullValidator.isNull(pay.get(0).getBankReference()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(pay.get(0).getAcountBankTaxIdentifier()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(pay.get(0).getPayerAccount()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(pay.get(0).getBeneficiaryAccount()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(pay.get(0).getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
+						"\r\n";
+				for(Payments p: pay) {
+					content = content +
+							AppConstantsUtil.PAYMENT_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(p.getUuidReference()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(p.getSerialRel()) + AppConstantsUtil.FILES_SEPARATOR +
+							p.getFolioRel() + AppConstantsUtil.FILES_SEPARATOR +
+							p.getCurrency() + AppConstantsUtil.FILES_SEPARATOR +
+							p.getExchangeRate() + AppConstantsUtil.FILES_SEPARATOR +
+							p.getPaymentMethod() + AppConstantsUtil.FILES_SEPARATOR +//Método de pago PUE
+							p.getPaymentNumber() + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(p.getPreviousBalanceAmount()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(p.getPaymentAmount()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(p.getRemainingBalanceAmount()) + AppConstantsUtil.FILES_SEPARATOR +
+							"\r\n";
+					
+					p.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+					paymentsService.updatePayment(p);
+				}
+				
+				//Nombrar archivo
+				fileName = NullValidator.isNull(plist.getSerial()) + plist.getFolio();
+				//Crear archivo en la ruta deseada
+				File file = new File(fileRuta + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+				if (!file.exists()) {
+	             	file.createNewFile();
+	            }
+	            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+	            out.write(content);
+	            out.close();
+	            plist.setStatus(AppConstants.STATUS_UPDUUID);
+	            paymentsListService.updatePaymentsList(plist);	 
+			}
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 }

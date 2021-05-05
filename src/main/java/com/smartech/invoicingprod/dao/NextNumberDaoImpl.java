@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dao;
+package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.smartech.invoicing.model.Branch;
-import com.smartech.invoicing.model.Company;
-import com.smartech.invoicing.model.NextNumber;
+import com.smartech.invoicingprod.model.Branch;
+import com.smartech.invoicingprod.model.Company;
+import com.smartech.invoicingprod.model.NextNumber;
 
 @Repository("nextNumberDao")
 @Transactional
@@ -24,7 +24,6 @@ public class NextNumberDaoImpl implements NextNumberDao{
 	@Override
 	@SuppressWarnings("unchecked")
 	public synchronized int getLastNumber(String OrderType, Branch Organization) {
-		 // TODO Auto-generated method stub
 		 Session session = this.sessionFactory.getCurrentSession();
 		 Criteria crit =  session.createCriteria(NextNumber.class);    
 	     crit.setProjection(Projections.max("Folio"));
@@ -102,5 +101,31 @@ public class NextNumberDaoImpl implements NextNumberDao{
 	    	 return null;
 	     }
 		return orders.get(0);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public NextNumber existCombo(String OrderType, Company Organzation) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria crit =  session.createCriteria(NextNumber.class); 
+	    crit.add( Restrictions.eq("OrderType", OrderType));
+	    crit.add( Restrictions.eq("company", Organzation));
+	    List<NextNumber> orders = crit.list(); 
+	    if(orders != null && !orders.isEmpty()) {
+	    	if(orders.get(0) != null) {
+	    		return orders.get(0);
+		 	}else {
+		   	 return null;
+		    } 
+	     }else {
+	    	 return null;
+	     }
+	}
+
+	@Override
+	public NextNumber getNumberById(int id) {
+		Session session = this.sessionFactory.getCurrentSession();
+		long lId = Long.valueOf(id);
+		return (NextNumber) session.get(NextNumber.class, lId);
 	}
 }

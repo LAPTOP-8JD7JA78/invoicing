@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.dto;
+package com.smartech.invoicingprod.integration.dto;
 
 public class ParamsRestDTO {
 

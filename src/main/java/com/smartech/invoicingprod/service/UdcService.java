@@ -1,9 +1,9 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.Date;
 import java.util.List;
 
-import com.smartech.invoicing.model.Udc;
+import com.smartech.invoicingprod.model.Udc;
 
 public interface UdcService {
 	Udc getUdcById(int id);

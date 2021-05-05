@@ -1,12 +1,12 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.smartech.invoicing.dao.NextNumberDao;
-import com.smartech.invoicing.model.Branch;
-import com.smartech.invoicing.model.Company;
-import com.smartech.invoicing.model.NextNumber;
+import com.smartech.invoicingprod.dao.NextNumberDao;
+import com.smartech.invoicingprod.model.Branch;
+import com.smartech.invoicingprod.model.Company;
+import com.smartech.invoicingprod.model.NextNumber;
 
 @Service("nextNumberService")
 public class NextNumberServiceImpl implements NextNumberService{
@@ -16,7 +16,6 @@ public class NextNumberServiceImpl implements NextNumberService{
 	@Override
 	public int getNextNumber(String orderType, Branch organization) {
 		return nextNumberDao.getLastNumber(orderType, organization);
-		//return 0;
 	}
 
 	@Override
@@ -32,6 +31,19 @@ public class NextNumberServiceImpl implements NextNumberService{
 	@Override
 	public NextNumber getNextNumberByItem(String orderType, Company organization) {
 		return nextNumberDao.getLastNumberByItem(orderType, organization);
-		//return 0;
+	}
+
+	@Override
+	public boolean existCombo(String orderType, Company organization) {
+		NextNumber nn = nextNumberDao.existCombo(orderType, organization);
+		if(nn != null) {
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public NextNumber getNumberById(int id) {
+		return nextNumberDao.getNumberById(id);
 	}
 }

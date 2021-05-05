@@ -1,4 +1,4 @@
-package com.smartech.invoicing.dto;
+package com.smartech.invoicingprod.dto;
 
 public class InvoicesByReportsDTO {
 	private String customerName;
@@ -43,6 +43,7 @@ public class InvoicesByReportsDTO {
 	private String shipToZip;
 	private String shipToState;
 	private String customerPartyNumber;
+	private String customerClass;
 	
 	private boolean isDetCom;
 	private String documentStatus;
@@ -71,6 +72,14 @@ public class InvoicesByReportsDTO {
 	private String uomCodeDet;
 	private String price;
 	private String total;
+	private String uuidRelated;
+	private String faPaymentMethod;
+	private String faPaymentForm;
+	private String fausoCFDI;
+	private String faCodigoSat;
+	private String itemDescriptionFA;
+	private String itemDescriptionDetailsForService;
+	private String uuidInitialCharge;
 	
 	public String getCustomerName() {
 		return customerName;
@@ -488,5 +497,58 @@ public class InvoicesByReportsDTO {
 	public void setCustomerEmail(String customerEmail) {
 		this.customerEmail = customerEmail;
 	}
-	
+	public String getCustomerClass() {
+		return customerClass;
+	}
+	public void setCustomerClass(String customerClass) {
+		this.customerClass = customerClass;
+	}
+	public String getUuidRelated() {
+		return uuidRelated;
+	}
+	public void setUuidRelated(String uuidRelated) {
+		this.uuidRelated = uuidRelated;
+	}
+	public String getFaPaymentMethod() {
+		return faPaymentMethod;
+	}
+	public void setFaPaymentMethod(String faPaymentMethod) {
+		this.faPaymentMethod = faPaymentMethod;
+	}
+	public String getFaPaymentForm() {
+		return faPaymentForm;
+	}
+	public void setFaPaymentForm(String faPaymentForm) {
+		this.faPaymentForm = faPaymentForm;
+	}
+	public String getFausoCFDI() {
+		return fausoCFDI;
+	}
+	public void setFausoCFDI(String fausoCFDI) {
+		this.fausoCFDI = fausoCFDI;
+	}
+	public String getFaCodigoSat() {
+		return faCodigoSat;
+	}
+	public void setFaCodigoSat(String faCodigoSat) {
+		this.faCodigoSat = faCodigoSat;
+	}
+	public String getItemDescriptionFA() {
+		return itemDescriptionFA;
+	}
+	public void setItemDescriptionFA(String itemDescriptionFA) {
+		this.itemDescriptionFA = itemDescriptionFA;
+	}
+	public String getItemDescriptionDetailsForService() {
+		return itemDescriptionDetailsForService;
+	}
+	public void setItemDescriptionDetailsForService(String itemDescriptionDetailsForService) {
+		this.itemDescriptionDetailsForService = itemDescriptionDetailsForService;
+	}
+	public String getUuidInitialCharge() {
+		return uuidInitialCharge;
+	}
+	public void setUuidInitialCharge(String uuidInitialCharge) {
+		this.uuidInitialCharge = uuidInitialCharge;
+	}
 }

@@ -41,7 +41,7 @@
 	</http>
 
 	<beans:bean id="customAuthenticationProvider"
-		class="com.smartech.invoicing.security.CustomAuthenticationProvider" />
+		class="com.smartech.invoicingprod.security.CustomAuthenticationProvider" />
 
 	<authentication-manager>
 		<authentication-provider

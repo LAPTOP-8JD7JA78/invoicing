@@ -1,5 +1,5 @@
 
-package com.smartech.invoicing.integration.json.salesorderai;
+package com.smartech.invoicingprod.integration.json.salesorderai;
 
 import java.util.HashMap;
 import java.util.List;

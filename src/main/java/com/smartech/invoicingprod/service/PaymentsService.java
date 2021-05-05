@@ -1,8 +1,8 @@
-package com.smartech.invoicing.service;
+package com.smartech.invoicingprod.service;
 
 import java.util.List;
 
-import com.smartech.invoicing.model.Payments;
+import com.smartech.invoicingprod.model.Payments;
 
 public interface PaymentsService {
 	List<Payments> getPaymentsList(String reference);
@@ -13,5 +13,8 @@ public interface PaymentsService {
 	Payments getPaymentByName(String fileName);
 	Payments getPaymentsById(String id);
 	List<Payments> getPayByAdv(String uuid);
+	Payments getPayByUuidRNumber(String receipt, String uuid);
+	List<Payments> getAllError(boolean isError);
+	Payments getPaymentsByCusAndReceipt(String receiptNumber, String customerName);
 	
 }

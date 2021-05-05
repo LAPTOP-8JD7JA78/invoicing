@@ -31,7 +31,7 @@
 	</bean>
 
 	<context:component-scan
-		base-package="com.smartech.invoicing" />
+		base-package="com.smartech.invoicingprod" />
 
 	<mvc:resources mapping="/resources/**"
 		location="/resources/" />
@@ -92,5 +92,5 @@
 	</bean>
 
 	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
-	<bean id="schedulerService" class="com.smartech.invoicing.scheduler.SchedulerService"/>
+	<bean id="schedulerService" class="com.smartech.invoicingprod.scheduler.SchedulerService"/>
 </beans>

@@ -1,4 +1,4 @@
-package com.smartech.invoicing.integration.service;
+package com.smartech.invoicingprod.integration.service;
 
 import java.util.regex.Pattern;
 
