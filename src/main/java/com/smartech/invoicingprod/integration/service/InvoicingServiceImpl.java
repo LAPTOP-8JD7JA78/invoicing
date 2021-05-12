@@ -647,6 +647,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invDetails.setItemNumber(in.getItemName());
 									invDetails.setItemDescription(in.getItemDescription());
 									invDetails.setCurrency(in.getCurrency());
+									invDetails.setUomName(in.getUomCode());
 									if(in.getExchangeRate().isEmpty()) {
 										invDetails.setExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
 									}else {
@@ -675,6 +676,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									if(i.getStatus().equals(AppConstants.STATUS_PENDING)) {
 										invDetails.setUnitProdServ(NullValidator.isNull(in.getFaCodigoSat()));
 										Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, in.getUomCode());
+										invDetails.setUomName(satUOM.getStrValue2().toUpperCase());
 										invDetails.setUomCode(satUOM.getStrValue1());
 										invDetails.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
 										if(in.getItemDescriptionDetailsForService() == null){
@@ -704,7 +706,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 											continue;
 										}
 									}
-									invDetails.setUomName(in.getUomCode());
 									if(in.getTaxRecoverableAmount().isEmpty()) {
 										invDetails.setTotalTaxAmount(0.00);
 									}else {
@@ -1640,6 +1641,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, invLine.getUomName());
 									if(satUOM != null && satUOM.getStrValue1() != null && !"".contains(satUOM.getStrValue1())) {
 										//UOM del SAT
+										invLine.setUomName(satUOM.getStrValue2().toUpperCase());
 										invLine.setUomCode(satUOM.getStrValue1());
 										//UOM de Aduana
 										invLine.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
@@ -3856,7 +3858,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					if(satUOM != null && satUOM.getStrValue1() != null && !"".contains(satUOM.getStrValue1())) {
 						//UOM del SAT
 						invD.setUomCode(satUOM.getStrValue1());
-						invD.setUomName(satUOM.getUdcKey());
+						invD.setUomName(satUOM.getStrValue2().toUpperCase());
 						//UOM de Aduana
 						invD.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
 					}else {
@@ -4385,6 +4387,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				iD.setTotalAmount(Double.parseDouble(inv.getTransactionLineUnitSellingPrice()) * Double.parseDouble(inv.getQuantityInvoiced()));
 				iD.setTotalDiscount(0);
 				iD.setUomName(inv.getUomCode());
+				iD.setUomName(satUOM.getStrValue2().toUpperCase());
 				iD.setUomCode(satUOM.getStrValue1());
 				iD.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
 				iD.setCurrency(inv.getCurrency());
