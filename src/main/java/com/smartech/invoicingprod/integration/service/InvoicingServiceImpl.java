@@ -975,6 +975,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
 		if(invoiceList != null && !invoiceList.isEmpty()) {
 			for(Invoice inv : invoiceList) {
+				String salesOrderNumber = "";
 				String msgError = "";
 				boolean invStatus = true;
 				boolean havePetition = false;
@@ -983,7 +984,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				SalesOrderDTO so = soapService.getSalesOrderInformation(inv.getFromSalesOrder());
 				IncotermByRest inco = restService.getIncoterm(inv.getFromSalesOrder()); 
 				if(so != null && !so.getLines().isEmpty()) {
-					
+					salesOrderNumber = so.getSalesOrderNumber();
 					//OBTENER EL DESCUENTO A NIVEL CABERO
 					String discountTotal = null;
 					if(inco != null) {
@@ -1835,6 +1836,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}else {
 						inv.setStatus(AppConstants.STATUS_PENDING);
 					}
+					inv.setFromSalesOrder(salesOrderNumber);
 					inv.setUpdatedBy("SYSTEM");
 					inv.setUpdatedDate(new Date());
 					inv.setErrorMsg(null);
