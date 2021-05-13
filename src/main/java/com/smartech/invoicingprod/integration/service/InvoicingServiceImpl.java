@@ -1,6 +1,7 @@
 package com.smartech.invoicingprod.integration.service;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -1066,133 +1068,171 @@ public class InvoicingServiceImpl implements InvoicingService{
 						msgError = msgError + ";USOCFDI-Error al obtener el Uso CFDI";
 						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL USO CFDI");
 					}
-					//Proceso anticipo
+					//Proceso anticipo					
 					if(so.getReceivables() != null && !so.getReceivables().isEmpty()) {
-						if(so.getReceivables().contains("|")) {//Varios cobros
-							String[ ] cobros = so.getReceivables().split("\\|");
-							for(String s: cobros) {
-								Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(s, inv.getCustomerName());
-								if(advInvoice != null) {
-									if(advInvoice.getUUID() != null) {
-										inv.setInvoiceRelationType("07");
-										if(inv.getUUIDReference() == null){
-											inv.setUUIDReference(advInvoice.getUUID());
+						
+						//Se obtienen los Anticipos
+						String[ ] anticipos;
+						if(so.getReceivables().contains("|")) {//Varios anticipos
+							anticipos = so.getReceivables().split("\\|");
+						}else {//Un solo anticipo
+							anticipos = new String[]{so.getReceivables()};
+						}
+						
+						//Validaciones y aplicación de anticipos
+						if(invStatus) {
+							List<Payments> updatedPaymentList = new ArrayList<Payments>();
+							List<String> receiptNumberList = new ArrayList<String>();
+							double invoiceAvailable = Math.round(inv.getInvoiceTotal()*100.00)/100.00;
+							double invoiceExchangeRate = inv.getInvoiceExchangeRate();
+							
+							for(String s: anticipos) {
+								if(s.contains("=")) {
+									String [ ] anticipo = s.split("\\=");
+									String receiptNumber = anticipo[0].trim();
+									
+									if(!receiptNumberList.contains(receiptNumber)) {
+										receiptNumberList.add(receiptNumber);
+										NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
+										Number number = format.parse(anticipo[1].trim());
+										
+										if(number != null) {
+											Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(receiptNumber, inv.getCustomerName());
+											if(advInvoice != null) {
+												if(advInvoice.getUUID() != null) {
+													Udc relationTypeUDC = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_INVOICE_RELTYPE, AppConstants.UDC_KEY_ADVPAYMENT);
+													inv.setInvoiceRelationType(relationTypeUDC.getStrValue1());
+													inv.setUUIDReference(advInvoice.getUUID());
+													double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
+													double paymentAvailable = Math.round(NullValidator.isNullD(advInvoice.getRemainingBalanceAmount())*100.00)/100.00;
+													double paymentExchangeRate = Math.round(NullValidator.isNullD(advInvoice.getExchangeRate())*100.00)/100.00;
+													
+													if(paymentAvailable > 0D) {
+														if(Double.compare(paymentAmount, paymentAvailable)  <= 0) {
+															
+															//Verificar que la moneda del Anticipo sea igual a la moneda de la Factura
+															if(inv.getInvoiceCurrency().equals(advInvoice.getCurrency())) {
+																if(Double.compare(paymentAmount, invoiceAvailable) <= 0D){
+																	//Se recalcula el monto disponible en la factura
+																	inv.setAdvanceAplied(true);
+																	invoiceAvailable = Math.round((invoiceAvailable - paymentAmount)*100.00)/100.00;
+																	
+																	//Se recalcula el monto disponible del anticipo																
+																	paymentAvailable = paymentAvailable - paymentAmount;
+																	advInvoice.setAdvanceApplied(true);
+																	advInvoice.setRemainingBalanceAmount(String.valueOf(Math.round(paymentAvailable*100.00)/100.00));
+																	updatedPaymentList.add(advInvoice);																
+																}else {
+																	invStatus = false;
+																	msgError = msgError + ";ANTICIPOS-LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA";
+																	log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA");
+																}
+															} else {//Moneda del Anticipo diferente a la moneda de la Factura																
+																double currentPaymentAmount = 0D;
+																double currentAvailableAmount = 0D;
+																
+																//Se convierten los montos de los Anticipos y de la Factura para validaciones y operaciones
+																if("MXN".equals(advInvoice.getCurrency())) {
+																	currentAvailableAmount = Math.round((invoiceAvailable*invoiceExchangeRate)*100.00)/100.00;//Redondeo a 2 decimales
+																	currentPaymentAmount = Math.round((paymentAmount/invoiceExchangeRate)*100.00)/100.00;
+																} else {
+																	currentAvailableAmount = Math.round((invoiceAvailable/paymentExchangeRate)*100.00)/100.00;//Redondeo a 2 decimales
+																	currentPaymentAmount = Math.round((paymentAmount*paymentExchangeRate)*100.00)/100.00;
+																}
+																
+																if(Double.compare(paymentAmount, currentAvailableAmount) <= 0){
+																	//Se recalcula el monto disponible en la factura
+																	inv.setAdvanceAplied(true);
+																	invoiceAvailable = Math.round((invoiceAvailable - currentPaymentAmount)*100.00)/100.00;
+																	
+																	//Se recalcula el monto disponible del anticipo
+																	paymentAvailable = paymentAvailable - paymentAmount;
+																	advInvoice.setAdvanceApplied(true);
+																	advInvoice.setRemainingBalanceAmount(String.valueOf(paymentAvailable));
+																	updatedPaymentList.add(advInvoice);																
+																}else {
+																	invStatus = false;
+																	msgError = msgError + ";ANTICIPOS-LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA (DIFERENTE MONEDA)";
+																	log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA (DIFERENTE MONEDA)");
+																}
+															}															
+														}else{
+															invStatus = false;
+															msgError = msgError + ";ANTICIPOS-EL MONTO QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO";
+															log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL MONTO ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO");
+														}	
+													}else {
+														invStatus = false;
+														msgError = msgError + ";ANTICIPOS-EL ANTICIPO NO TIENE SALDO PENDIENTE POR APLICAR";
+														log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL ANTICIPO NO TIENE SALDO PENDIENTE POR APLICAR");
+													}											
+												}else {
+													invStatus = false;
+													msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
+													log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
+												}
+											}else {
+												invStatus = false;
+												msgError = msgError + ";LA RELACIÓN DE ANTICIPO EL NOMBRE DEL COBRO ES INCORRECTO O NO PERTENECE AL CLIENTE ASIGNADO";
+												log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO QUE EL NOMBRE DEL COBRO NO EXISTE O NO ESTA RELACIONADO CON EL CLIENTE");
+											}	
 										}else {
-											inv.setUUIDReference(inv.getUUIDReference() + ","+advInvoice.getUUID());
-										}										
+											invStatus = false;
+											msgError = msgError + ";LA RELACIÓN DE ANTICIPO, EL FORMATO DEL MONTO NO ES VÁLIDO";
+											log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL MONTO DEL ANTICIPO");
+										}	
 									}else {
 										invStatus = false;
-										msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
+										msgError = msgError + ";EXISTE UN NUMERO DE ANTICIPO DUPLICADO EN LA RELACIÓN DE ANTICIPOS";
+										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO QUE EXISTE UN NUMERO DE ANTICIPO DUPLICADO EN LA RELACIÓN DE ANTICIPOS");
 									}
-									advInvoice.setAdvanceApplied(true);
-									paymentsService.updatePayment(advInvoice);
-									Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
-									advInvoice2.setAdvanceAplied(true);
-									invoiceDao.updateInvoice(advInvoice2);
-								}
-							}
-						}else {//Un solo cobro
-							Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(so.getReceivables(), inv.getCustomerName());
-							if(advInvoice != null) {
-								if(advInvoice.getUUID() != null) {
-									inv.setInvoiceRelationType("07");
-									inv.setUUIDReference(advInvoice.getUUID());
-									advInvoice.setAdvanceApplied(true);
-									paymentsService.updatePayment(advInvoice);
-									Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
-									if(advInvoice2 != null){
-										advInvoice2.setAdvanceAplied(true);
-										invoiceDao.updateInvoice(advInvoice2);
-									}else {
-										invStatus = false;
-										msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
-									}									
 								}else {
 									invStatus = false;
-									msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
+									msgError = msgError + ";LA RELACIÓN DE ANTICIPO, NO TIENE MONTO ASIGNADO";
+									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS");
+								}
+								
+								if(!invStatus) {
+									//No se cumplió con una validación se setea el valor inicial y se sale del ciclo (for)
+									break;
 								}
 							}
-						}
-//						if(so.getReceivables().contains("|")) {//Varios cobros
-//							String[ ] cobros = so.getReceivables().split("\\|");
-//							for(String s: cobros) {
-//								Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(s, inv.getCustomerName());
-//								if(advInvoice != null) {
-//									if(advInvoice.getUUID() != null) {
-//										inv.setInvoiceRelationType("07");
-//										if(inv.getUUIDReference() == null){
-//											inv.setUUIDReference(advInvoice.getUUID());
-//										}else {
-//											inv.setUUIDReference(inv.getUUIDReference() + ","+advInvoice.getUUID());
-//										}										
-//									}else {
-//										invStatus = false;
-//										msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-//										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
-//									}
-//									advInvoice.setAdvanceApplied(true);
-//									paymentsService.updatePayment(advInvoice);
-//									Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
-//									advInvoice2.setAdvanceAplied(true);
-//									invoiceDao.updateInvoice(advInvoice2);
-//								}
-//							}
-//						}else {//Un solo cobro
-//							if(so.getReceivables().contains("=")) {
-//								String [ ] cobro = so.getReceivables().split("\\=");
-//								Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(cobro[0], inv.getCustomerName());
-//								if(advInvoice != null) {
-//									if(advInvoice.getUUID() != null) {										
-//										inv.setInvoiceRelationType("07");
-//										inv.setUUIDReference(advInvoice.getUUID());
-//										if(inv.getInvoiceCurrency().equals(advInvoice.getCurrency())) {//Misma moneda
-//											double paymentAmount = Double.parseDouble(cobro[1]);
-//											double paymentAvailable = Double.parseDouble(advInvoice.getRemainingBalanceAmount());
-//											if(paymentAmount <= paymentAvailable) {
-//												if(paymentAmount == inv.getInvoiceTotal()){
-//													
-//												}else if(paymentAmount < inv.getInvoiceTotal()){
-//													
-//													msgError = msgError + ";ANTICIPOS-EL MONTO QUE DESEA APLICAR ES MENOR QUE EL MONTO DEL BIEN O SERVICIO POR LO QUE SE ESPERA UN PAGO ADICIONAL";
-//													log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL MONTO ES MENOR QUE EL MONTO DEL BIEN O SERVICIO POR LO QUE SE ESPERA UN PAGO ADICIONAL");
-//												}else {
-//													invStatus = false;
-//													msgError = msgError + ";ANTICIPOS-EL MONTO QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DEL BIEN O SERVICIO";
-//													log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL MONTO ES MAS GRANDE QUE EL MONTO DEL BIEN O SERVICIO");
-//												}
-//											}else{
-//												invStatus = false;
-//												msgError = msgError + ";ANTICIPOS-EL MONTO QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO";
-//												log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL MONTO ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO");
-//											}
-//										}else {//Diferente moneda
-//											
-//										}
-//										advInvoice.setAdvanceApplied(true);
-//										paymentsService.updatePayment(advInvoice);
-//										Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
-//										advInvoice2.setAdvanceAplied(true);
-//										invoiceDao.updateInvoice(advInvoice2);
-//									}else {
-//										invStatus = false;
-//										msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-//										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
-//									}
-//								}else {
-//									invStatus = false;
-//									msgError = msgError + ";LA RELACIÓN DE ANTICIPO EL NOMBRE DEL COBRO ES INCORRECTO O NO PERTENECE AL CLIENTE ASIGNADO";
-//									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO A QUE EL NOMBRE DEL COBRO NO EXISTE O NO ESTA RELACIONADO CON EL CLIENTE");
-//								}
-//							}else {
-//								invStatus = false;
-//								msgError = msgError + ";LA RELACIÓN DE ANTICIPO, NO TIENE MONTO ASIGNADO";
-//								log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS");
-//							}
-//						}
+														
+							if(invStatus) {
+								//Crea NC y actualiza registros de pagos
+								for(String s: anticipos) {
+									String [ ] anticipo = s.split("\\=");
+									String receiptNumber = anticipo[0].trim();
+									NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
+									Number number = format.parse(anticipo[1].trim());
+									double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
+									
+									for(Payments payment : updatedPaymentList) {
+										if(receiptNumber.equals(payment.getReceiptNumber())) {
+											double paymentExchangeRate = Math.round(Double.valueOf(payment.getExchangeRate())*100.00)/100.00;
+											this.createAdvPayNC(inv, paymentAmount, paymentExchangeRate, payment.getCurrency());
+											paymentsService.updatePayment(payment);
+											break;
+										}
+									}
+								}								
+
+								//Notificación de Pagos Pendientes
+								if(invoiceAvailable > 0D) {
+									List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILSERRORS);
+									List<String> email = new ArrayList<String>();
+									for(Udc u: emails) {
+										email.add(u.getUdcKey());
+									}
+									mailService.sendMail(email,
+											AppConstants.EMAIL_ADV_PAYMENTS_SUBJECT,
+											AppConstants.EMAIL_ADV_PAYMENTS_CONTENT_PENDING_PAY.replace("_FOLIO_", inv.getFolio()),
+											null);
+								}
+							}
+						}	
 					}
+					
 					//Método de pago
 					if(so.getMetodoPago() != null && !"".contains(so.getMetodoPago())) {
 						if(so.getMetodoPago().equals(AppConstants.PAY_METHOD)) {
@@ -1857,6 +1897,132 @@ public class InvoicingServiceImpl implements InvoicingService{
 		
 	}
 
+	@Override
+	public boolean createAdvPayNC(Invoice invoice, double paymentAmount, double exchangeRate, String currencyCode) {
+		Invoice newInv = new Invoice();
+		
+		try {
+			NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_NC, invoice.getBranch());
+			Udc creditNote = udcService.searchBySystemAndKey(AppConstants.PAYMENTS_ADVPAY, AppConstants.INVOICE_SAT_TYPE_E);
+			Udc relationType = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_INVOICE_RELTYPE, AppConstants.UDC_KEY_ADVPAYMENT);
+			
+			if(paymentAmount > 0D && exchangeRate > 0D && currencyCode != null && !currencyCode.isEmpty()) {
+				if (creditNote != null) {
+					//Para identificar la NC, si aún no se timbra la factura de orígen
+					newInv.setFromSalesOrder(invoice.getFromSalesOrder());
+					
+					double total = Math.round(paymentAmount*100.00)/100.00;//Redondeo a 2 decimales
+					double subtotal = Math.round((total/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+					double taxAmount = Math.round((total - subtotal)*100.00)/100.00;
+					
+					newInv.setInvoiceTotal(total);
+					newInv.setInvoiceSubTotal(subtotal);
+					newInv.setInvoiceTaxAmount(taxAmount);
+					newInv.setInvoiceDiscount(0);
+					
+					newInv.setCustomerName(invoice.getCustomerName());
+					newInv.setCustomerPartyNumber(invoice.getCustomerPartyNumber());
+					newInv.setCustomerTaxIdentifier(invoice.getCustomerTaxIdentifier());
+					newInv.setCustomerAddress1(invoice.getCustomerAddress1());
+					newInv.setCustomerCity(invoice.getCustomerCity());
+					newInv.setCustomerCountry(invoice.getCustomerCountry());
+					newInv.setCustomerEmail(invoice.getCustomerEmail());
+					newInv.setCustomerState(invoice.getCustomerState());
+					newInv.setCustomerZip(invoice.getCustomerZip());
+					
+					newInv.setShipToName(NullValidator.isNull(invoice.getShipToName()));
+					newInv.setShipToaddress(NullValidator.isNull(invoice.getShipToaddress()));
+					newInv.setShipToCity(NullValidator.isNull(invoice.getShipToCity()));
+					newInv.setShipToCountry(NullValidator.isNull(invoice.getShipToCountry()));
+					newInv.setShipToState(NullValidator.isNull(invoice.getShipToState()));
+					newInv.setShipToZip(NullValidator.isNull(invoice.getShipToZip()));
+					
+					newInv.setCFDIUse(creditNote.getNote());
+					newInv.setBranch(invoice.getBranch());
+					newInv.setCompany(invoice.getCompany());
+					newInv.setCreatedBy(invoice.getCreatedBy());
+					newInv.setCreationDate(dateFormat.parse(dateFormat.format(new Date())));
+					newInv.setUpdatedBy(invoice.getUpdatedBy());
+					newInv.setUpdatedDate(newInv.getCreationDate());
+					newInv.setInvoiceRelationType(relationType.getStrValue1());
+					newInv.setUUIDReference(null);
+					newInv.setPayments(null);					
+					newInv.setSetName(invoice.getSetName());
+					newInv.setPaymentTerms("CONTADO");
+					newInv.setFolio(String.valueOf(nNumber.getFolio()));
+					newInv.setSerial(nNumber.getSerie());
+					newInv.setStatus(AppConstants.STATUS_PENDING_UUID_NC);
+					newInv.setInvoice(false);
+					newInv.setInvoiceType(AppConstants.ORDER_TYPE_NC);
+					newInv.setInvoiceCurrency(invoice.getInvoiceCurrency());
+					newInv.setInvoiceExchangeRate(invoice.getInvoiceExchangeRate());
+					newInv.setOrderSource(NullValidator.isNull(invoice.getOrderSource()));
+					newInv.setOrderType(AppConstants.ORDER_TYPE_NC);
+					newInv.setProductType("");
+					newInv.setExtCom(invoice.isExtCom());
+					newInv.setPaymentMethod(AppConstants.PAY_METHOD);
+					newInv.setPaymentType(creditNote.getDescription());
+					
+					InvoiceDetails iD = new InvoiceDetails();
+					iD.setIsInvoiceLine("D");
+					iD.setItemNumber("");
+					iD.setItemDescription(creditNote.getStrValue1());
+					iD.setUnitProdServ(String.valueOf(creditNote.getIntValue()));
+					iD.setUnitPrice(subtotal);
+					iD.setTotalTaxAmount(taxAmount);
+					iD.setTotalAmount(subtotal);
+					iD.setTotalDiscount(0);
+					iD.setUomName(AppConstants.INVOICE_ADVPAY_DEFAULT_UOM);
+					iD.setUomCode(creditNote.getStrValue2());
+					iD.setCurrency(currencyCode);
+					iD.setExchangeRate(exchangeRate);
+					iD.setImport(false);
+					iD.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+					iD.setQuantity(AppConstants.INVOICE_ADVPAY_DEFAULT_QUANTITY);
+					iD.setTransactionLineNumber(AppConstants.INVOICE_ADVPAY_DEFAULT_TRANSLINNUMBER);
+					iD.setRetailComplements(null);
+					iD.setIsVehicleControl("0");
+					
+					List<TaxCodes> tcs = new ArrayList<TaxCodes>();
+					tcs = taxCodesService.getTCList(0, 10);
+					for(TaxCodes tc: tcs) {
+						if(tc.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+							List<TaxCodes> taxCodes = new ArrayList<TaxCodes>();
+							taxCodes.add(tc);
+							Set<TaxCodes> tCodes = new HashSet<TaxCodes>(taxCodes);
+							iD.setTaxCodes(tCodes);
+							break;
+						}
+					}
+					
+					List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
+					idList.add(iD);
+					Set<InvoiceDetails> sId = new HashSet<InvoiceDetails>(idList);
+					newInv.setInvoiceDetails(sId);
+					
+					if(!invoiceDao.saveInvoice(newInv)){
+						log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+						+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+						return false;
+					}
+				} else {
+					log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+					+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+					return false;
+				}	
+			} else {
+				log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
+				+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID() + ", LOS DATOS DEL PAGO NO SON VÁLIDOS");
+				return false;
+			}
+			
+			return true;
+		}catch(Exception e) {
+			log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder() + " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+			return false;
+		}
+	}
+	
 	@Override
 	public void getInvoicedListForUpdateUUID() {
 		log.info("HA INICIADO EL SERVICIO PARA INSERTAR EL UUID");
@@ -3506,6 +3672,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							pay.setReceiptId(NullValidator.isNull(r.getColumn22()));
 							pay.setReceiptNumber(NullValidator.isNull(r.getColumn23()));
 							pay.setPaymentAmount(r.getColumn31());
+							pay.setRemainingBalanceAmount(r.getColumn31());
 							pay.setPaymentStatus("");
 							pay.setCustomerEmail(invoice.getCustomerEmail());
 							pay.setPartyNumber(invoice.getCustomerPartyNumber());
@@ -3516,8 +3683,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							pay.setBranch(invoice.getBranch());							
 							pay.setPartyNumber(invoice.getCustomerPartyNumber());
 							pay.setCustomerEmail(invoice.getCustomerEmail());
-							pay.setAdvanceApplied(false);
-							
+							pay.setAdvanceApplied(false);													
 							String bank = pay.getBeneficiaryAccount();
 							bank = bank.substring(bank.length() -4);
 							List<Udc> bList = udcService.searchBySystem(AppConstants.UDC_SYSTEM_ACCBANK);

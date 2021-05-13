@@ -723,6 +723,7 @@ public class StampedServiceImpl implements StampedService{
 			
 			List<Invoice> updateInv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_UPDUUID, "");
 			List<Payments> updatePay = paymentsService.getPaymentsStatus(AppConstants.STATUS_UPDUUID);
+			List<Invoice> updateNC = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING_UUID_NC, AppConstants.ORDER_TYPE_NC);
 			List<Invoice> lastestInv = new ArrayList<Invoice>();
 			List<String> arr = new ArrayList<String>();
 			for(Invoice i: updateInv) {
@@ -788,8 +789,17 @@ public class StampedServiceImpl implements StampedService{
 									inv.setUUID(uuid);
 									inv.setErrorMsg(null);
 									inv.setStatus(AppConstants.STATUS_INVOICED);
-//									this.createAdvPayNC(inv);
+									//this.createAdvPayNC(inv);
 									invoiceDao.updateInvoice(inv);
+									
+									//Actualiza NC generadas a partir de anticipos
+									for(Invoice nc : updateNC) {
+										if(inv.getFromSalesOrder().equals(nc.getFromSalesOrder()) && nc.getUUIDReference() == null) {
+											nc.setUUIDReference(uuid);
+											nc.setStatus(AppConstants.STATUS_PENDING);
+											invoiceDao.updateInvoice(nc);
+										}
+									}
 								}
 								break;
 							case AppConstants.ORDER_TYPE_NC:

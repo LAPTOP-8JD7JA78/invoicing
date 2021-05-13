@@ -58,6 +58,7 @@ public class AppConstants {
 	public static final String STATUS_GETRESTDATA = "DATA";
 	public static final String STATUS_PETITIONDATA = "PETITION";
 	public static final String STATUS_PENDING = "PENDING";
+	public static final String STATUS_PENDING_UUID_NC = "PENDINGUUIDNC";	
 	public static final String STATUS_UPDUUID = "UPDUUID";
 	public static final String STATUS_INVOICED = "INVOICED";
 	public static final String STATUS_ERROR_CREATE_FILE = "ERROR CREATE FILE";
@@ -161,6 +162,7 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_SCHEDULER = "SCHEDULER";
 	public static final String UDC_STRVALUE1_INVOICES = "INVOICES";
 	public static final String UDC_SYSTEM_EMAILS = "EMAILS";
+	public static final String UDC_SYSTEM_EMAILSERRORS = "EMAILSERRORS";
 	public static final String UDC_STRVALUE1_PAYMENTS = "PAYMENTS";
 	public static final String UDC_STRVALUE1_ADVANCE_PAYMENTS = "ANTICIPOS";
 	public static final String UDC_SYSTEM_PAYTERMS = "PAYMENTTERMS";
@@ -180,6 +182,8 @@ public class AppConstants {
 	public static final String UDC_KEY_SERVICE_SEAMEX = "SERVICIOSSEAMEX";
 	public static final String UDC_KEY_OTHERS_PRODUCTS = "OTROS PRODUCTOS";
 	public static final String UDC_KEY_INITIAL_CHARGE = "INITIAL_CHARGE";
+	public static final String UDC_SYSTEM_INVOICE_RELTYPE = "INVOICERELTYPE";
+	public static final String UDC_KEY_ADVPAYMENT = "ADVPAYMENT";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";
@@ -199,6 +203,10 @@ public class AppConstants {
 	public static final String EMAIL_TRANSFER_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DEL CFDI DE TRASLADOS";
 	public static final String EMAIL_LABEL_SUBJECT = "ERROR EN PROCESO DE REPORTE DE ETIQUETAS (LABEL-labelProccessScheduler)";
 	public static final String EMAIL_LABEL_CONTENT = "SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACIóN PERO SE HAN OBTENIDO ERRORES DURANTE EL PROCESO DEL LA OBTENCIÓN DE LOS ACTIVOS MEDIANTE EL REPORTE";
+	
+	//Notificación de alertas por correo
+	public static final String EMAIL_ADV_PAYMENTS_SUBJECT = "NOTIFICACIÓN DEL PROCESO DE ANTICIPOS";
+	public static final String EMAIL_ADV_PAYMENTS_CONTENT_PENDING_PAY = "LA FACTURA CON FOLIO: _FOLIO_ TIENE SALDO PENDIENTE DE PAGO, SE PODRÁ CUBRIR EN PARCIALIDADES O EN UNA SOLA EXHIBICIÓN.";
 	
 	//Comercio exterior
 	public static final String INVOICE_EXTERIOR_COMPLEMENT = "IME-VTAEXPORTACION";
