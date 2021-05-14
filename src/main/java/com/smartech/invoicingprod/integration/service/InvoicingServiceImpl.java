@@ -1072,166 +1072,174 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//Proceso anticipo					
 					if(so.getReceivables() != null && !so.getReceivables().isEmpty()) {
-						
-						//Se obtienen los Anticipos
-						String[ ] anticipos;
-						if(so.getReceivables().contains("|")) {//Varios anticipos
-							anticipos = so.getReceivables().split("\\|");
-						}else {//Un solo anticipo
-							anticipos = new String[]{so.getReceivables()};
-						}
-						
-						//Validaciones y aplicación de anticipos
-						if(invStatus) {
-							List<Payments> updatedPaymentList = new ArrayList<Payments>();
-							List<String> receiptNumberList = new ArrayList<String>();
-							double invoiceAvailable = Math.round(inv.getInvoiceTotal()*100.00)/100.00;
-							double invoiceExchangeRate = inv.getInvoiceExchangeRate();
+						int pipeMatches = org.apache.commons.lang3.StringUtils.countMatches(so.getReceivables(), "|");
+						int equalMatches = org.apache.commons.lang3.StringUtils.countMatches(so.getReceivables(), "=");						
+						if(equalMatches > 0 && (equalMatches == pipeMatches+1)) {
 							
-							for(String s: anticipos) {
-								if(s.contains("=")) {
-									String [ ] anticipo = s.split("\\=");
-									String receiptNumber = anticipo[0].trim();
-									
-									if(!receiptNumberList.contains(receiptNumber)) {
-										receiptNumberList.add(receiptNumber);
-										NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
-										Number number = format.parse(anticipo[1].trim());
+							//Se obtienen los Anticipos
+							String[ ] anticipos;
+							if(so.getReceivables().contains("|")) {//Varios anticipos
+								anticipos = so.getReceivables().split("\\|");
+							}else {//Un solo anticipo
+								anticipos = new String[]{so.getReceivables()};
+							}
+							
+							//Validaciones y aplicación de anticipos
+							if(invStatus) {
+								List<Payments> updatedPaymentList = new ArrayList<Payments>();
+								List<String> receiptNumberList = new ArrayList<String>();
+								double invoiceAvailable = Math.round(inv.getInvoiceTotal()*100.00)/100.00;
+								double invoiceExchangeRate = inv.getInvoiceExchangeRate();
+								
+								for(String s: anticipos) {
+									if(s.contains("=")) {
+										String [ ] anticipo = s.split("\\=");
+										String receiptNumber = anticipo[0].trim();
 										
-										if(number != null) {
-											Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(receiptNumber, inv.getCustomerName());
-											if(advInvoice != null) {
-												if(advInvoice.getUUID() != null) {
-													Udc relationTypeUDC = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_INVOICE_RELTYPE, AppConstants.UDC_KEY_ADVPAYMENT);
-													inv.setInvoiceRelationType(relationTypeUDC.getStrValue1());
-													inv.setUUIDReference(advInvoice.getUUID());
-													double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
-													double paymentAvailable = Math.round(NullValidator.isNullD(advInvoice.getRemainingBalanceAmount())*100.00)/100.00;
-													double paymentExchangeRate = Math.round(NullValidator.isNullD(advInvoice.getExchangeRate())*100.00)/100.00;
-													
-													if(paymentAvailable > 0D) {
-														if(Double.compare(paymentAmount, paymentAvailable)  <= 0) {
-															
-															//Verificar que la moneda del Anticipo sea igual a la moneda de la Factura
-															if(inv.getInvoiceCurrency().equals(advInvoice.getCurrency())) {
-																if(Double.compare(paymentAmount, invoiceAvailable) <= 0D){
-																	//Se recalcula el monto disponible en la factura
-																	inv.setAdvanceAplied(true);
-																	invoiceAvailable = Math.round((invoiceAvailable - paymentAmount)*100.00)/100.00;
-																	
-																	//Se recalcula el monto disponible del anticipo																
-																	paymentAvailable = paymentAvailable - paymentAmount;
-																	advInvoice.setAdvanceApplied(true);
-																	advInvoice.setRemainingBalanceAmount(String.valueOf(Math.round(paymentAvailable*100.00)/100.00));
-																	updatedPaymentList.add(advInvoice);																
-																}else {
-																	invStatus = false;
-																	msgError = msgError + ";ANTICIPOS-LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA";
-																	log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA");
-																}
-															} else {//Moneda del Anticipo diferente a la moneda de la Factura																
-																double currentPaymentAmount = 0D;
-																double currentAvailableAmount = 0D;
+										if(!receiptNumberList.contains(receiptNumber)) {
+											receiptNumberList.add(receiptNumber);
+											NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
+											Number number = format.parse(anticipo[1].trim());
+											
+											if(number != null) {
+												Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(receiptNumber, inv.getCustomerName());
+												if(advInvoice != null) {
+													if(advInvoice.getUUID() != null) {
+														Udc relationTypeUDC = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_INVOICE_RELTYPE, AppConstants.UDC_KEY_ADVPAYMENT);
+														inv.setInvoiceRelationType(relationTypeUDC.getStrValue1());
+														inv.setUUIDReference(advInvoice.getUUID());
+														double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
+														double paymentAvailable = Math.round(NullValidator.isNullD(advInvoice.getRemainingBalanceAmount())*100.00)/100.00;
+														double paymentExchangeRate = Math.round(NullValidator.isNullD(advInvoice.getExchangeRate())*100.00)/100.00;
+														
+														if(paymentAvailable > 0D) {
+															if(Double.compare(paymentAmount, paymentAvailable)  <= 0) {
 																
-																//Se convierten los montos de los Anticipos y de la Factura para validaciones y operaciones
-																if("MXN".equals(advInvoice.getCurrency())) {
-																	currentAvailableAmount = Math.round((invoiceAvailable*invoiceExchangeRate)*100.00)/100.00;//Redondeo a 2 decimales
-																	currentPaymentAmount = Math.round((paymentAmount/invoiceExchangeRate)*100.00)/100.00;
-																} else {
-																	currentAvailableAmount = Math.round((invoiceAvailable/paymentExchangeRate)*100.00)/100.00;//Redondeo a 2 decimales
-																	currentPaymentAmount = Math.round((paymentAmount*paymentExchangeRate)*100.00)/100.00;
-																}
-																
-																if(Double.compare(paymentAmount, currentAvailableAmount) <= 0){
-																	//Se recalcula el monto disponible en la factura
-																	inv.setAdvanceAplied(true);
-																	invoiceAvailable = Math.round((invoiceAvailable - currentPaymentAmount)*100.00)/100.00;
+																//Verificar que la moneda del Anticipo sea igual a la moneda de la Factura
+																if(inv.getInvoiceCurrency().equals(advInvoice.getCurrency())) {
+																	if(Double.compare(paymentAmount, invoiceAvailable) <= 0D){
+																		//Se recalcula el monto disponible en la factura
+																		inv.setAdvanceAplied(true);
+																		invoiceAvailable = Math.round((invoiceAvailable - paymentAmount)*100.00)/100.00;
+																		
+																		//Se recalcula el monto disponible del anticipo																
+																		paymentAvailable = paymentAvailable - paymentAmount;
+																		advInvoice.setAdvanceApplied(true);
+																		advInvoice.setRemainingBalanceAmount(String.valueOf(Math.round(paymentAvailable*100.00)/100.00));
+																		updatedPaymentList.add(advInvoice);																
+																	}else {
+																		invStatus = false;
+																		msgError = msgError + ";ANTICIPOS-LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA";
+																		log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA");
+																	}
+																} else {//Moneda del Anticipo diferente a la moneda de la Factura																
+																	double currentPaymentAmount = 0D;
+																	double currentAvailableAmount = 0D;
 																	
-																	//Se recalcula el monto disponible del anticipo
-																	paymentAvailable = paymentAvailable - paymentAmount;
-																	advInvoice.setAdvanceApplied(true);
-																	advInvoice.setRemainingBalanceAmount(String.valueOf(paymentAvailable));
-																	updatedPaymentList.add(advInvoice);																
-																}else {
-																	invStatus = false;
-																	msgError = msgError + ";ANTICIPOS-LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA (DIFERENTE MONEDA)";
-																	log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA (DIFERENTE MONEDA)");
-																}
-															}															
-														}else{
+																	//Se convierten los montos de los Anticipos y de la Factura para validaciones y operaciones
+																	if("MXN".equals(advInvoice.getCurrency())) {
+																		currentAvailableAmount = Math.round((invoiceAvailable*invoiceExchangeRate)*100.00)/100.00;//Redondeo a 2 decimales
+																		currentPaymentAmount = Math.round((paymentAmount/invoiceExchangeRate)*100.00)/100.00;
+																	} else {
+																		currentAvailableAmount = Math.round((invoiceAvailable/paymentExchangeRate)*100.00)/100.00;//Redondeo a 2 decimales
+																		currentPaymentAmount = Math.round((paymentAmount*paymentExchangeRate)*100.00)/100.00;
+																	}
+																	
+																	if(Double.compare(paymentAmount, currentAvailableAmount) <= 0){
+																		//Se recalcula el monto disponible en la factura
+																		inv.setAdvanceAplied(true);
+																		invoiceAvailable = Math.round((invoiceAvailable - currentPaymentAmount)*100.00)/100.00;
+																		
+																		//Se recalcula el monto disponible del anticipo
+																		paymentAvailable = paymentAvailable - paymentAmount;
+																		advInvoice.setAdvanceApplied(true);
+																		advInvoice.setRemainingBalanceAmount(String.valueOf(paymentAvailable));
+																		updatedPaymentList.add(advInvoice);																
+																	}else {
+																		invStatus = false;
+																		msgError = msgError + ";ANTICIPOS-LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA (DIFERENTE MONEDA)";
+																		log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, LA SUMATORIA DE LOS ANTICIPOS QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DE LA FACTURA (DIFERENTE MONEDA)");
+																	}
+																}															
+															}else{
+																invStatus = false;
+																msgError = msgError + ";ANTICIPOS-EL MONTO QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO";
+																log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL MONTO ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO");
+															}	
+														}else {
 															invStatus = false;
-															msgError = msgError + ";ANTICIPOS-EL MONTO QUE DESEA APLICAR ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO";
-															log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL MONTO ES MAS GRANDE QUE EL MONTO DISPONIBLE DEL ANTICIPO");
-														}	
+															msgError = msgError + ";ANTICIPOS-EL ANTICIPO NO TIENE SALDO PENDIENTE POR APLICAR";
+															log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL ANTICIPO NO TIENE SALDO PENDIENTE POR APLICAR");
+														}											
 													}else {
 														invStatus = false;
-														msgError = msgError + ";ANTICIPOS-EL ANTICIPO NO TIENE SALDO PENDIENTE POR APLICAR";
-														log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL APLICAR EL MONTO DE ANTICIPO, EL ANTICIPO NO TIENE SALDO PENDIENTE POR APLICAR");
-													}											
+														msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
+														log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
+													}
 												}else {
 													invStatus = false;
-													msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-													log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
-												}
+													msgError = msgError + ";LA RELACIÓN DE ANTICIPO EL NOMBRE DEL COBRO ES INCORRECTO O NO PERTENECE AL CLIENTE ASIGNADO";
+													log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO QUE EL NOMBRE DEL COBRO NO EXISTE O NO ESTA RELACIONADO CON EL CLIENTE");
+												}	
 											}else {
 												invStatus = false;
-												msgError = msgError + ";LA RELACIÓN DE ANTICIPO EL NOMBRE DEL COBRO ES INCORRECTO O NO PERTENECE AL CLIENTE ASIGNADO";
-												log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO QUE EL NOMBRE DEL COBRO NO EXISTE O NO ESTA RELACIONADO CON EL CLIENTE");
+												msgError = msgError + ";LA RELACIÓN DE ANTICIPO, EL FORMATO DEL MONTO NO ES VÁLIDO";
+												log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL MONTO DEL ANTICIPO");
 											}	
 										}else {
 											invStatus = false;
-											msgError = msgError + ";LA RELACIÓN DE ANTICIPO, EL FORMATO DEL MONTO NO ES VÁLIDO";
-											log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL MONTO DEL ANTICIPO");
-										}	
+											msgError = msgError + ";EXISTE UN NUMERO DE ANTICIPO DUPLICADO EN LA RELACIÓN DE ANTICIPOS";
+											log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO QUE EXISTE UN NUMERO DE ANTICIPO DUPLICADO EN LA RELACIÓN DE ANTICIPOS");
+										}
 									}else {
 										invStatus = false;
-										msgError = msgError + ";EXISTE UN NUMERO DE ANTICIPO DUPLICADO EN LA RELACIÓN DE ANTICIPOS";
-										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS DADO QUE EXISTE UN NUMERO DE ANTICIPO DUPLICADO EN LA RELACIÓN DE ANTICIPOS");
+										msgError = msgError + ";LA RELACIÓN DE ANTICIPO, NO TIENE MONTO ASIGNADO";
+										log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS");
 									}
-								}else {
-									invStatus = false;
-									msgError = msgError + ";LA RELACIÓN DE ANTICIPO, NO TIENE MONTO ASIGNADO";
-									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS");
-								}
-								
-								if(!invStatus) {
-									//No se cumplió con una validación se setea el valor inicial y se sale del ciclo (for)
-									break;
-								}
-							}
-														
-							if(invStatus) {
-								//Crea NC y actualiza registros de pagos
-								for(String s: anticipos) {
-									String [ ] anticipo = s.split("\\=");
-									String receiptNumber = anticipo[0].trim();
-									NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
-									Number number = format.parse(anticipo[1].trim());
-									double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
 									
-									for(Payments payment : updatedPaymentList) {
-										if(receiptNumber.equals(payment.getReceiptNumber())) {
-											double paymentExchangeRate = Math.round(Double.valueOf(payment.getExchangeRate())*100.00)/100.00;
-											this.createAdvPayNC(inv, paymentAmount, paymentExchangeRate, payment.getCurrency());
-											paymentsService.updatePayment(payment);
-											break;
+									if(!invStatus) {
+										//No se cumplió con una validación se setea el valor inicial y se sale del ciclo (for)
+										break;
+									}
+								}
+															
+								if(invStatus) {
+									//Crea NC y actualiza registros de pagos
+									for(String s: anticipos) {
+										String [ ] anticipo = s.split("\\=");
+										String receiptNumber = anticipo[0].trim();
+										NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
+										Number number = format.parse(anticipo[1].trim());
+										double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
+										
+										for(Payments payment : updatedPaymentList) {
+											if(receiptNumber.equals(payment.getReceiptNumber())) {
+												double paymentExchangeRate = Math.round(Double.valueOf(payment.getExchangeRate())*100.00)/100.00;
+												this.createAdvPayNC(inv, paymentAmount, paymentExchangeRate, payment.getCurrency());
+												paymentsService.updatePayment(payment);
+												break;
+											}
 										}
-									}
-								}								
+									}								
 
-								//Notificación de Pagos Pendientes
-								if(invoiceAvailable > 0D) {
-									List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILSERRORS);
-									List<String> email = new ArrayList<String>();
-									for(Udc u: emails) {
-										email.add(u.getUdcKey());
+									//Notificación de Pagos Pendientes
+									if(invoiceAvailable > 0D) {
+										List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILSERRORS);
+										List<String> email = new ArrayList<String>();
+										for(Udc u: emails) {
+											email.add(u.getUdcKey());
+										}
+										mailService.sendMail(email,
+												AppConstants.EMAIL_ADV_PAYMENTS_SUBJECT,
+												AppConstants.EMAIL_ADV_PAYMENTS_CONTENT_PENDING_PAY.replace("_FOLIO_", inv.getFolio()),
+												null);
 									}
-									mailService.sendMail(email,
-											AppConstants.EMAIL_ADV_PAYMENTS_SUBJECT,
-											AppConstants.EMAIL_ADV_PAYMENTS_CONTENT_PENDING_PAY.replace("_FOLIO_", inv.getFolio()),
-											null);
 								}
 							}
+						} else {
+							invStatus = false;
+							msgError = msgError + ";LA RELACIÓN DEL ANTICIPO NO TIENE UN FORMATO VÁLIDO";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LA RELACIÓN DE ANTICIPOS, NO TIENE UN FORMATO VÁLIDO");
 						}	
 					}
 					
