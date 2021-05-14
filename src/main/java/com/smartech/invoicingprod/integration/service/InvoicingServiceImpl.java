@@ -978,6 +978,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		if(invoiceList != null && !invoiceList.isEmpty()) {
 			for(Invoice inv : invoiceList) {
 				String salesOrderNumber = "";
+				String msg = "";
 				String msgError = "";
 				boolean invStatus = true;
 				boolean havePetition = false;
@@ -987,6 +988,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				IncotermByRest inco = restService.getIncoterm(inv.getFromSalesOrder()); 
 				if(so != null && !so.getLines().isEmpty()) {
 					salesOrderNumber = so.getSalesOrderNumber();
+					msg = inv.getErrorMsg();
 					//OBTENER EL DESCUENTO A NIVEL CABERO
 					String discountTotal = null;
 					if(inco != null) {
@@ -1345,7 +1347,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
 						for(SalesOrderLinesDTO line: so.getLines()) {						
 							if(!line.isUsedTheLine() && line.getProductNumber().contains(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
-									&& line.getOrderedUOMCode().contains(invLine.getUomName()) && "CLOSED".contains(line.getStatusCode())) {
+									&& (line.getOrderedUOM().toUpperCase()).contains(invLine.getUomName()) && "CLOSED".contains(line.getStatusCode())) {
 								if(invLine.getIsInvoiceLine().equals("D")){
 									count++;
 									//Metodo para combo
@@ -1679,7 +1681,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}
 									
 									
-									Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, invLine.getUomName());
+									Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, line.getOrderedUOMCode());
 									if(satUOM != null && satUOM.getStrValue1() != null && !"".contains(satUOM.getStrValue1())) {
 										//UOM del SAT
 										invLine.setUomName(satUOM.getStrValue2().toUpperCase());
@@ -1886,7 +1888,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					inv.setStatus(AppConstants.STATUS_ERROR_DATA);
 					inv.setUpdatedBy("SYSTEM");
 					inv.setUpdatedDate(new Date());
-					if(inv.getErrorMsg() == null) {
+					if(!inv.getErrorMsg().equals(msgError)) {
 						inv.setErrorMsg(msgError);	
 						inv.setErrorActive(true);
 					}
