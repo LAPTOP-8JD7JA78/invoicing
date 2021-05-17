@@ -1072,7 +1072,50 @@ public class InvoicingServiceImpl implements InvoicingService{
 						log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER EL USO CFDI");
 					}
 					//Proceso anticipo					
-					if(so.getReceivables() != null && !so.getReceivables().isEmpty()) {						
+					if(so.getReceivables() != null && !so.getReceivables().isEmpty()) {	
+//						if(so.getReceivables().contains("|")) {//Varios cobros
+//						String[] cobros = so.getReceivables().split("|");
+//						for(String s: cobros) {
+//							Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(s, inv.getCustomerName());
+//							if(advInvoice != null) {
+//								if(advInvoice.getUUID() != null) {
+//									inv.setInvoiceRelationType("07");
+//									if(inv.getUUIDReference() == null){
+//										inv.setUUIDReference(advInvoice.getUUID());
+//									}else {
+//										inv.setUUIDReference(inv.getUUIDReference() + ","+advInvoice.getUUID());
+//									}										
+//								}else {
+//									invStatus = false;
+//									msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
+//									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
+//								}
+//								advInvoice.setAdvanceApplied(true);
+//								paymentsService.updatePayment(advInvoice);
+//								Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
+//								advInvoice2.setAdvanceAplied(true);
+//								invoiceDao.updateInvoice(advInvoice2);
+//							}
+//						}
+//					}else {//Un solo cobro
+//						Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(so.getReceivables(), inv.getCustomerName());
+//						if(advInvoice != null) {
+//							if(advInvoice.getUUID() != null) {
+//								inv.setInvoiceRelationType("07");
+//								inv.setUUIDReference(advInvoice.getUUID());
+//								advInvoice.setAdvanceApplied(true);
+//								paymentsService.updatePayment(advInvoice);
+//								Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
+//								advInvoice2.setAdvanceAplied(true);
+//								invoiceDao.updateInvoice(advInvoice2);
+//							}else {
+//								invStatus = false;
+//								msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
+//								log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
+//							}
+//						}
+//					}
+					//Cambios pendientes
 						System.out.println(inv.getFromSalesOrder());
 						List<Invoice> listNC = invoiceDao.getInvoiceByOtFolioCustomer(AppConstants.ORDER_TYPE_NC, inv.getFromSalesOrder(), inv.getCustomerName());
 						if(listNC == null || (listNC != null && listNC.isEmpty())) {

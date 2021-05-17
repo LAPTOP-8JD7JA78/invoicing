@@ -226,8 +226,9 @@ public class PayloadProducer {
 				"	\"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_DSCRPTN_TL_CTF_\" s_61,\r\n"+
 				"	\"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_DSCRPTN_T_L_LN_\" s_62\r\n" +
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
-				"WHERE\r\n" + 
-				"((\"- Reference Information\".\"Creation Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))\r\n" + 
+				"WHERE\r\n" + //("- Reference Information"."Last Update Date" > timestamp '2021-05-17 05:00:00')
+//				"((\"- Reference Information\".\"Creation Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))\r\n" +
+				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))\r\n" + 
 				"ORDER BY 1, 14 ASC NULLS LAST, 11 ASC NULLS LAST, 26 ASC NULLS LAST, 28 ASC NULLS LAST, 24 ASC NULLS LAST, 12 ASC NULLS LAST, 13 ASC NULLS LAST, 15 ASC NULLS LAST, 19 ASC NULLS LAST, 18 ASC NULLS LAST, 22 ASC NULLS LAST, 17 ASC NULLS LAST, 30 ASC NULLS LAST, 16 ASC NULLS LAST, 9 ASC NULLS LAST, 7 ASC NULLS LAST, 6 ASC NULLS LAST, 5 ASC NULLS LAST, 4 ASC NULLS LAST, 3 ASC NULLS LAST, 2 ASC NULLS LAST, 31 ASC NULLS LAST, 23 ASC NULLS LAST, 21 ASC NULLS LAST, 20 ASC NULLS LAST, 8 ASC NULLS LAST, 27 ASC NULLS LAST, 10 ASC NULLS LAST" +
 				"         </v7:sql>\r\n" + 
 				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
