@@ -282,6 +282,23 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			return null;
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Invoice> getInvoiceByOtFolioCustomer(String orderType, String salesOrder, String customerName) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.eq("orderType", orderType));	
+			criteria.add( Restrictions.eq("fromSalesOrder", salesOrder));
+			criteria.add( Restrictions.eq("customerName", customerName));
+			
+			return criteria.list();
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
