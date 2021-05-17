@@ -1355,7 +1355,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
 						for(SalesOrderLinesDTO line: so.getLines()) {						
 							if(!line.isUsedTheLine() && line.getProductNumber().contains(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
-									&& (line.getOrderedUOM().toUpperCase()).contains(invLine.getUomName()) && "CLOSED".contains(line.getStatusCode())) {
+									&& (line.getOrderedUOMCode().contains(invLine.getUomName()) || line.getOrderedUOM().toUpperCase().contains(invLine.getUomName().toUpperCase())) 
+											&& "CLOSED".contains(line.getStatusCode())) {
 								if(invLine.getIsInvoiceLine().equals("D")){
 									count++;
 									//Metodo para combo
@@ -1896,7 +1897,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					inv.setStatus(AppConstants.STATUS_ERROR_DATA);
 					inv.setUpdatedBy("SYSTEM");
 					inv.setUpdatedDate(new Date());
-					if(!inv.getErrorMsg().equals(msgError)) {
+					if(!msgError.equals(inv.getErrorMsg())) {
 						inv.setErrorMsg(msgError);	
 						inv.setErrorActive(true);
 					}
