@@ -1154,7 +1154,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 														if(advInvoice.getUUID() != null) {
 															Udc relationTypeUDC = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_INVOICE_RELTYPE, AppConstants.UDC_KEY_ADVPAYMENT);
 															inv.setInvoiceRelationType(relationTypeUDC.getStrValue1());
-															inv.setUUIDReference(advInvoice.getUUID());
+//															inv.setUUIDReference(advInvoice.getUUID());
+															if(inv.getUUIDReference() == null){
+																inv.setUUIDReference(advInvoice.getUUID());
+															}else {
+																inv.setUUIDReference(inv.getUUIDReference() + ","+advInvoice.getUUID());
+															}	
 															double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
 															double paymentAvailable = Math.round(NullValidator.isNullD(advInvoice.getRemainingBalanceAmount())*100.00)/100.00;
 															double paymentExchangeRate = Math.round(NullValidator.isNullD(advInvoice.getExchangeRate())*100.00)/100.00;
@@ -1246,6 +1251,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 										
 										if(!invStatus) {
 											//No se cumplió con una validación se setea el valor inicial y se sale del ciclo (for)
+											inv.setUUIDReference(null);
 											break;
 										}
 									}
@@ -1834,6 +1840,22 @@ public class InvoicingServiceImpl implements InvoicingService{
 										if(unitCostForCombo.isEmpty()) {
 											String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, invLine, so.getSalesOrderNumber());
 											if(unitCostByItem == null) {
+												//arreglo de costo unitario
+												if(NullValidator.isNull(invLine.getItemSerial()).contains(",")) {
+													String[ ] itemSerials = invLine.getItemSerial().split(",");
+													int unit = itemSerials.length;
+													for(int var=0; var<unit; var++) {
+														if(unitCostByItem == null) {
+															unitCostByItem = "0";
+														}else {
+															unitCostByItem = unitCostByItem + ",0";
+														}
+														
+													}													
+												}else if(invLine.getItemSerial() != null){
+													unitCostByItem = "0";				
+												}
+												//Fin de arreglo de costo unitario
 												msgError = msgError + ";RETAILS-ERROR AL OBTENER EL COSTO UNITARIO: " + inv.getFolio();
 												log.warn("RETAILS-ERROR AL OBTENER EL COSTO UNITARIO: " + inv.getFolio());
 											}
