@@ -963,6 +963,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public void updateStartInvoiceSOAPList() throws ParseException {
 		List<String> otList = new ArrayList<String>();
@@ -2035,7 +2036,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					newInv.setStatus(AppConstants.STATUS_PENDING_UUID_NC);
 					newInv.setInvoice(false);
 					newInv.setInvoiceType(AppConstants.ORDER_TYPE_NC);
-					newInv.setInvoiceCurrency(invoice.getInvoiceCurrency());
+					newInv.setInvoiceCurrency(currencyCode);
 					newInv.setInvoiceExchangeRate(invoice.getInvoiceExchangeRate());
 					newInv.setOrderSource(NullValidator.isNull(invoice.getOrderSource()));
 					newInv.setOrderType(AppConstants.ORDER_TYPE_NC);
@@ -2084,22 +2085,26 @@ public class InvoicingServiceImpl implements InvoicingService{
 					if(!invoiceDao.saveInvoice(newInv)){
 						log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
 						+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+						invoice.setUUIDReference(null);
 						return false;
 					}
 				} else {
 					log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
 					+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+					invoice.setUUIDReference(null);
 					return false;
 				}	
 			} else {
 				log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder()
 				+ " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID() + ", LOS DATOS DEL PAGO NO SON VÁLIDOS");
+				invoice.setUUIDReference(null);
 				return false;
 			}
 			
 			return true;
 		}catch(Exception e) {
 			log.error("ERROR AL CREAR LA NOTA DE CREDITO RELACIONADA CON LA ORDEN: " + invoice.getFromSalesOrder() + " Y EL UUID CORRESPONDIENTE: " + invoice.getUUID());
+			invoice.setUUIDReference(null);
 			return false;
 		}
 	}
