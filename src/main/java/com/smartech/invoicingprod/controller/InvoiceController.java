@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.ServletContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.smartech.invoicingprod.integration.service.InvoicingService;
@@ -19,6 +22,7 @@ import com.smartech.invoicingprod.model.Udc;
 import com.smartech.invoicingprod.service.UdcService;
 
 @RestController
+@RequestMapping("/rest")
 public class InvoiceController {
 	
 	@Autowired
@@ -27,6 +31,8 @@ public class InvoiceController {
 	UdcService udcService;
 	@Autowired
 	MailService mailService;
+	@Autowired
+	ServletContext servletContext;
 	
 	@SuppressWarnings("unused")
 	@RequestMapping(value ="/integ/invoice/createInvoice", method = RequestMethod.POST)
@@ -51,5 +57,11 @@ public class InvoiceController {
 				"SE HAN HECHO 5 INTENTOS DE PROCESAR LA INFORMACION PERO SE HAN OBTENIDO ERRORES",
 				null);
 		return null;
+	}
+	
+	@RequestMapping(value = "/testMethod", method = RequestMethod.GET)
+	 public boolean oracleCustomers(@RequestParam String request) {
+		System.out.print(true);
+		return true;
 	}
 }

@@ -307,7 +307,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									log.info("AQUI EMPIEZA LA FACTURA PARA ACTIVOS FIJOS" + inv.getTransactionNumber());
 									Branch branch = branchService.getBranchByCode("CEDIS");
 									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-									invoice.setInvoice(true);	
+									invoice.setInvoice(true);
 									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 									invoice.setBranch(branch);
 									invoice.setSerial(nNumber.getSerie());
@@ -380,7 +380,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 //									NextNumber nNumber = nextNumberService.getNumberById(Integer.parseInt(String.valueOf(branch.getId())));
 									invoice.setInvoice(true);	
 									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-									invoice.setBranch(branch);
+									invoice.setBranch(branch);	
 									if(nNumber != null){
 										invoice.setSerial(nNumber.getSerie());
 									}else {
@@ -454,7 +454,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
 //									NextNumber nNumber = nextNumberService.getNumberById(Integer.parseInt(String.valueOf(branch.getId())));
 									invoice.setSerial(nNumber.getSerie());
-									invoice.setInvoice(true);	
+									invoice.setInvoice(true);		
 									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 									invoice.setBranch(branch);
 									invoice.setStatus(AppConstants.STATUS_PENDING);
@@ -534,7 +534,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}
 //									NextNumber nNumber = nextNumberService.getNumberById(Integer.parseInt(String.valueOf(branch.getId())));
 									invoice.setSerial(nNumber.getSerie());
-									invoice.setInvoice(true);	
+									invoice.setInvoice(true);
 									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 									invoice.setBranch(branch);
 									invoice.setStatus(AppConstants.STATUS_PENDING);
@@ -1075,7 +1075,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Proceso anticipo					
 					if(so.getReceivables() != null && !so.getReceivables().isEmpty()) {	
 //						if(so.getReceivables().contains("|")) {//Varios cobros
-//						String[] cobros = so.getReceivables().split("|");
+//						String[] cobros = so.getReceivables().split("\\|");
 //						for(String s: cobros) {
 //							Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(s, inv.getCustomerName());
 //							if(advInvoice != null) {
@@ -1117,7 +1117,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 //						}
 //					}
 					//Cambios pendientes
-						System.out.println(inv.getFromSalesOrder());
+//						System.out.println(inv.getFromSalesOrder());
 						List<Invoice> listNC = invoiceDao.getInvoiceByOtFolioCustomer(AppConstants.ORDER_TYPE_NC, inv.getFromSalesOrder(), inv.getCustomerName());
 						if(listNC == null || (listNC != null && listNC.isEmpty())) {
 							int pipeMatches = org.apache.commons.lang3.StringUtils.countMatches(so.getReceivables(), "|");
@@ -1409,7 +1409,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Revisar las lineas
 					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
 						for(SalesOrderLinesDTO line: so.getLines()) {						
-							if(!line.isUsedTheLine() && line.getProductNumber().contains(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
+							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
 									&& (line.getOrderedUOMCode().contains(invLine.getUomName()) || line.getOrderedUOM().toUpperCase().contains(invLine.getUomName().toUpperCase())) 
 											&& "CLOSED".contains(line.getStatusCode())) {
 								if(invLine.getIsInvoiceLine().equals("D")){
@@ -2273,12 +2273,36 @@ public class InvoicingServiceImpl implements InvoicingService{
 				for(Payments lPay: listPayments) {
 					Invoice invoiceErrorPay = new Invoice();
 					invoiceErrorPay = invoiceDao.getInvoiceWithOutUuid(String.valueOf(lPay.getId()));
-					if(invoiceErrorPay != null) {
+					if(invoiceErrorPay != null && lPay.getUuidReference().isEmpty()) {
 						if(invoiceErrorPay.getUUID() != null) {
 							lPay.setUuidReference(invoiceErrorPay.getUUID());
 							lPay.setPaymentError("");
 							lPay.setPaymentStatus(AppConstants.STATUS_PENDING);
 							paymentsService.updatePayment(lPay);
+						}
+					}
+				}
+			}
+			
+			//Actualización de la lista de pagos, por error en la forma de pago
+			List<PaymentsList> pList = paymentsListService.getAllPayList(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+			if(pList!= null && !pList.isEmpty()) {
+				for(PaymentsList lista: pList) {
+					boolean isChange = false;
+					if(lista.getPayments().size()>0) {
+						for(Payments list: lista.getPayments()) {
+							if(!list.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+								lista.setStatus(AppConstants.STATUS_PAYMENT_LIST_START);
+								lista.setPaymentForm(list.getPaymentForm());
+								isChange = true;
+							}else {
+								lista.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+								isChange = false;
+								break;
+							}
+						}
+						if(isChange) {
+							paymentsListService.updatePaymentsList(lista);
 						}
 					}
 				}
@@ -2376,7 +2400,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							if(inv.getInvoiceCurrency().equals(r.getColumn16())) {//Misma moneda
 								if(r.getColumn29().equals(r.getColumn31())) {//COMPLEMENTO DE PAGO UNO A UNO
 									List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
-									Payments p = paymentsService.getPayment(r.getColumn23());//Receipt Number
+									Payments p = paymentsService.getPayment(r.getColumn23());//Receipt Number									
 									if(payments != null && p == null) {
 										NextNumber nN = new NextNumber();
 										nN = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CPAGO, inv.getBranch());
@@ -2421,18 +2445,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 										pay.setAdvanceApplied(false);
 										pay.setPaymentStatus(AppConstants.STATUS_PENDING);
 										pay.setErrorActive(false);
-										if(NullValidator.isNull(r.getColumn37()) != null && !NullValidator.isNull(r.getColumn37()).isEmpty()) {
-											pay.setPaymentForm(r.getColumn37());
-										}else {
-											pay.setPaymentError("El PAGO NO TIENE FORMA DE PAGO");
-											pay.setErrorActive(true);
-											pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-										}
 										if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 											pay.setPaymentError(null);
 											pay.setUuidReference(inv.getUUID());
 										}else {
 											pay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO ");
+											pay.setErrorActive(true);
+											pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+										}
+										if(NullValidator.isNull(r.getColumn37()) != null && !NullValidator.isNull(r.getColumn37()).isEmpty()) {
+											pay.setPaymentForm(r.getColumn37());
+										}else {
+											pay.setPaymentError("El PAGO NO TIENE FORMA DE PAGO");
 											pay.setErrorActive(true);
 											pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
 										}
@@ -2467,6 +2491,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 											Set<Payments> realPay = new HashSet<Payments>(nPay);
 											inv.setPayments(realPay);
 										}										
+									}else if(p != null) {
+										for(Payments perror: inv.getPayments()) {
+											if(perror.getReceiptNumber().equals(p.getReceiptNumber())) {
+												if(p.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+													if(r.getColumn37() != null) {
+														perror.setPaymentError(null);
+														perror.setErrorActive(false);
+														perror.setPaymentForm(r.getColumn37());
+														perror.setPaymentStatus(AppConstants.STATUS_PENDING);
+														paymentsService.updatePayment(perror);
+													}
+												}
+											}
+										}
 									}
 									return inv;
 								}else {//Pago a varias facturas relacionadas
@@ -2537,13 +2575,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
 												bPay.setErrorActive(false);
-												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-													bPay.setPaymentForm(r.getColumn37());
-												}else {
-													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-													bPay.setErrorActive(true);
-													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -2552,6 +2583,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setErrorActive(true);
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);	
 												}
+												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+													bPay.setPaymentForm(r.getColumn37());
+												}else {
+													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
+													bPay.setErrorActive(true);
+													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												}
+												
 												if(inv.getPreviousBalanceAmount() == null ) {
 													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -2575,7 +2614,30 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
-											}							
+											}else if(getPay != null) {
+//												if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+//													if(r.getColumn37() != null) {
+//														getPay.setPaymentError(null);
+//														getPay.setErrorActive(false);
+//														getPay.setPaymentType(r.getColumn37());
+//														getPay.setPaymentStatus(AppConstants.STATUS_PENDING);
+//														paymentsService.updatePayment(getPay);
+//													}
+//												}
+												for(Payments perror: inv.getPayments()) {
+													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
+														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+															if(r.getColumn37() != null) {
+																perror.setPaymentError(null);
+																perror.setErrorActive(false);
+																perror.setPaymentForm(r.getColumn37());
+																perror.setPaymentStatus(AppConstants.STATUS_PENDING);
+																paymentsService.updatePayment(perror);
+															}
+														}
+													}
+												}
+											}
 										}else {//No hay pagos previos
 											int con = 1;
 											
@@ -2615,13 +2677,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setAdvanceApplied(false);
 											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
 											bPay.setErrorActive(false);
-											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-												bPay.setPaymentForm(r.getColumn37());
-											}else {
-												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-												bPay.setErrorActive(true);
-												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -2630,6 +2685,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setErrorActive(true);
 												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
 											}
+											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+												bPay.setPaymentForm(r.getColumn37());
+											}else {
+												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
+												bPay.setErrorActive(true);
+												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+											}
+											
 											if(inv.getPreviousBalanceAmount() == null ) {
 												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -2712,14 +2775,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-													bPay.setPaymentForm(r.getColumn37());
-												}else {
-													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-													bPay.setErrorActive(true);
-													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-												}
-												
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -2728,6 +2783,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setErrorActive(true);
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
 												}
+												
+												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+													bPay.setPaymentForm(r.getColumn37());
+												}else {
+													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
+													bPay.setErrorActive(true);
+													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												}
+												
 												if(inv.getPreviousBalanceAmount() == null ) {
 													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -2751,6 +2815,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay != null) {
+												for(Payments perror: inv.getPayments()) {
+													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
+														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+															if(r.getColumn37() != null) {
+																perror.setPaymentError(null);
+																perror.setErrorActive(false);
+																perror.setPaymentForm(r.getColumn37());
+																perror.setPaymentStatus(AppConstants.STATUS_PENDING);
+																paymentsService.updatePayment(perror);
+															}
+														}
+													}
+												}												
 											}							
 										}else {//No hay pagos previos
 											int con = 1;
@@ -2791,13 +2869,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
 											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-												bPay.setPaymentForm(r.getColumn37());
-											}else {
-												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-												bPay.setErrorActive(true);
-												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -2806,6 +2877,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setErrorActive(true);
 												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
 											}
+											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+												bPay.setPaymentForm(r.getColumn37());
+											}else {
+												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
+												bPay.setErrorActive(true);
+												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+											}
+											
 											if(inv.getPreviousBalanceAmount() == null ) {
 												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -2854,25 +2933,31 @@ public class InvoicingServiceImpl implements InvoicingService{
 								double cambioMonedaDivision = 0.00;
 								double cambioMoneda = 0;
 								if(r.getColumn7() != null) {
-									Double.parseDouble(r.getColumn7());
+									cambioMoneda = Math.round((Double.parseDouble(r.getColumn7()))*100.00)/100.00;
+//									cambioMoneda = Double.parseDouble(r.getColumn7());
 								}
 								if(moneda.equals(AppConstants.DEFAUL_CURRENCY)) {//venta en DLLS
 									if(cambioMoneda == 0) {
-										cambioMonedaDivision = pago/montoaplicado;
-										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
+										cambioMonedaDivision = Math.round((pago / montoaplicado)*100.00)/100.00;
+										pagoMonedaCambio = Math.round((pago / cambioMonedaDivision)*100.00)/100.00;
+//										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
 									}else {
 										cambioMonedaDivision = cambioMoneda;
-										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
+										pagoMonedaCambio = Math.round((pago / cambioMonedaDivision)*100.00)/100.00;
+//										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
 									}
 									r.setColumn7(String.valueOf(cambioMonedaDivision));
 									r.setColumn31(String.valueOf(pagoMonedaCambio));
 								}else {//venta en MXN
 									if(cambioMoneda == 0) {
-										cambioMonedaDivision = montoaplicado/pago;
-										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
+										cambioMonedaDivision = Math.round((montoaplicado / pago)*100.00)/100.00;
+//										cambioMonedaDivision = montoaplicado/pago;
+//										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
+										pagoMonedaCambio = Math.round((pago * cambioMonedaDivision)*100.00)/100.00; 
 									}else {
 										cambioMonedaDivision = cambioMoneda;
-										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
+										pagoMonedaCambio = Math.round((pago * cambioMonedaDivision)*100.00)/100.00; 
+//										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
 									}
 									r.setColumn7(String.valueOf(cambioMonedaDivision));
 									r.setColumn31(String.valueOf(pagoMonedaCambio));
@@ -2939,14 +3024,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setErrorActive(false);
-												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-													bPay.setPaymentForm(r.getColumn37());
-												}else {
-													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-													bPay.setErrorActive(true);
-													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-												}										
+												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -2954,7 +3032,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 													bPay.setErrorActive(true);
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}
+												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+													bPay.setPaymentForm(r.getColumn37());
+												}else {
+													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+													bPay.setErrorActive(true);
+													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+												}	
+												
 												if(inv.getPreviousBalanceAmount() == null ) {
 													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -2975,6 +3063,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 														if(bl.getUdcKey().contains(bank)) {
 															bPay.setBeneficiaryAccount(bl.getUdcKey());
 															break;
+														}
+													}
+												}
+											}else if(getPay != null) {
+												for(Payments perror: inv.getPayments()) {
+													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
+														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+															if(r.getColumn37() != null) {
+																perror.setPaymentError(null);
+																perror.setErrorActive(false);
+																perror.setPaymentForm(r.getColumn37());
+																perror.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+																paymentsService.updatePayment(perror);
+															}
 														}
 													}
 												}
@@ -3017,14 +3119,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
-											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-												bPay.setPaymentForm(r.getColumn37());
-											}else {
-												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-												bPay.setErrorActive(true);
-												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-											}									
+											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);								
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3032,7 +3127,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 												bPay.setErrorActive(true);
 												pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
+											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+												bPay.setPaymentForm(r.getColumn37());
+											}else {
+												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+												bPay.setErrorActive(true);
+												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+											}	
+											
 											if(inv.getPreviousBalanceAmount() == null ) {
 												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -3109,14 +3214,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												bPay.setErrorActive(false);
-												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-													bPay.setPaymentForm(r.getColumn37());
-												}else {
-													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-													bPay.setErrorActive(true);
-													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-												}										
+												bPay.setErrorActive(false);									
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3124,7 +3222,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 													bPay.setErrorActive(true);
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													payList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}
+												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+													bPay.setPaymentForm(r.getColumn37());
+												}else {
+													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+													bPay.setErrorActive(true);
+													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													payList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+												}	
+												
 												if(inv.getPreviousBalanceAmount() == null ) {
 													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -3148,6 +3256,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay != null) {
+												for(Payments perror: inv.getPayments()) {
+													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
+														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+															if(r.getColumn37() != null) {
+																perror.setPaymentError(null);
+																perror.setErrorActive(false);
+																perror.setPaymentForm(r.getColumn37());
+																perror.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+																paymentsService.updatePayment(perror);
+															}
+														}
+													}
+												}												
 											}							
 										}else {//No hay pagos previos
 											int con = 1;
@@ -3187,14 +3309,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
-											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-												bPay.setPaymentForm(r.getColumn37());
-											}else {
-												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-												bPay.setErrorActive(true);
-												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-											}									
+											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3202,7 +3317,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 												bPay.setErrorActive(true);
 												pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												payList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
+											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+												bPay.setPaymentForm(r.getColumn37());
+											}else {
+												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+												bPay.setErrorActive(true);
+												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												payList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+											}
+											
 											if(inv.getPreviousBalanceAmount() == null ) {
 												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -3243,7 +3368,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}
 									
 									return inv;
-								}else {//Pago a varias facturas relacionadas diferente moneda
+								}else {//Pago a varias facturas relacionadas diferente moneda-----------------------------------------------
 									PaymentsList p = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
 									if(p == null) {//se crea un registro 				
 										PaymentsList  pList = new PaymentsList();									
@@ -3310,14 +3435,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setErrorActive(false);										
-												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-													bPay.setPaymentForm(r.getColumn37());
-												}else {
-													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-													bPay.setErrorActive(true);
-													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-												}										
+												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3325,7 +3443,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 													bPay.setErrorActive(true);
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}
+												
+												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+													bPay.setPaymentForm(r.getColumn37());
+												}else {
+													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+													bPay.setErrorActive(true);
+													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+												}	
 												if(inv.getPreviousBalanceAmount() == null ) {
 													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -3349,7 +3477,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
-											}							
+											}else if(getPay != null) {
+												for(Payments perror: inv.getPayments()) {
+													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
+														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+															if(r.getColumn37() != null) {
+																perror.setPaymentError(null);
+																perror.setErrorActive(false);
+																perror.setPaymentForm(r.getColumn37());
+																perror.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+																paymentsService.updatePayment(perror);
+															}
+														}
+													}
+												}
+											}						
 										}else {//No hay pagos previos
 											int con = 1;
 											
@@ -3389,13 +3531,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);									
 											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-												bPay.setPaymentForm(r.getColumn37());
-											}else {
-												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-												bPay.setErrorActive(true);
-												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3403,7 +3538,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 												bPay.setErrorActive(true);
 												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
+											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+												bPay.setPaymentForm(r.getColumn37());
+											}else {
+												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+												bPay.setErrorActive(true);
+												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+											}
+											
 											if(inv.getPreviousBalanceAmount() == null ) {
 												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -3486,14 +3631,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												bPay.setErrorActive(false);
-												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-													bPay.setPaymentForm(r.getColumn37());
-												}else {
-													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-													bPay.setErrorActive(true);
-													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-												}										
+												bPay.setErrorActive(false);									
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3501,7 +3639,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 													bPay.setErrorActive(true);	
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}
+												if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+													bPay.setPaymentForm(r.getColumn37());
+												}else {
+													bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
+													bPay.setErrorActive(true);
+													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+													p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+												}	
+												
 												if(inv.getPreviousBalanceAmount() == null ) {
 													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -3522,6 +3670,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 														if(bl.getUdcKey().contains(bank)) {
 															bPay.setBeneficiaryAccount(bl.getUdcKey());
 															break;
+														}
+													}
+												}
+											}else if(getPay != null) {
+												for(Payments perror: inv.getPayments()) {
+													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
+														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
+															if(r.getColumn37() != null) {
+																perror.setPaymentError(null);
+																perror.setErrorActive(false);
+																perror.setPaymentForm(r.getColumn37());
+																perror.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+																paymentsService.updatePayment(perror);
+															}
 														}
 													}
 												}
@@ -3564,14 +3726,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
-											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
-												bPay.setPaymentForm(r.getColumn37());
-											}else {
-												bPay.setPaymentError("SE HIZO UN PAGO PERO FORMA DE PAGO" );
-												bPay.setErrorActive(true);
-												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
-											}									
+											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3579,7 +3734,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FOLIO FISCAL RELACIONADO: " );
 												bPay.setErrorActive(true);
 												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
+											if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
+												bPay.setPaymentForm(r.getColumn37());
+											}else {
+												bPay.setPaymentError("SE HIZO UN PAGO PERO NO TIENE FORMA DE PAGO" );
+												bPay.setErrorActive(true);
+												bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+												p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+											}
+											
 											if(inv.getPreviousBalanceAmount() == null ) {
 												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
 												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
@@ -4210,7 +4375,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			List<Invoice> invoicesError = invoiceDao.getAllError(true);
 			List<Payments> paymentsError = paymentsService.getAllError(true);
 			if(listError != null && invoicesError != null && paymentsError != null) {
-				String error = null;
+				String error = "";
 				for(ErrorLog elog: listError) {
 					error = elog.getOrderNumber() + " " + elog.getErrorMsg() + "\r\n" + error;
 					elog.setNew(false);
@@ -4226,7 +4391,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					p.setErrorActive(false);
 					paymentsService.updatePayment(p);
 				}
-				if(error != null) {
+				if(!error.isEmpty()) {
 					byte[] bytes = error.getBytes();
 					attached.put("Errores.txt", bytes);
 					List<Udc> emails = udcService.searchBySystem("EMAILSERRORS");
@@ -4234,9 +4399,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 					for(Udc u: emails) {
 						email.add(u.getUdcKey());
 					}
+//					mailService.sendMail(email,
+//							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
+//							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
+//							attached);
 					mailService.sendMail(email,
-							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
-							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
+							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
 							attached);
 				}
 			}

@@ -237,7 +237,16 @@ public class StampedServiceImpl implements StampedService{
 					for(int h=0; h<impH2.length; h++) {
 						content = content + NullValidator.isNull(impH2[h]) + AppConstantsUtil.FILES_SEPARATOR;
 					}
+					String comercioExterior = "";
+					boolean extCom = NullValidator.isNull(i.isExtCom()); 
+					if(extCom) {
+						comercioExterior = "1";
+					}else {
+						comercioExterior = "0";
+					}
 					content = content + 
+							"" + AppConstantsUtil.FILES_SEPARATOR +
+							comercioExterior + AppConstantsUtil.FILES_SEPARATOR +
 							"\r\n";
 			for(InvoiceDetails id: i.getInvoiceDetails()) {
 				if(id != null) {

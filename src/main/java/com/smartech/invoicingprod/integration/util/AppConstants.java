@@ -68,6 +68,7 @@ public class AppConstants {
 	public static final String STATUS_FINISHED = "FINISHED";
 	public static final String STATUS_ERROR_DATA_PAY = "ERROR_PAY";
 	public static final String STATUS_ERROR_DATA_TRANSFER = "ERROR_TRANSFER";
+	public static final String STATUS_ERROR_DATA_PAY_LIST = "ERROR PAYMENTS LIST";
 	
 	public static final String STATUS_PAYMENT_LIST_START = "PAY_START";
 
