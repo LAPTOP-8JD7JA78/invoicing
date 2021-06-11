@@ -2945,12 +2945,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 								double cambioMonedaDivision = 0.00;
 								double cambioMoneda = 0;
 								if(r.getColumn7() != null) {
-									cambioMoneda = Math.round((Double.parseDouble(r.getColumn7()))*100.00)/100.00;
+									cambioMoneda = Math.round((Double.parseDouble(r.getColumn7()))*100.000000)/100.000000;
 //									cambioMoneda = Double.parseDouble(r.getColumn7());
 								}
 								if(moneda.equals(AppConstants.DEFAUL_CURRENCY)) {//venta en DLLS
 									if(cambioMoneda == 0) {
-										cambioMonedaDivision = Math.round((pago / montoaplicado)*100.00)/100.00;
+										cambioMonedaDivision = Math.round((pago / montoaplicado)*100.000000)/100.000000;
 										pagoMonedaCambio = Math.round((pago / cambioMonedaDivision)*100.00)/100.00;
 //										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
 									}else {
@@ -2962,7 +2962,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									r.setColumn31(String.valueOf(pagoMonedaCambio));
 								}else {//venta en MXN
 									if(cambioMoneda == 0) {
-										cambioMonedaDivision = Math.round((montoaplicado / pago)*100.00)/100.00;
+										cambioMonedaDivision = Math.round((montoaplicado / pago)*100.000000)/100.000000;
 //										cambioMonedaDivision = montoaplicado/pago;
 //										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
 										pagoMonedaCambio = Math.round((pago * cambioMonedaDivision)*100.00)/100.00; 
