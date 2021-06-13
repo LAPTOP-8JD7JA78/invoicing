@@ -919,6 +919,8 @@ public class StampedServiceImpl implements StampedService{
 		String content = "";		
 		String rType ="";
 		String country = "";
+		String rfcNac = "";
+		String rfcExt = "";
 		try {
 			//Obtener ruta para dejar los archivos
 			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
@@ -936,8 +938,17 @@ public class StampedServiceImpl implements StampedService{
 			}
 			if(i.getCountry().equals(AppConstantsUtil.COUNTRY_DEFAULT)) {
 				country = "";
+				rfcNac = i.getTaxIdentifier();
 			}else {
+				List<Udc> rfcList = udcService.searchBySystem(AppConstants.UDC_SYSTEM_RFC_EXT);
+				for(Udc rf: rfcList) {
+					if(rf.getStrValue1().equals("EXTRANJERO")) {
+						rfcNac = rf.getUdcKey();
+					}
+				}
 				country = i.getCountry();
+//				rfcNac = "XEXX010101000";
+				rfcExt = i.getTaxIdentifier();
 			}
 			content = AppConstantsUtil.PAYMENT_HEADER + AppConstantsUtil.FILES_SEPARATOR +
 					i.getSerial() + AppConstantsUtil.FILES_SEPARATOR +
@@ -949,10 +960,12 @@ public class StampedServiceImpl implements StampedService{
 					i.getCompany().getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getBusinessUnitName() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCompany().getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR +
-					i.getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+//					i.getTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
+					rfcNac + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
 					country + AppConstantsUtil.FILES_SEPARATOR +
-					"" + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
+//					"" + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
+					rfcExt + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
 					i.getPartyNumber() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +					
 					"\n"+

@@ -2394,7 +2394,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 			Invoice inv = new Invoice();
 			if(r.getColumn12() != null && !r.getColumn12().isEmpty()) {
 				inv = invoiceDao.getSingleInvoiceByFolio(r.getColumn12());//TransactionReference
-				if(inv.getBranch().getCode().equals("SERVICIOS")) {
+				if(inv == null) {
+					return null;
+				}
+				if(NullValidator.isNull(inv.getBranch().getCode()).equals("SERVICIOS")) {
 					branchPago = branchService.getBranchByCode("CEDIS");
 					inv.setBranch(branchPago);
 				}

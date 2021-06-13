@@ -185,6 +185,7 @@ public class AppConstants {
 	public static final String UDC_KEY_INITIAL_CHARGE = "INITIAL_CHARGE";
 	public static final String UDC_SYSTEM_INVOICE_RELTYPE = "INVOICERELTYPE";
 	public static final String UDC_KEY_ADVPAYMENT = "ADVPAYMENT";
+	public static final String UDC_SYSTEM_RFC_EXT = "RFCGEN";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";

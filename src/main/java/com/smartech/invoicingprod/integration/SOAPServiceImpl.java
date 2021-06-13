@@ -181,7 +181,9 @@ public class SOAPServiceImpl implements SOAPService {
 								String setName = inv.getSetName();
 								if(setName.equals("Common Set")) {
 									inv.setSetName("Juego Común");
-								}							
+								}else if(setName.equals("Juego Común")) {
+									inv.setSetName("Common Set");
+								}
 							}
 						}
 					}else {
@@ -220,6 +222,8 @@ public class SOAPServiceImpl implements SOAPService {
 							String setName = inv.getSetName();
 							if(setName.equals("Common Set")) {
 								inv.setSetName("Juego Común");
+							}else if(setName.equals("Juego Común")) {
+								inv.setSetName("Common Set");
 							}							
 						}
 					}

@@ -313,6 +313,7 @@ public class PayloadProducer {
 	}
 	
 	public static String setARReceiptsSerialFolioFlexfield(String receiptNumber, String receiptId, String serial, String folio) {
+		//Ambiente test 
 		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">" + 
 				"<soapenv:Header/>" + 
 					"<soapenv:Body>" + 
@@ -328,8 +329,24 @@ public class PayloadProducer {
 						"</typ:updateDffEntityDetails>" + 
 					"</soapenv:Body>" + 
 				"</soapenv:Envelope>";
-		
+				
 		return SOAPRequest;
+		//Ambiente prod
+//		String requestSoap = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">\r\n" + 
+//				"   <soapenv:Header/>\r\n" + 
+//				"   <soapenv:Body>\r\n" + 
+//				"      <typ:updateDffEntityDetails>\r\n" + 
+//				"         <typ:object>\r\n" + 
+//				"            <erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>\r\n" + 
+//				"            <erp:ContextValue>#NULL</erp:ContextValue>\r\n" + 
+//				"            <erp:UserKeyA>" + receiptNumber + "</erp:UserKeyA>\r\n" + 
+//				"            <erp:UserKeyB>" + receiptId + "</erp:UserKeyB>\r\n" +
+//				"            <erp:DFFAttributes>{\"ATTRIBUTE2\":\"" + folio  + "\",\"ATTRIBUTE1\":\"" + serial + "\"}</erp:DFFAttributes>\r\n" + 
+//				"         </typ:object>\r\n" + 
+//				"      </typ:updateDffEntityDetails>\r\n" + 
+//				"   </soapenv:Body>\r\n" + 
+//				"</soapenv:Envelope>";
+//		return requestSoap;
 	}
 	
 	public static String getSalesOrderInfoBySalesNumber(String so) {
