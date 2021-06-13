@@ -380,7 +380,7 @@ public class SchedulerService {
 		log.info("\'recolectListPayments\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 10000, initialDelay = 10000)
+//	@Scheduled(fixedDelay = 10000, initialDelay = 10000)
 	public void invoicesInitialCharge() {
 		log.info("\'invoicesInitialCharge\' is started*******");
 		String nextSearch = sdf.format(new Date());
