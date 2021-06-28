@@ -218,6 +218,9 @@ public class Invoice implements Serializable{
 	@Column(name = "longDescription", nullable=true)
 	private String longDescription;
 	
+	@Column(name = "salesOrderType", nullable=true)
+	private String salesOrderType;
+	
 	public long getId() {
 		return id;
 	}
@@ -704,6 +707,14 @@ public class Invoice implements Serializable{
 
 	public void setLongDescription(String longDescription) {
 		this.longDescription = longDescription;
+	}
+
+	public String getSalesOrderType() {
+		return salesOrderType;
+	}
+
+	public void setSalesOrderType(String salesOrderType) {
+		this.salesOrderType = salesOrderType;
 	}
 	
 }

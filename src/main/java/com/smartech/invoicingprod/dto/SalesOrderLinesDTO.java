@@ -19,6 +19,7 @@ public class SalesOrderLinesDTO {
 	private String InventoryOrganizationName;
 	private List<SalesLineLotSerDTO> lotSerials;
 	private boolean isUsedTheLine;
+	private boolean existCombo;
 	
 	public String getSourceTransactionLineNumber() {
 		return sourceTransactionLineNumber;
@@ -115,6 +116,12 @@ public class SalesOrderLinesDTO {
 	}
 	public void setUsedTheLine(boolean isUsedTheLine) {
 		this.isUsedTheLine = isUsedTheLine;
+	}
+	public boolean isExistCombo() {
+		return existCombo;
+	}
+	public void setExistCombo(boolean existCombo) {
+		this.existCombo = existCombo;
 	}
 	
 }

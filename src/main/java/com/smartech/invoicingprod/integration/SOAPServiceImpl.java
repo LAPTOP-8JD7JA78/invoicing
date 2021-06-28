@@ -449,7 +449,7 @@ public class SOAPServiceImpl implements SOAPService {
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
 									//Ambiente test
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
+									/*if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBUSOCFDIprivateVO")) {
@@ -482,7 +482,7 @@ public class SOAPServiceImpl implements SOAPService {
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO")) {
 										so.setCertificadoOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "certificadoOrigen").toString()));
 										so.setValorCerOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "valorCertificadoOrigen").toString()));
-									}/*
+									}*/
 									//Ambiente productivo
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
@@ -511,13 +511,13 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
-									}*/
+									}
 								}
 								
 								if(op.getAsJsonObject().has("ns0:OrderLine")) {
 									List<SalesOrderLinesDTO> soLines = new ArrayList<SalesOrderLinesDTO>();
 									if(op.getAsJsonObject().get("ns0:OrderLine").isJsonArray()) {
-										JsonArray jaLines = op.getAsJsonObject().get("ns0:OrderLine").getAsJsonArray();
+										JsonArray jaLines = op.getAsJsonObject().get("ns0:OrderLine").getAsJsonArray();										
 										for(int i = 0; i < jaLines.size(); i++) {
 											JsonElement oeLine = jaLines.get(i).getAsJsonObject();
 											SalesOrderLinesDTO soLine = new SalesOrderLinesDTO();
@@ -541,7 +541,12 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 											soLine.setUsedTheLine(false);
-											
+											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
+											if(value.equals("INCLUDED")) {
+												soLine.setExistCombo(true);
+											}else {
+												soLine.setExistCombo(false);
+											}
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
 												if(oeLine.getAsJsonObject().get("ns0:LineLotSerial").isJsonArray()) {
@@ -627,6 +632,13 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 										soLine.setUsedTheLine(false);
 										
+										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
+										if(value.equals("INCLUDED")) {
+											soLine.setExistCombo(true);
+										}else {
+											soLine.setExistCombo(false);
+										}
+										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
 											if(oeLine.getAsJsonObject().get("ns0:LineLotSerial").isJsonArray()) {
@@ -709,7 +721,7 @@ public class SOAPServiceImpl implements SOAPService {
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
 									//Ambiente test
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
+									/*if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBUSOCFDIprivateVO")) {
@@ -742,7 +754,7 @@ public class SOAPServiceImpl implements SOAPService {
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO")) {
 										so.setCertificadoOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "certificadoOrigen").toString()));
 										so.setValorCerOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "valorCertificadoOrigen").toString()));
-									}/*
+									}*/
 									//Ambiente productivo
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
@@ -770,7 +782,7 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
-									}*/
+									}
 								}
 								
 								if(op.getAsJsonObject().has("ns0:OrderLine")) {
@@ -798,6 +810,13 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 											soLine.setUsedTheLine(false);
+											
+											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
+											if(value.equals("INCLUDED")) {
+												soLine.setExistCombo(true);
+											}else {
+												soLine.setExistCombo(false);
+											}
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 												List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
@@ -882,6 +901,13 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 										soLine.setUsedTheLine(false);
 										
+										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
+										if(value.equals("INCLUDED")) {
+											soLine.setExistCombo(true);
+										}else {
+											soLine.setExistCombo(false);
+										}
+										
 										if(oeLine.getAsJsonObject().has("ns0:LineLotSerial")) {
 											List<SalesLineLotSerDTO> lotSerialsList = new ArrayList<SalesLineLotSerDTO>();
 											if(oeLine.getAsJsonObject().get("ns0:LineLotSerial").isJsonArray()) {
@@ -943,6 +969,7 @@ public class SOAPServiceImpl implements SOAPService {
 										
 										soLines.add(soLine);
 									}
+									
 									so.setLines(soLines);
 								}
 							}

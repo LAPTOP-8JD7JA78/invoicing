@@ -720,6 +720,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}
 									//COLOCAR QUE LA LÍNEA ES TRANSACCIONABLE
 									invDetails.setIsInvoiceLine("D");
+									invDetails.setWarrantyFull(false);
 									List<TaxCodes> tclConsult = taxCodesService.getTCList(0, 10);
 									Set<TaxCodes> tcl = new HashSet<TaxCodes>(tclConsult);
 									for(TaxCodes tc: tcl) {
@@ -1378,6 +1379,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}	
 						}
 					}
+					//Tipo de orden
+					if(so.getSalesOrderType() != null && !so.getSalesOrderType().isEmpty()) {
+						inv.setSalesOrderType(so.getSalesOrderType());
+					}
 					//Sustitución del CFDI
 					if(so.getSusticionCFDI() != null && !so.getSusticionCFDI().isEmpty()) {
 						inv.setUUIDReference(so.getSusticionCFDI());
@@ -1462,6 +1467,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 																		}else{
 																			dCombo.setEquipmentReference("R");
 																		}
+																		//Seteo de variable para garantias
+																		dCombo.setWarrantyFull(false);
 																		//CONTROL VEHICULAR
 																		if(inv.isInvoice()) {
 																			//Saber si va para control vehicular
@@ -1514,139 +1521,143 @@ public class InvoicingServiceImpl implements InvoicingService{
 											}
 										}	
 									}else if(so.getLines().size() > inv.getInvoiceDetails().size()) {//Para productos marina o productos kits sin serie
-										for(SalesOrderLinesDTO lineCombo: so.getLines()) {
-											Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
-											InvoiceDetails dCombo = new InvoiceDetails();
-											boolean isAlreadyIn = true;
-											if(!lineCombo.getProductNumber().equals(invLine.getItemNumber())) {
-												if(line.getSourceTransactionLineIdentifier().equals(lineCombo.getSourceTransactionLineIdentifier())) {
-													ItemsDTO itemSat = soapService.getItemDataByItemIdOrgCode(lineCombo.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-													ItemsDTO itemSatHeader = soapService.getItemDataByItemIdOrgCode(line.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-													if(itemSat != null) {	
-														for(InvoiceDetails iD: inv.getInvoiceDetails()) {
-															if(lineCombo.getLotSerials() != null) {
-																if(iD.getItemNumber().equals(lineCombo.getProductNumber())
-																		&& iD.getItemSerial().equals(lineCombo.getLotSerials().get(0).getSerialNumberFrom())) {
-																	isAlreadyIn = false;
-																	break;
+//										if(line.isExistCombo()) {
+											for(SalesOrderLinesDTO lineCombo: so.getLines()) {
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
+												InvoiceDetails dCombo = new InvoiceDetails();
+												boolean isAlreadyIn = true;
+												if(!lineCombo.getProductNumber().equals(invLine.getItemNumber())) {
+													if(line.getSourceTransactionLineIdentifier().equals(lineCombo.getSourceTransactionLineIdentifier())) {
+														ItemsDTO itemSat = soapService.getItemDataByItemIdOrgCode(lineCombo.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
+														ItemsDTO itemSatHeader = soapService.getItemDataByItemIdOrgCode(line.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
+														if(itemSat != null) {	
+															for(InvoiceDetails iD: inv.getInvoiceDetails()) {
+																if(lineCombo.getLotSerials() != null) {
+																	if(iD.getItemNumber().equals(lineCombo.getProductNumber())
+																			&& iD.getItemSerial().equals(lineCombo.getLotSerials().get(0).getSerialNumberFrom())) {
+																		isAlreadyIn = false;
+																		break;
+																	}
+																}else {
+																	if(iD.getItemNumber().equals(lineCombo.getProductNumber())) {
+																		isAlreadyIn = false;
+																		break;
+																	}
 																}
-															}else {
-																if(iD.getItemNumber().equals(lineCombo.getProductNumber())) {
-																	isAlreadyIn = false;
-																	break;
-																}
-															}
-														}		
-														if(!inv.getCustomerName().contains("SECRETARIA DE MARINA")) {
-															if(itemSatHeader != null) {
-																if(itemSatHeader.getItemCategory() != null) {																		
-																	for(CategoryDTO ic: itemSatHeader.getItemCategory()) {
-																		if(ic.getCategoryName().equals("EMBARCACION")) {
-																			for(TaxCodes tc: tcodesCombo) {
-																				if(tc.getId() == 2) {	
-																					if(!leyendas.contains(AppConstants.LEY_EMB_COM)) {
-																						leyendas = AppConstants.LEY_EMB_COM;
+															}		
+															if(!inv.getCustomerName().contains("SECRETARIA DE MARINA")) {
+																if(itemSatHeader != null) {
+																	if(itemSatHeader.getItemCategory() != null) {																		
+																		for(CategoryDTO ic: itemSatHeader.getItemCategory()) {
+																			if(ic.getCategoryName().equals("EMBARCACION")) {
+																				for(TaxCodes tc: tcodesCombo) {
+																					if(tc.getId() == 2) {	
+																						if(!leyendas.contains(AppConstants.LEY_EMB_COM)) {
+																							leyendas = AppConstants.LEY_EMB_COM;
+																						}
 																					}
 																				}
-																			}
-																			if(ic.getCategoryName().equals("EMBARCACION")) {
-																				if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_EMB)) {
-																					leyendas = leyendas + " MOTOR: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
-																				}else if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_LAN)) {
-																					leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
+																				if(ic.getCategoryName().equals("EMBARCACION")) {
+																					if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_EMB)) {
+																						leyendas = leyendas + " MOTOR: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
+																					}else if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_LAN)) {
+																						leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
+																					}
 																				}
-																			}
-																		}																			
-																	}
-																}
-															}
-														}																													
-														if(isAlreadyIn) {
-															dCombo.setItemNumber(lineCombo.getProductNumber());
-															if(lineCombo.getLotSerials() == null) {
-																dCombo.setItemSerial(null);
-															}else {
-																dCombo.setItemSerial(NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()));	
-															}
-															dCombo.setQuantity(1);
-															dCombo.setIsInvoiceLine("C");
-															dCombo.setUomName("PZA");
-															dCombo.setUomCode("H87");
-															dCombo.setTransactionLineNumber(NullValidator.isNull(invLine.getTransactionLineNumber()));
-															dCombo.setImport(itemSat.isItemDFFIsImported());
-															if(lineCombo.getLotSerials() != null) {
-																dCombo.setEquipmentReference("E");
-																if(invLine.getItemSerial() == null) {
-																	invLine.setItemSerial(dCombo.getItemSerial()); 
-																}else {
-																	invLine.setItemSerial(invLine.getItemSerial() + ", " + dCombo.getItemSerial()); 
-																}
-																
-															}else{
-																dCombo.setEquipmentReference("R");
-															}
-															//CONTROL VEHICULAR
-															if(inv.isInvoice()) {
-																//Saber si va para control vehicular
-																dCombo.setIsVehicleControl("1");
-																//Tipo de cambio diario
-																CurrencyRates cRates = restService.getDailyCurrency(sdfNoTime.format(new Date()), "USD", "MXN");
-																if(cRates != null) {
-																	float eRate = 0;
-																	if(cRates.getItems() != null ) {
-																		if(cRates.getItems().size() > 0) {
-																			eRate = cRates.getItems().get(0).getConversionRate();
-																		}else {
-																			eRate = Float.parseFloat(String.valueOf(inv.getInvoiceExchangeRate()));													
+																			}																			
 																		}
 																	}
-																	invLine.setExchangeDailyRate(String.valueOf(eRate));
 																}
-																//tipo de producto código
-																ItemCategory iCat = restService.getCategoryCode(itemSat.getItemCategory().get(0).getCategoryName());
-																if(iCat != null) {
-																	dCombo.setProductTypeCode(String.valueOf(iCat.getItems().get(0).getDff().get(0).getTipoProducto()));
+															}																													
+															if(isAlreadyIn) {
+																dCombo.setItemNumber(lineCombo.getProductNumber());
+																if(lineCombo.getLotSerials() == null) {
+																	dCombo.setItemSerial(null);
 																}else {
-																	log.error("ERROR AL TRAER EL CODIGO DEL TIPO DE PRODUCTO PARA CONTROL VEHICULAR");
+																	dCombo.setItemSerial(NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()));	
 																}
-																//Costo unitario
-																String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, dCombo, so.getSalesOrderNumber());
-																dCombo.setUnitCost(NullValidator.isNull(unitCostByItem));
-																if(unitCostByItem != null) {
-																	if(unitCostForCombo.isEmpty()) {
-																		unitCostForCombo = unitCostByItem;
+																dCombo.setQuantity(1);
+																dCombo.setIsInvoiceLine("C");
+																dCombo.setUomName("PZA");
+																dCombo.setUomCode("H87");
+																dCombo.setTransactionLineNumber(NullValidator.isNull(invLine.getTransactionLineNumber()));
+																dCombo.setImport(itemSat.isItemDFFIsImported());
+																if(lineCombo.getLotSerials() != null) {
+																	dCombo.setEquipmentReference("E");
+																	if(invLine.getItemSerial() == null) {
+																		invLine.setItemSerial(dCombo.getItemSerial()); 
 																	}else {
-																		unitCostForCombo = unitCostForCombo + "," + unitCostByItem;
-																	}	
+																		invLine.setItemSerial(invLine.getItemSerial() + ", " + dCombo.getItemSerial()); 
+																	}
+																	
+																}else{
+																	dCombo.setEquipmentReference("R");
+																}
+																//Seteo de variable para garantias
+																dCombo.setWarrantyFull(false);
+																//CONTROL VEHICULAR
+																if(inv.isInvoice()) {
+																	//Saber si va para control vehicular
+																	dCombo.setIsVehicleControl("1");
+																	//Tipo de cambio diario
+																	CurrencyRates cRates = restService.getDailyCurrency(sdfNoTime.format(new Date()), "USD", "MXN");
+																	if(cRates != null) {
+																		float eRate = 0;
+																		if(cRates.getItems() != null ) {
+																			if(cRates.getItems().size() > 0) {
+																				eRate = cRates.getItems().get(0).getConversionRate();
+																			}else {
+																				eRate = Float.parseFloat(String.valueOf(inv.getInvoiceExchangeRate()));													
+																			}
+																		}
+																		invLine.setExchangeDailyRate(String.valueOf(eRate));
+																	}
+																	//tipo de producto código
+																	ItemCategory iCat = restService.getCategoryCode(itemSat.getItemCategory().get(0).getCategoryName());
+																	if(iCat != null) {
+																		dCombo.setProductTypeCode(String.valueOf(iCat.getItems().get(0).getDff().get(0).getTipoProducto()));
+																	}else {
+																		log.error("ERROR AL TRAER EL CODIGO DEL TIPO DE PRODUCTO PARA CONTROL VEHICULAR");
+																	}
+																	//Costo unitario
+																	String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, dCombo, so.getSalesOrderNumber());
+																	dCombo.setUnitCost(NullValidator.isNull(unitCostByItem));
+																	if(unitCostByItem != null) {
+																		if(unitCostForCombo.isEmpty()) {
+																			unitCostForCombo = unitCostByItem;
+																		}else {
+																			unitCostForCombo = unitCostForCombo + "," + unitCostByItem;
+																		}	
+																	}else {
+																		if(unitCostForCombo.isEmpty()) {
+																			unitCostForCombo = NullValidator.isNullUnitCost(unitCostByItem);
+																		}else {
+																			unitCostForCombo = unitCostForCombo + "," + NullValidator.isNullUnitCost(unitCostByItem);
+																		}	
+																	}
+																																
+																	//Precio producto venta sin iva
+																	String priceListItem = this.getPriceListByWs(inv, dCombo);
+																	dCombo.setPriceListWTax(NullValidator.isNull(priceListItem));
 																}else {
-																	if(unitCostForCombo.isEmpty()) {
-																		unitCostForCombo = NullValidator.isNullUnitCost(unitCostByItem);
-																	}else {
-																		unitCostForCombo = unitCostForCombo + "," + NullValidator.isNullUnitCost(unitCostByItem);
-																	}	
-																}
-																															
-																//Precio producto venta sin iva
-																String priceListItem = this.getPriceListByWs(inv, dCombo);
-																dCombo.setPriceListWTax(NullValidator.isNull(priceListItem));
+																	dCombo.setIsVehicleControl("0");
+																}	
+																invDListNormal.add(dCombo);
+																inv.setInvoiceDetails(invDListNormal);
+																countCombo++;
 															}else {
-																dCombo.setIsVehicleControl("0");
-															}	
-															invDListNormal.add(dCombo);
-															inv.setInvoiceDetails(invDListNormal);
-															countCombo++;
+																countCombo++;
+															}
 														}else {
+															invStatus = false;
+															msgError = msgError + ";ITEMMAST-Error al consultar los datos del IMA";
+															log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LOS DATOS DEL ITEM MASTER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
 															countCombo++;
 														}
-													}else {
-														invStatus = false;
-														msgError = msgError + ";ITEMMAST-Error al consultar los datos del IMA";
-														log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LOS DATOS DEL ITEM MASTER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
-														countCombo++;
 													}
 												}
 											}
-										}
+//										}
 									}	
 									if(leyendas != null && !leyendas.isEmpty()) {
 //										invLine.setAddtionalDescription(leyendas);
@@ -1761,7 +1772,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 									if(line.getAdditionalInformation() != null && !"".contains(line.getAdditionalInformation())) {
 										invLine.setAddtionalDescription(line.getAdditionalInformation());
 									}
-									
+									//Seteo de variable para garantias
+									invLine.setWarrantyFull(false);
 									//Serie y lote (Datos Opcionales)
 									if(line.getLotSerials() != null) {
 										String lots = "";
@@ -2064,6 +2076,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					iD.setTransactionLineNumber(AppConstants.INVOICE_ADVPAY_DEFAULT_TRANSLINNUMBER);
 					iD.setRetailComplements(null);
 					iD.setIsVehicleControl("0");
+					//Seteo de variable para garantias
+					iD.setWarrantyFull(false);
 					
 					List<TaxCodes> tcs = new ArrayList<TaxCodes>();
 					tcs = taxCodesService.getTCList(0, 10);
@@ -3918,6 +3932,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 							iD.setEquipmentReference("N");
 							//COLOCAR QUE LA LÍNEA SE DEBE DE TIMBRAR
 							iD.setIsInvoiceLine("D");
+							//Seteo de variable para garantias
+							iD.setWarrantyFull(false);
 							
 							List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
 							idList.add(iD);
@@ -4070,6 +4086,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 							iD.setTransactionLineNumber(AppConstants.INVOICE_ADVPAY_DEFAULT_TRANSLINNUMBER);
 							iD.setRetailComplements(null);
 							iD.setIsVehicleControl("0");
+							//Seteo de variable para garantias
+							iD.setWarrantyFull(false);
 							
 							List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
 							idList.add(iD);
@@ -4366,7 +4384,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 					inv.setErrorMsg(msgError);
 					inv.setErrorActive(true);
 				}
-				
+
+				//Seteo de variable para garantias
+				invD.setWarrantyFull(false);
 				Set<InvoiceDetails> invDList = new HashSet<InvoiceDetails>();
 				invDList.add(invD);
 				inv.setInvoiceDetails(invDList);
@@ -4414,14 +4434,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 					for(Udc u: emails) {
 						email.add(u.getUdcKey());
 					}
-//					mailService.sendMail(email,
-//							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
-//							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
-//							attached);
 					mailService.sendMail(email,
-							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
-							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
+							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
 							attached);
+//					mailService.sendMail(email,
+//							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+//							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+//							attached);
 				}
 			}
 		}catch(Exception e) {
@@ -4544,6 +4564,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				}
 			}	
 			if(NullValidator.isNull(iDet.getItemSerial()).contains(",")) {
+				
 				String [] costos = unitCost.split(",");
 				String [] itemSerials = iDet.getItemSerial().split(",");
 				if(itemSerials.length != costos.length) {
@@ -4708,6 +4729,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					iD.setIsInvoiceLine("D");
 					iD.setTaxCodes(idetails.getTaxCodes());
 					iD.setIsVehicleControl("0");
+					//Seteo de variable para garantias
+					iD.setWarrantyFull(false);
 					
 					List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
 					idList.add(iD);
@@ -4841,6 +4864,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 				iD.setRetailComplements(null);
 				iD.setIsInvoiceLine("D");
 				iD.setIsVehicleControl("0");
+				//Seteo de variable para garantias
+				iD.setWarrantyFull(false);
 				Set<TaxCodes> tcList = new HashSet<TaxCodes>();
 				List<TaxCodes> tclConsult = taxCodesService.getTCList(0, 10);
 				Set<TaxCodes> tcl = new HashSet<TaxCodes>(tclConsult);

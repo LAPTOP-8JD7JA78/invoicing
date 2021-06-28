@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartech.invoicingprod.dto.InvoicePayments;
+import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 
 @Repository("invoiceDao")
@@ -38,7 +39,9 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		try {
 			Session session = this.sessionFactory.getCurrentSession();
 			Criteria criteria = session.createCriteria(Invoice.class);
-			criteria.add( Restrictions.like("folio",  folio ));	
+			criteria.add( Restrictions.eq("folio",  folio ));
+			criteria.add( Restrictions.eq("invoiceType", AppConstants.ORDER_TYPE_FACTURA));
+			//criteria.add( Restrictions.ge("updatedDate", new SimpleDateFormat("yyyy-MM-dd").parse("2021-05-01")));
 			List<Invoice> list =  criteria.list();
 			if(!list.isEmpty()){
 				return list.get(0);
@@ -327,6 +330,31 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			List<Invoice> list =  criteria.list();
 			if(!list.isEmpty()){
 				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@SuppressWarnings({ "unchecked", "null" })
+	@Override
+	public List<Invoice> getAllInvoiceToWarranty(String dataSearch) {
+		try {			
+			//Date dateT = new SimpleDateFormat("dd/MM/yyyy").parse("2021-05-01");			
+			Session session = this.sessionFactory.getCurrentSession();
+			String[] statusData = new String[] {AppConstants.STATUS_INVOICED, AppConstants.STATUS_FINISHED};
+			Criteria criteria = session.createCriteria(Invoice.class);	
+//			criteria.setProjection(Projections.distinct(Projections.property("id")));
+			criteria.add( Restrictions.ge("updatedDate", new SimpleDateFormat("yyyy-MM-dd").parse(dataSearch)));
+			criteria.add( Restrictions.eq("invoiceType", AppConstants.ORDER_TYPE_FACTURA));	
+			criteria.add( Restrictions.isNotNull("UUID"));	
+			criteria.add( Restrictions.in("status", statusData ));	
+			/*criteria.add( Restrictions.eq("invoiceType", orderType));*/
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list;
 			}
 			return null;
 		}catch(Exception e) {

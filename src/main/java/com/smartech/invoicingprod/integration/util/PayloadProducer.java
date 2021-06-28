@@ -314,39 +314,39 @@ public class PayloadProducer {
 	
 	public static String setARReceiptsSerialFolioFlexfield(String receiptNumber, String receiptId, String serial, String folio) {
 		//Ambiente test 
-		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">" + 
-				"<soapenv:Header/>" + 
-					"<soapenv:Body>" + 
-						"<typ:updateDffEntityDetails>" + 
-							"<typ:operationMode>single</typ:operationMode>" + 
-							"<typ:object>" + 
-								"<erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>" +
-								"<erp:ContextValue>Serie y Folio</erp:ContextValue>" +
-								"<erp:UserKeyA>"+ receiptNumber + "</erp:UserKeyA>" + 
-								"<erp:UserKeyB>" + receiptId + "</erp:UserKeyB>" + 
-								"<erp:DFFAttributes>{\"ATTRIBUTE1\":\"" + folio + "\",\"ATTRIBUTE2\":\"" + serial + "\"}</erp:DFFAttributes>" + 
-							"</typ:object>" + 
-						"</typ:updateDffEntityDetails>" + 
-					"</soapenv:Body>" + 
-				"</soapenv:Envelope>";
-				
-		return SOAPRequest;
-		//Ambiente prod
-//		String requestSoap = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">\r\n" + 
-//				"   <soapenv:Header/>\r\n" + 
-//				"   <soapenv:Body>\r\n" + 
-//				"      <typ:updateDffEntityDetails>\r\n" + 
-//				"         <typ:object>\r\n" + 
-//				"            <erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>\r\n" + 
-//				"            <erp:ContextValue>#NULL</erp:ContextValue>\r\n" + 
-//				"            <erp:UserKeyA>" + receiptNumber + "</erp:UserKeyA>\r\n" + 
-//				"            <erp:UserKeyB>" + receiptId + "</erp:UserKeyB>\r\n" +
-//				"            <erp:DFFAttributes>{\"ATTRIBUTE2\":\"" + folio  + "\",\"ATTRIBUTE1\":\"" + serial + "\"}</erp:DFFAttributes>\r\n" + 
-//				"         </typ:object>\r\n" + 
-//				"      </typ:updateDffEntityDetails>\r\n" + 
-//				"   </soapenv:Body>\r\n" + 
+//		String SOAPRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">" + 
+//				"<soapenv:Header/>" + 
+//					"<soapenv:Body>" + 
+//						"<typ:updateDffEntityDetails>" + 
+//							"<typ:operationMode>single</typ:operationMode>" + 
+//							"<typ:object>" + 
+//								"<erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>" +
+//								"<erp:ContextValue>Serie y Folio</erp:ContextValue>" +
+//								"<erp:UserKeyA>"+ receiptNumber + "</erp:UserKeyA>" + 
+//								"<erp:UserKeyB>" + receiptId + "</erp:UserKeyB>" + 
+//								"<erp:DFFAttributes>{\"ATTRIBUTE1\":\"" + folio + "\",\"ATTRIBUTE2\":\"" + serial + "\"}</erp:DFFAttributes>" + 
+//							"</typ:object>" + 
+//						"</typ:updateDffEntityDetails>" + 
+//					"</soapenv:Body>" + 
 //				"</soapenv:Envelope>";
-//		return requestSoap;
+//				
+//		return SOAPRequest;
+		//Ambiente prod
+		String requestSoap = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/\" xmlns:erp=\"http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <typ:updateDffEntityDetails>\r\n" + 
+				"         <typ:object>\r\n" + 
+				"            <erp:EntityName>Receivables Invoice Cash Receipt</erp:EntityName>\r\n" + 
+				"            <erp:ContextValue>#NULL</erp:ContextValue>\r\n" + 
+				"            <erp:UserKeyA>" + receiptNumber + "</erp:UserKeyA>\r\n" + 
+				"            <erp:UserKeyB>" + receiptId + "</erp:UserKeyB>\r\n" +
+				"            <erp:DFFAttributes>{\"ATTRIBUTE2\":\"" + folio  + "\",\"ATTRIBUTE1\":\"" + serial + "\"}</erp:DFFAttributes>\r\n" + 
+				"         </typ:object>\r\n" + 
+				"      </typ:updateDffEntityDetails>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		return requestSoap;
 	}
 	
 	public static String getSalesOrderInfoBySalesNumber(String so) {

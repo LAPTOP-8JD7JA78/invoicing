@@ -26,4 +26,5 @@ public interface InvoiceDao {
 	List<Invoice> getInvoiceByOtFolioCustomer(String orderType, String salesOrder, String customerName);
 	List<Invoice> getAllError(boolean isError);
 	Invoice getSingleInvoiceByFolioAndType(String folio, String orderType);
+	List<Invoice> getAllInvoiceToWarranty(String dataSearch);
 }

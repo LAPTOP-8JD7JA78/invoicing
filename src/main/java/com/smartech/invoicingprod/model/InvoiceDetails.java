@@ -160,6 +160,12 @@ public class InvoiceDetails implements Serializable{
 	
 	@OneToOne(cascade=CascadeType.ALL)
 	RetailComplement retailComplements;
+	
+	@Column(name = "warrantyUsed", nullable=true)
+	private String warrantyUsed;
+	
+	@Column(name = "isWarrantyFull", nullable=true)
+	private boolean isWarrantyFull;
 
 	public long getId() {
 		return id;
@@ -503,6 +509,22 @@ public class InvoiceDetails implements Serializable{
 
 	public void setCertificateOrigin(String certificateOrigin) {
 		this.certificateOrigin = certificateOrigin;
+	}
+
+	public String getWarrantyUsed() {
+		return warrantyUsed;
+	}
+
+	public void setWarrantyUsed(String warrantyUsed) {
+		this.warrantyUsed = warrantyUsed;
+	}
+
+	public boolean isWarrantyFull() {
+		return isWarrantyFull;
+	}
+
+	public void setWarrantyFull(boolean isWarrantyFull) {
+		this.isWarrantyFull = isWarrantyFull;
 	}
 	
 }

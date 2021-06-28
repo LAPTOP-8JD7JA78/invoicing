@@ -35,9 +35,11 @@ public class SalesOrderDTO {
 	private String customerAddress;
 	private String certificadoOrigen;
 	private String valorCerOrigen;
+	private boolean existCombo = false;
 	
 	private String discountValueText;
 	private String salesPerson;
+	private String salesOrderType;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -295,6 +297,22 @@ public class SalesOrderDTO {
 
 	public void setValorCerOrigen(String valorCerOrigen) {
 		this.valorCerOrigen = valorCerOrigen;
+	}
+
+	public boolean isExistCombo() {
+		return existCombo;
+	}
+
+	public void setExistCombo(boolean existCombo) {
+		this.existCombo = existCombo;
+	}
+
+	public String getSalesOrderType() {
+		return salesOrderType;
+	}
+
+	public void setSalesOrderType(String salesOrderType) {
+		this.salesOrderType = salesOrderType;
 	}
 	
 }

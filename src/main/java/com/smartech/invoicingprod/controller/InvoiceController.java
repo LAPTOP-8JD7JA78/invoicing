@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.smartech.invoicingprod.distribuitorportal.services.DistribuitorServices;
+import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
 import com.smartech.invoicingprod.integration.service.InvoicingService;
 import com.smartech.invoicingprod.integration.service.MailService;
 import com.smartech.invoicingprod.model.Invoice;
@@ -33,6 +36,8 @@ public class InvoiceController {
 	MailService mailService;
 	@Autowired
 	ServletContext servletContext;
+	@Autowired
+	DistribuitorServices distribuitorServices;
 	
 	@SuppressWarnings("unused")
 	@RequestMapping(value ="/integ/invoice/createInvoice", method = RequestMethod.POST)
@@ -63,5 +68,75 @@ public class InvoiceController {
 	 public boolean oracleCustomers(@RequestParam String request) {
 		System.out.print(true);
 		return true;
+	}
+	
+	@RequestMapping(value = "/distribuitors/warranty", method = RequestMethod.GET)
+	 public @ResponseBody Map<String, Object> getDataForWarranty(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String customerName) {
+		
+		if(invoiceNumber == null || invoiceNumber.isEmpty() || customerName == null || customerName.isEmpty()) {
+			return mapError("Porfavor de agregar el valor del número de la factura");
+		}
+		WarrantyDataDTO array = new WarrantyDataDTO();
+		try {
+			array = distribuitorServices.getDataInvoice(invoiceNumber, itemNumber, itemSerial, customerName);
+			if(array != null ) {
+				if(array.getLinesWarranty() != null) {
+					if(array.getLinesWarranty().size()>0) {
+						return mapOK(array, 1);	
+					}else {
+						return mapError("Esta factura no tiene líneas que se le puede generar garantía");
+					}
+				}else {
+					return mapError("No se encuentra el registro búscado");
+				}
+			}else {
+				return mapError("No se encuentra el registro búscado");
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			return mapError(e.getMessage());
+		}
+	}
+	
+	@RequestMapping(value = "/warranty/insertData", method = RequestMethod.GET)
+	 public boolean insertData(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String productTypeCode) {
+		
+		if((invoiceNumber == null || invoiceNumber.isEmpty()) ||
+				(itemNumber == null || itemNumber.isEmpty()) ||
+				(itemSerial == null || itemSerial.isEmpty() )) {
+			return false;
+		}
+		return distribuitorServices.insertData(invoiceNumber, itemNumber, itemSerial, productTypeCode); 
+	}
+	
+	@RequestMapping(value = "/warranty/retreiveAllData", method = RequestMethod.GET)
+	 public List<WarrantyDataDTO> retrieveDataWithoutWarranty(@RequestParam String dataSearch) {	
+		if(dataSearch == null || dataSearch.isEmpty()) {
+			return null;
+		}
+		return distribuitorServices.retrieveAllData(dataSearch); 		
+	}	
+	
+	public Map<String, Object> mapOK(WarrantyDataDTO list, int total) {
+		Map<String, Object> modelMap = new HashMap<String, Object>(3);
+		modelMap.put("total", total);
+		modelMap.put("data", list);
+		modelMap.put("success", true);
+		return modelMap;
+	}
+	
+	public Map<String, Object> mapOKList(WarrantyDataDTO list, int total) {
+		Map<String, Object> modelMap = new HashMap<String, Object>(3);
+		modelMap.put("total", total);
+		modelMap.put("data", list);
+		modelMap.put("success", true);
+		return modelMap;
+	}
+	
+	public Map<String, Object> mapError(String msg) {
+		Map<String, Object> modelMap = new HashMap<String, Object>(2);
+		modelMap.put("message", msg);
+		modelMap.put("success", false);
+		return modelMap;
 	}
 }
