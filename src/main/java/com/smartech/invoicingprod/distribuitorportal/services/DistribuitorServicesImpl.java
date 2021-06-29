@@ -281,6 +281,9 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 					for(InvoiceDetails iDet: inv.getInvoiceDetails()) {
 						boolean setTrue = false;
 						if(iDet.getItemNumber().equals(itemNumber)) {
+							if(iDet.getWarrantyUsed().contains(itemSerial)) {
+								return false;
+							}
 							if(productTypeCode.equals("36") || iDet.getProductTypeCode().equals("36")) {
 								/*if(iDet.getItemSerial().equals(itemSerial)) {
 									iDet.setWarrantyUsed(itemSerial);
