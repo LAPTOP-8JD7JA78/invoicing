@@ -69,6 +69,9 @@ public class AppConstants {
 	public static final String STATUS_ERROR_DATA_PAY = "ERROR_PAY";
 	public static final String STATUS_ERROR_DATA_TRANSFER = "ERROR_TRANSFER";
 	public static final String STATUS_ERROR_DATA_PAY_LIST = "ERROR PAYMENTS LIST";
+	public static final String STATUS_CANCEL_PENDING = "CANCEL PENDING";
+	public static final String STATUS_CANCEL_ERROR = "CANCEL ERROR";
+	
 	
 	public static final String STATUS_PAYMENT_LIST_START = "PAY_START";
 
@@ -129,6 +132,7 @@ public class AppConstants {
 	public static final String ORDER_TYPE_MAR = "MARINA";
 	public static final String ORDER_TYPE_ADV = "ADVPAYMENT";
 	public static final String ORDER_TYPE_TRANS = "TRANSFER";
+	public static final String ORDER_TYPE_CANCEL = "CANCEL";
 	
 	public static final String PAYMENTS_CPAGO = "CPAGO";
 	public static final String PAYMENTS_ADVPAY = "ADVPAY";
@@ -186,6 +190,7 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_INVOICE_RELTYPE = "INVOICERELTYPE";
 	public static final String UDC_KEY_ADVPAYMENT = "ADVPAYMENT";
 	public static final String UDC_SYSTEM_RFC_EXT = "RFCGEN";
+	public static final String UDC_KEY_CANCEL_TRANSACTION_TYPE = "CANCELACIONES";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";

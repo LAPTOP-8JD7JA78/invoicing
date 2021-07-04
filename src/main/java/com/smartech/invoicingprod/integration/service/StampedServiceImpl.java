@@ -1329,5 +1329,38 @@ public class StampedServiceImpl implements StampedService{
 			return false;
 		}
 	}
+
+	@Override
+	public boolean createFileForCancel(Invoice inv) {
+		// TODO Auto-generated method stub
+		try{
+			String content = "";
+			String fileRuta = "";
+			
+			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
+			for(Udc ud: u) {
+				if(ud.getStrValue1().equals(AppConstantsUtil.RUTA_FILES_STAMPED_CANCEL)) {
+					fileRuta = ud.getStrValue2();
+				}
+			}	
+			content = inv.getUUID();
+			String fileName = NullValidator.isNull(inv.getSerial()) + inv.getFolio();
+			File file = new File(fileRuta + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+			if (!file.exists()) {
+             	file.createNewFile();
+            }
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+            out.write(content);
+            out.close();
+            inv.setStatus(AppConstants.STATUS_FINISHED);
+            if(invoiceDao.updateInvoice(inv)) {
+            	return true;
+            }
+			return false;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}		
+	}
 	
 }

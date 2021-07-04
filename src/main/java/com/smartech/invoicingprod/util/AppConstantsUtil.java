@@ -2,6 +2,7 @@ package com.smartech.invoicingprod.util;
 
 public class AppConstantsUtil {
 	public static final String RUTA_FILES_STAMPED = "FAC";
+	public static final String RUTA_FILES_STAMPED_CANCEL = "CANCEL";
 	public static final String RUTA_FILES = "STAMPED";
 	public static final String RUTA_FILES_EXTENSION = ".txt";
 	public static final String FILES_HEADER = "H";

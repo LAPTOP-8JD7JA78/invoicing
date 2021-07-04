@@ -141,6 +141,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		List<String> service1 = new ArrayList<String>();
 		List<String> serviceSeamex = new ArrayList<String>();
 		List<String> othersProducts = new ArrayList<String>();
+		List<String> cancelList = new ArrayList<String>();
 		try {
 			//Fechas
 			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
@@ -169,6 +170,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 						serviceSeamex.add(u.getStrValue1());
 					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
 						othersProducts.add(u.getStrValue1());
+					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
+						cancelList.add(u.getStrValue1());
 					}
 				}
 			}else {
@@ -200,8 +203,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 				//Datos para anticipos
 				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber());
 				if(searchExistingInvoice == null) {
-					if(inv.getPreviousSalesOrder() != null && !inv.getPreviousSalesOrder().isEmpty() || fiextAsset.toString().contains(inv.getTransactionTypeName()) || service1.toString().contains(inv.getTransactionTypeName()) || serviceSeamex.toString().contains(inv.getTransactionTypeName()) || othersProducts.toString().contains(inv.getTransactionTypeName())) {
-						if(!arr.contains(inv.getTransactionNumber()) && !arrSales.contains(inv.getPreviousSalesOrder()) || fiextAsset.toString().contains(inv.getTransactionTypeName()) || service1.toString().contains(inv.getTransactionTypeName()) || serviceSeamex.toString().contains(inv.getTransactionTypeName()) || othersProducts.toString().contains(inv.getTransactionTypeName())) {					
+					if(inv.getPreviousSalesOrder() != null && !inv.getPreviousSalesOrder().isEmpty() || 
+							fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
+							service1.toString().contains(inv.getTransactionTypeName()) || 
+							serviceSeamex.toString().contains(inv.getTransactionTypeName()) || 
+							othersProducts.toString().contains(inv.getTransactionTypeName()) || 
+							cancelList.toString().contains(inv.getTransactionTypeName())) {
+						if(arr.contains(inv.getTransactionNumber())) {
+							continue;
+						}
+						if(!arr.contains(inv.getTransactionNumber()) && !arrSales.contains(inv.getPreviousSalesOrder()) || 
+								fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
+								service1.toString().contains(inv.getTransactionTypeName()) || 
+								serviceSeamex.toString().contains(inv.getTransactionTypeName()) || 
+								othersProducts.toString().contains(inv.getTransactionTypeName()) || 
+								cancelList.toString().contains(inv.getTransactionTypeName())) {					
 							udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
 							for(Udc u: udc) {
 								if(u.getStrValue1().equals(inv.getCustomerCountry())) {
@@ -596,6 +612,60 @@ public class InvoicingServiceImpl implements InvoicingService{
 								}else {
 									continue;
 								}
+							}else if(cancelList.toString().contains(inv.getTransactionTypeName())) {
+								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_CANCEL);
+								if(seaExisCNAdv == null){
+									log.info("AQUI EMPIEZA LA RECOLECCIÓN DE DATOS PARA CANCELAR UNA FACTURA " + inv.getTransactionNumber());
+									Invoice getInvoiceToCancel = invoiceDao.getSingleInvoiceByFolioAndType(inv.getPreviousTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+									if(getInvoiceToCancel != null) {
+										if(getInvoiceToCancel.getUUID() != null && !getInvoiceToCancel.getUUID().isEmpty()) {
+											invoice.setBranch(getInvoiceToCancel.getBranch());
+											invoice.setSerial("CAN" + getInvoiceToCancel.getSerial());
+											invoice.setInvoice(false);
+											invoice.setUUID(getInvoiceToCancel.getUUID());
+											invoice.setUUIDReference(getInvoiceToCancel.getUUID());
+											invoice.setFromSalesOrder(inv.getTransactionNumber());
+											invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
+											invoice.setStatus(AppConstants.STATUS_CANCEL_PENDING);
+											invoice.setFromSalesOrder(inv.getTransactionNumber());
+										}else {
+											invoice.setBranch(getInvoiceToCancel.getBranch());
+											invoice.setSerial("CAN" + getInvoiceToCancel.getSerial());
+											invoice.setInvoice(false);
+											invoice.setUUID(getInvoiceToCancel.getUUID());
+											invoice.setUUIDReference(getInvoiceToCancel.getUUID());
+											invoice.setFromSalesOrder(inv.getTransactionNumber());
+											invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);//b91184e3-a7c6-4fe7-9a39-6195306dbfeb
+											invoice.setStatus(AppConstants.STATUS_CANCEL_ERROR);
+											ErrorLog seaE = errorLogService.searchError("REGISTRO NO TIENE FOLIO FISCAL, FAVOR DE ESPERAR A QUE EL FOLIO RELACIONADO TENGA UN TIBRE", inv.getTransactionNumber());
+											if(seaE == null) {
+												ErrorLog eLog = new ErrorLog();
+												eLog.setErrorMsg("REGISTRO NO TIENE FOLIO FISCAL, FAVOR DE ESPERAR A QUE EL FOLIO RELACIONADO TENGA UN TIBRE");
+												eLog.setCreationDate(sdf.format(new Date()));
+												eLog.setUpdateDate(sdf.format(new Date()));
+												eLog.setNew(true);
+												eLog.setOrderNumber(inv.getTransactionNumber());
+												eLog.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
+												errorLogService.saveError(eLog);
+											}
+										}
+									}else {
+										ErrorLog seaE = errorLogService.searchError("NO EXISTE LA FACTURA BÚSCADA", inv.getTransactionNumber());
+										if(seaE == null) {
+											ErrorLog eLog = new ErrorLog();
+											eLog.setErrorMsg("NO EXISTE LA FACTURA BÚSCADA");
+											eLog.setCreationDate(sdf.format(new Date()));
+											eLog.setUpdateDate(sdf.format(new Date()));
+											eLog.setNew(true);
+											eLog.setOrderNumber(inv.getTransactionNumber());
+											eLog.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
+											errorLogService.saveError(eLog);
+											continue;
+										}
+									}
+								}else {
+									continue;
+								}
 							}else {
 								continue;
 							}
@@ -673,6 +743,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
 										}
 										in.setTransactionType(AppConstants.LIVERPOOL_CREDIT_NOTE);
+									}else if(NullValidator.isNull(i.getInvoiceType()).equals(AppConstants.ORDER_TYPE_CANCEL)){
+										if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) < 0) {
+											invDetails.setUnitPrice(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice()))))));
+											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+										}else {
+											invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
+											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
+										}
 									}
 									//Datos para activos fijos
 									if(i.getStatus().equals(AppConstants.STATUS_PENDING)) {
@@ -830,6 +908,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		List<String> fixedAsset = new ArrayList<String>();
 		List<String> serviceSeamex = new ArrayList<String>();
 		List<String> otrosProductos = new ArrayList<String>();
+		List<String> cancelList = new ArrayList<String>();
 		try {
 			List<Udc> ant = udcService.searchBySystem(AppConstants.UDC_SYSTEM_REPINVOICE);
 			for(Udc u: ant) {
@@ -841,6 +920,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					serviceSeamex.add(u.getStrValue1());
 				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
 					otrosProductos.add(u.getStrValue1());
+				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
+					cancelList.add(u.getStrValue1());
 				}
 			}
 			//Datos del cliente para facturación
@@ -920,7 +1001,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					fixedAsset.toString().contains(invoice.getTransactionTypeName()) ||
 					invoice.getTransactionSource().equals("CARGA INICIAL") ||
 					serviceSeamex.toString().contains(invoice.getTransactionTypeName())||
-					otrosProductos.toString().contains(invoice.getTransactionTypeName())) {
+					otrosProductos.toString().contains(invoice.getTransactionTypeName()) || 
+					cancelList.toString().contains(invoice.getTransactionTypeName())) {
 				log.info(invoice.getTransactionTypeName());
 				return invoice;
 			}
@@ -1380,8 +1462,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 					}
 					//Tipo de orden
-					if(so.getSalesOrderType() != null && !so.getSalesOrderType().isEmpty()) {
-						inv.setSalesOrderType(so.getSalesOrderType());
+					if(so.getOrderType() != null && !so.getOrderType().isEmpty()) {
+						inv.setSalesOrderType(so.getOrderType());
 					}
 					//Sustitución del CFDI
 					if(so.getSusticionCFDI() != null && !so.getSusticionCFDI().isEmpty()) {
@@ -4434,14 +4516,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 					for(Udc u: emails) {
 						email.add(u.getUdcKey());
 					}
-					mailService.sendMail(email,
-							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
-							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
-							attached);
 //					mailService.sendMail(email,
-//							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
-//							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+//							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
+//							"ERRORES PARA EL TIMBRADO AMBIENTE PRODUCTIVO",
 //							attached);
+					mailService.sendMail(email,
+							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+							"ERRORES PARA EL TIMBRADO AMBIENTE DE PRUEBAS",
+							attached);
 				}
 			}
 		}catch(Exception e) {
@@ -4565,23 +4647,25 @@ public class InvoicingServiceImpl implements InvoicingService{
 			}	
 			if(NullValidator.isNull(iDet.getItemSerial()).contains(",")) {
 				
-				String [] costos = unitCost.split(",");
-				String [] itemSerials = iDet.getItemSerial().split(",");
-				if(itemSerials.length != costos.length) {
-					if(unitCost == null) {
-						for(String iing: itemSerials) {
-							if(unitCost == null) {
-								unitCost = "0";
-								break;
-							}else {
-								unitCost = unitCost + ",0";
-								break;
+				if(unitCost != null) {
+					String [] costos = unitCost.split(",");
+					String [] itemSerials = iDet.getItemSerial().split(",");
+					if(itemSerials.length != costos.length) {
+						if(unitCost == null) {
+							for(String iing: itemSerials) {
+								if(unitCost == null) {
+									unitCost = "0";
+									break;
+								}else {
+									unitCost = unitCost + ",0";
+									break;
+								}
 							}
-						}
-					}else {
-						int unit = itemSerials.length - costos.length;
-						for(int var=0; var<unit; var++) {
-							unitCost = unitCost + ",0";
+						}else {
+							int unit = itemSerials.length - costos.length;
+							for(int var=0; var<unit; var++) {
+								unitCost = unitCost + ",0";
+							}
 						}
 					}
 				}

@@ -11,4 +11,5 @@ public interface StampedService {
 	public boolean createPaymentsFile(Payments i);
 	public boolean readDataFromTxt();
 	public boolean creatPaymentListFile(List<PaymentsList> pl);
+	public boolean createFileForCancel(Invoice inv);
 }
