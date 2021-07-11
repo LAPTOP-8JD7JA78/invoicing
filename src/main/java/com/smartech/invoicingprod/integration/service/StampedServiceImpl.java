@@ -13,12 +13,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonArray;
@@ -26,6 +28,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.smartech.invoicingprod.dao.InvoiceDao;
+import com.smartech.invoicingprod.distribuitorportal.dto.HeadersRestDTO;
+import com.smartech.invoicingprod.distribuitorportal.dto.ParamsRestDTO;
+import com.smartech.invoicingprod.distribuitorportal.json.InvoiceJSON;
+import com.smartech.invoicingprod.distribuitorportal.services.HTTPRequestDistribuitorsService;
+import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
@@ -65,6 +72,9 @@ public class StampedServiceImpl implements StampedService{
 	
 	@Autowired
 	PaymentsListService paymentsListService;
+	
+	@Autowired
+	HTTPRequestDistribuitorsService hTTPRequestDistribuitorsService;
 	
 	static Logger log = Logger.getLogger(StampedServiceImpl.class.getName());
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -794,6 +804,7 @@ public class StampedServiceImpl implements StampedService{
 									inv.setErrorMsg(null);
 									inv.setStatus(AppConstants.STATUS_INVOICED);
 									invoiceDao.updateInvoice(inv);
+									createDistPortalInvoice(inv);
 								}else if(inv.getInvoiceRelationType().equals(advPay)){
 									inv.setUUID(uuid);
 									inv.setErrorMsg(null);
@@ -816,6 +827,7 @@ public class StampedServiceImpl implements StampedService{
 								inv.setErrorMsg(null);
 								inv.setStatus(AppConstants.STATUS_INVOICED);
 								invoiceDao.updateInvoice(inv);
+								createDistPortalInvoice(inv);
 								break;		
 							case AppConstants.ORDER_TYPE_ADV:
 								List<Payments> advpay = new ArrayList<Payments>(inv.getPayments());
@@ -909,6 +921,49 @@ public class StampedServiceImpl implements StampedService{
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	@SuppressWarnings("unused")
+	@Override
+	public boolean createDistPortalInvoice(Invoice inv) {
+		try {			
+			InvoiceJSON invoiceJSON = new InvoiceJSON();
+			invoiceJSON.setBranch(inv.getBranch().getName());
+			invoiceJSON.setCompany(inv.getCompany().getName());
+			invoiceJSON.setCustomerName(inv.getCustomerName());
+			invoiceJSON.setCustomerTaxId(inv.getCustomerTaxIdentifier());
+			invoiceJSON.setFolio(inv.getFolio());
+			invoiceJSON.setInvoiceCurrency(inv.getInvoiceCurrency());
+			invoiceJSON.setInvoiceSubTotal(inv.getInvoiceSubTotal());
+			invoiceJSON.setInvoiceTaxAmount(inv.getInvoiceTaxAmount());
+			invoiceJSON.setInvoiceTotal(inv.getInvoiceTotal());
+			invoiceJSON.setInvoiceType(inv.getInvoiceType());
+			invoiceJSON.setSalesOrder(inv.getFromSalesOrder());
+			invoiceJSON.setSerial(inv.getSerial());
+			invoiceJSON.setStampDate(df.format(new Date()));
+			invoiceJSON.setUuid(inv.getUUID());
+			
+			String url = AppConstants.URL_ENDPOINT_INVOICE;
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/vnd.oracle.adf.resourceitem+json"));
+			
+			Map<String, Object> response = hTTPRequestDistribuitorsService.httpRESTRequest(AppConstants.PORTAL_DIST_USER, AppConstants.PORTAL_DIST_PASS,
+					url, HttpMethod.POST, headers, null, invoiceJSON);
+
+			int statusCode;
+			InvoiceJSON responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (InvoiceJSON) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	@SuppressWarnings("unused")

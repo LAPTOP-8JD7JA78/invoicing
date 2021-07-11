@@ -4,9 +4,15 @@ public class AppConstants {
 	
 	public static final String ORACLE_USER = "INTEGUSER";
 	public static final String ORACLE_PASS = "Mexico$2020";
+
+	public static final String PORTAL_DIST_USER = "JSaavedra";
+	public static final String PORTAL_DIST_PASS = "Pa$$word12345";
 	
 	public static final String ORACLE_URL = "https://fa-epog-test-saasfaprod1.fa.ocs.oraclecloud.com";
 //	public static final String ORACLE_URL = "https://fa-epog-saasfaprod1.fa.ocs.oraclecloud.com";
+	
+	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/design/Portal_test_Security/1.0.9/resources/data";
+//	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/data";
 	
 	public static final String ORACLE_ITEMMASTER = "IMA";
 	
@@ -14,6 +20,9 @@ public class AppConstants {
 	public static final String URL_ANALYTICS_SESSION = ORACLE_URL + "/analytics-ws/saw.dll?SoapImpl=nQSessionService";
 	public static final String URL_ANALYTICS = ORACLE_URL + "/analytics-ws/saw.dll?SoapImpl=xmlViewService";
 	
+	//Endpoints Portal de Distribudores
+	public static final String URL_ENDPOINT_INVOICE = DIST_PORTAL_URL + "/invoice"; 
+
 	//Servicios
 	public static final String SERVICE_TEST1 = "TEST1";
 	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
