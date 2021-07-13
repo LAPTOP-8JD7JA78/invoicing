@@ -9,4 +9,5 @@ public interface InvoiceDetailsDao {
 	boolean updateInvoiceDetails(InvoiceDetails r);
 	List<InvoiceDetails> getInvoiceById(long id);
 	List<InvoiceDetails> getInvoiceDetails(int start, int limit);
+	List<InvoiceDetails> searchBySerialNumber(String itemSerial);
 }

@@ -73,7 +73,7 @@ public class InvoiceController {
 	@RequestMapping(value = "/distribuitors/warranty", method = RequestMethod.GET)
 	 public @ResponseBody Map<String, Object> getDataForWarranty(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String customerName) {
 		
-		if(invoiceNumber == null || invoiceNumber.isEmpty() || customerName == null || customerName.isEmpty()) {
+		if(itemSerial == null || itemSerial.isEmpty() || customerName == null || customerName.isEmpty()) {
 			return mapError("Porfavor de agregar el valor del número de la factura");
 		}
 		WarrantyDataDTO array = new WarrantyDataDTO();

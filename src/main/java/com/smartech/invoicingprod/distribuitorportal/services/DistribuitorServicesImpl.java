@@ -36,65 +36,295 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 		// TODO Auto-generated method stub
 		WarrantyDataDTO data = new WarrantyDataDTO();
 		try {
-			//Consultar el número de factura
-			Invoice inv = invoiceDao.getSingleInvoiceByFolio(invoiceNumber);
-			if(inv != null) {
-				WarrantyDataDTO dataToAdd = new WarrantyDataDTO();
-				if(inv.getCustomerName().equals(customerName)) {
-					dataToAdd.setDistribuitor(true);
-					dataToAdd.setName1(inv.getCustomerName());
-					dataToAdd.setName2("");
-					dataToAdd.setName3("");
-					dataToAdd.setAddress(inv.getShipToaddress());
-					dataToAdd.setInternalNumber("");
-					dataToAdd.setOutdoorNumber("");
-					dataToAdd.setReferenceAddress("");
-					dataToAdd.setColony("");//colonia
-					dataToAdd.setLocation("");//segunda colonua
-					dataToAdd.setPopulation(inv.getShipToCity());//ciudad
-					dataToAdd.setState(inv.getCustomerState());
-					dataToAdd.setCountry(inv.getCustomerCountry());
-					dataToAdd.setZip(inv.getShipToZip());
-					dataToAdd.setTelephoneNumber("");
-					dataToAdd.setEmail(inv.getCustomerEmail());
-					
-				}else {
-					if(!inv.getBranch().getName().equals(customerName.toUpperCase())) {
-						return data;
-					}
-					dataToAdd.setDistribuitor(false);
-					dataToAdd.setName1(inv.getBranch().getName());
-					dataToAdd.setName2("");
-					dataToAdd.setName3("");
-					dataToAdd.setAddress(inv.getBranch().getAddress());
-					dataToAdd.setInternalNumber("");
-					dataToAdd.setOutdoorNumber("");
-					dataToAdd.setReferenceAddress("");
-					dataToAdd.setColony(inv.getBranch().getColony());
-					dataToAdd.setLocation("");
-					dataToAdd.setPopulation(inv.getBranch().getCity());
-					dataToAdd.setState(inv.getBranch().getState());
-					dataToAdd.setCountry(inv.getBranch().getCountry());
-					dataToAdd.setZip(inv.getBranch().getZip());
-					dataToAdd.setTelephoneNumber(inv.getBranch().getCellPhoneNumber());
-					dataToAdd.setEmail("");
-				}
-				dataToAdd.setInvoiceNumber(invoiceNumber);
-				dataToAdd.setCustomerClass(inv.getCustomerClass());
-				dataToAdd.setSalesOrder(inv.getFromSalesOrder());
-				dataToAdd.setSalesOrderType(inv.getSalesOrderType());
-				dataToAdd.setInvoiceSerial(inv.getSerial());
-				dataToAdd.setInvoiceDate(sdfNoTime.format(inv.getUpdatedDate()));
-				dataToAdd.setBranchNumber(inv.getBranch().getInvOrganizationId());
-				
-				if(inv.getInvoiceDetails().size() > 0) {
+			//Jalar datos desde el número de serie
+			if(itemSerial != null && !itemSerial.isEmpty()) {
+				List<InvoiceDetails> invDetails = invoiceDetailsDao.searchBySerialNumber(itemSerial);
+				if(invDetails != null && invDetails.size() > 0) {
 					List<WarrantyDataLinesDTO> arrayLines = new ArrayList<WarrantyDataLinesDTO>();
-					if(itemNumber != null && !itemNumber.isEmpty()) {
-						for(InvoiceDetails iDet: inv.getInvoiceDetails()) {
-							if(iDet.getEquipmentReference().equals("E")) {
-								if(!iDet.getProductTypeCode().equals("36")) {
-									if(iDet.getItemNumber().equals(itemNumber)) {
-										if(!iDet.isWarrantyFull()) {
+					for(InvoiceDetails iD: invDetails) {
+						if(!iD.isWarrantyFull()) {
+							if(iD.getProductTypeCode().equals("36")) {
+								continue;
+							}
+							Invoice inv = invoiceDao.getInvoiceIdFromInvoiceDetails(iD.getId());
+							if(inv != null) {
+								if(inv.getInvoiceType().equals(AppConstants.ORDER_TYPE_FACTURA)) {
+									if(inv.getFolio().contains("00000")) {
+										continue;
+									}
+									if(inv.getCustomerName().equals(customerName)) {
+										data.setDistribuitor(true);
+										data.setName1(inv.getCustomerName());
+										data.setName2("");
+										data.setName3("");
+										data.setAddress(inv.getShipToaddress());
+										data.setInternalNumber("");
+										data.setOutdoorNumber("");
+										data.setReferenceAddress("");
+										data.setColony("");//colonia
+										data.setLocation("");//segunda colonua
+										data.setPopulation(inv.getShipToCity());//ciudad
+										data.setState(inv.getCustomerState());
+										data.setCountry(inv.getCustomerCountry());
+										data.setZip(inv.getShipToZip());
+										data.setTelephoneNumber("");
+										data.setEmail(inv.getCustomerEmail());
+										
+									}else {
+										if(!inv.getBranch().getName().equals(customerName.toUpperCase())) {
+											continue;
+										}
+										data.setDistribuitor(false);
+										data.setName1(inv.getBranch().getName());
+										data.setName2("");
+										data.setName3("");
+										data.setAddress(inv.getBranch().getAddress());
+										data.setInternalNumber("");
+										data.setOutdoorNumber("");
+										data.setReferenceAddress("");
+										data.setColony(inv.getBranch().getColony());
+										data.setLocation("");
+										data.setPopulation(inv.getBranch().getCity());
+										data.setState(inv.getBranch().getState());
+										data.setCountry(inv.getBranch().getCountry());
+										data.setZip(inv.getBranch().getZip());
+										data.setTelephoneNumber(inv.getBranch().getCellPhoneNumber());
+										data.setEmail("");
+									}
+									//Mas datos
+									if(inv.getFolio().contains("-")) {
+										data.setInvoiceNumber(inv.getFolio().substring(0, inv.getFolio().indexOf("-")));//
+									}else {
+										data.setInvoiceNumber(inv.getFolio());
+									}								
+									data.setCustomerClass(inv.getCustomerClass());
+									data.setSalesOrder(inv.getFromSalesOrder());
+									data.setSalesOrderType(inv.getSalesOrderType());
+									data.setInvoiceSerial(inv.getSerial());
+									data.setInvoiceDate(sdfNoTime.format(inv.getUpdatedDate()));
+									data.setBranchNumber(inv.getBranch().getInvOrganizationId());
+									
+									WarrantyDataLinesDTO lines = new WarrantyDataLinesDTO();
+									List<WarrantyDataSerialLinesDTO> arraySerialItem = new ArrayList<WarrantyDataSerialLinesDTO>();
+									
+									if(iD.getItemSerial() != null) {
+										List<String> serialsNumberInvoice = new ArrayList<String>();
+										List<String> serialsNumberWarranty = new ArrayList<String>();
+										if(iD.getItemSerial().contains(",")) {
+											String[] serialsNumberInvoice1 = iD.getItemSerial().split(",");
+											for(String s: serialsNumberInvoice1) {
+												serialsNumberInvoice.add(s);
+											}
+										}else {
+											serialsNumberInvoice.add(iD.getItemSerial());
+										}
+										if(NullValidator.isNull(iD.getWarrantyUsed()).contains(",")) {
+											String[] serialsNumberWarranty1 = iD.getWarrantyUsed().split(",");
+											for(String s: serialsNumberWarranty1) {
+												serialsNumberWarranty.add(s);
+											}
+										}else {
+											serialsNumberWarranty.add(iD.getWarrantyUsed());
+										}
+										List<String> serial = new ArrayList<String>();
+										for(String str: serialsNumberInvoice) {
+											if(str != null) {
+												if(!serialsNumberWarranty.toString().contains(str)) {
+													serial.add(str);
+												}
+											}
+											
+										}
+										for(String s: serial) {
+											if(s.equals(itemSerial)) {
+												WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
+												moreData.setItemNumber(iD.getItemNumber());
+												moreData.setItemSerial(s);
+												arraySerialItem.add(moreData);											
+											}
+										}
+									}
+									
+									//Demas datos de las líneas
+									lines.setItemNumber(iD.getItemNumber());
+									lines.setEquipment(true);
+									lines.setItemBrand(iD.getItemBrand());
+									lines.setItemDescription(iD.getItemDescription());
+									lines.setItemModel(iD.getItemModel());
+									lines.setProductType(iD.getProductTypeCode());
+									lines.setItemSerial(arraySerialItem);
+									lines.setInvoiceLineType(iD.getIsInvoiceLine());
+									
+									arrayLines.add(lines);
+								}
+							}
+						}
+					}
+					data.setLinesWarranty(arrayLines);
+					return data;
+				}else {
+					return null;
+				}
+			}/*else {
+				//Consultar el número de factura
+				Invoice inv = invoiceDao.getSingleInvoiceByFolio(invoiceNumber);
+				if(inv != null) {
+					WarrantyDataDTO dataToAdd = new WarrantyDataDTO();
+					if(inv.getCustomerName().equals(customerName)) {
+						dataToAdd.setDistribuitor(true);
+						dataToAdd.setName1(inv.getCustomerName());
+						dataToAdd.setName2("");
+						dataToAdd.setName3("");
+						dataToAdd.setAddress(inv.getShipToaddress());
+						dataToAdd.setInternalNumber("");
+						dataToAdd.setOutdoorNumber("");
+						dataToAdd.setReferenceAddress("");
+						dataToAdd.setColony("");//colonia
+						dataToAdd.setLocation("");//segunda colonua
+						dataToAdd.setPopulation(inv.getShipToCity());//ciudad
+						dataToAdd.setState(inv.getCustomerState());
+						dataToAdd.setCountry(inv.getCustomerCountry());
+						dataToAdd.setZip(inv.getShipToZip());
+						dataToAdd.setTelephoneNumber("");
+						dataToAdd.setEmail(inv.getCustomerEmail());
+						
+					}else {
+						if(!inv.getBranch().getName().equals(customerName.toUpperCase())) {
+							return data;
+						}
+						dataToAdd.setDistribuitor(false);
+						dataToAdd.setName1(inv.getBranch().getName());
+						dataToAdd.setName2("");
+						dataToAdd.setName3("");
+						dataToAdd.setAddress(inv.getBranch().getAddress());
+						dataToAdd.setInternalNumber("");
+						dataToAdd.setOutdoorNumber("");
+						dataToAdd.setReferenceAddress("");
+						dataToAdd.setColony(inv.getBranch().getColony());
+						dataToAdd.setLocation("");
+						dataToAdd.setPopulation(inv.getBranch().getCity());
+						dataToAdd.setState(inv.getBranch().getState());
+						dataToAdd.setCountry(inv.getBranch().getCountry());
+						dataToAdd.setZip(inv.getBranch().getZip());
+						dataToAdd.setTelephoneNumber(inv.getBranch().getCellPhoneNumber());
+						dataToAdd.setEmail("");
+					}
+					dataToAdd.setInvoiceNumber(invoiceNumber);
+					dataToAdd.setCustomerClass(inv.getCustomerClass());
+					dataToAdd.setSalesOrder(inv.getFromSalesOrder());
+					dataToAdd.setSalesOrderType(inv.getSalesOrderType());
+					dataToAdd.setInvoiceSerial(inv.getSerial());
+					dataToAdd.setInvoiceDate(sdfNoTime.format(inv.getUpdatedDate()));
+					dataToAdd.setBranchNumber(inv.getBranch().getInvOrganizationId());
+					
+					if(inv.getInvoiceDetails().size() > 0) {
+						List<WarrantyDataLinesDTO> arrayLines = new ArrayList<WarrantyDataLinesDTO>();
+						if(itemNumber != null && !itemNumber.isEmpty()) {
+							for(InvoiceDetails iDet: inv.getInvoiceDetails()) {
+								if(iDet.getEquipmentReference().equals("E")) {
+									if(!iDet.getProductTypeCode().equals("36")) {
+										if(iDet.getItemNumber().equals(itemNumber)) {
+											if(!iDet.isWarrantyFull()) {
+												List<String> serialsNumberInvoice = new ArrayList<String>();
+												List<String> serialsNumberWarranty = new ArrayList<String>();
+												if(iDet.getItemSerial().contains(",")) {
+													String[] serialsNumberInvoice1 = iDet.getItemSerial().split(",");
+													for(String s: serialsNumberInvoice1) {
+														serialsNumberInvoice.add(s);
+													}
+												}else {
+													serialsNumberInvoice.add(iDet.getItemSerial());
+												}
+												if(NullValidator.isNull(iDet.getWarrantyUsed()).contains(",")) {
+													String[] serialsNumberWarranty1 = iDet.getWarrantyUsed().split(",");
+													for(String s: serialsNumberWarranty1) {
+														serialsNumberWarranty.add(s);
+													}
+												}else {
+													serialsNumberWarranty.add(iDet.getWarrantyUsed());
+												}
+												
+												List<String> serial = new ArrayList<String>();
+												for(String str: serialsNumberInvoice) {
+													if(str != null) {
+														if(!serialsNumberWarranty.toString().contains(str)) {
+															serial.add(str);
+														}
+													}
+													
+												}
+												
+												//Datos de los números de serie
+												WarrantyDataLinesDTO lines = new WarrantyDataLinesDTO();
+												List<WarrantyDataSerialLinesDTO> arraySerialItem = new ArrayList<WarrantyDataSerialLinesDTO>();
+												if(itemSerial != null && !itemSerial.isEmpty()) {
+//													if(iDet.getProductTypeCode().equals("36")) {
+//														WarrantyDataSerialLinesDTO byProductType = new WarrantyDataSerialLinesDTO();
+//														byProductType.setItemNumber(iDet.getItemNumber());
+//														byProductType.setItemSerial(iDet.getItemSerial());
+//														arraySerialItem.add(byProductType);							
+//													}else {
+													if(iDet.getItemSerial().contains(",")) {
+														//String[ ] serial = iDet.getItemSerial().split(",");
+														for(String s: serial) {
+															if(s.equals(itemSerial)) {
+																WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
+																moreData.setItemNumber(iDet.getItemNumber());
+																moreData.setItemSerial(s);
+																arraySerialItem.add(moreData);
+																
+															}
+														}
+													}else {
+														WarrantyDataSerialLinesDTO oneData = new WarrantyDataSerialLinesDTO();
+														oneData.setItemNumber(iDet.getItemNumber());
+														oneData.setItemSerial(iDet.getItemSerial());
+														arraySerialItem.add(oneData);
+													}
+//													}
+												}else {
+//													if(iDet.getProductTypeCode().equals("36")) {
+//														WarrantyDataSerialLinesDTO byProductType = new WarrantyDataSerialLinesDTO();
+//														byProductType.setItemNumber(iDet.getItemNumber());
+//														byProductType.setItemSerial(iDet.getItemSerial());
+//														arraySerialItem.add(byProductType);							
+//													}else {
+													if(iDet.getItemSerial().contains(",")) {
+														//String[ ] serial = iDet.getItemSerial().split(",");
+														for(String s: serial) {
+															WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
+															moreData.setItemNumber(iDet.getItemNumber());
+															moreData.setItemSerial(s);
+															arraySerialItem.add(moreData);
+														}
+													}else {
+														WarrantyDataSerialLinesDTO oneData = new WarrantyDataSerialLinesDTO();
+														oneData.setItemNumber(iDet.getItemNumber());
+														oneData.setItemSerial(iDet.getItemSerial());
+														arraySerialItem.add(oneData);
+													}
+//													}
+												}
+												//Demas datos de las líneas
+												lines.setItemNumber(iDet.getItemNumber());
+												lines.setEquipment(true);
+												lines.setItemBrand(iDet.getItemBrand());
+												lines.setItemDescription(iDet.getItemDescription());
+												lines.setItemModel(iDet.getItemModel());
+												lines.setProductType(iDet.getProductTypeCode());
+												lines.setItemSerial(arraySerialItem);
+												lines.setInvoiceLineType(iDet.getIsInvoiceLine());
+												arrayLines.add(lines);
+											}	
+										}
+									}
+								}
+							}
+						}else {
+							for(InvoiceDetails iDet: inv.getInvoiceDetails()) {
+								if(iDet.getEquipmentReference().equals("E")) {
+									if(!iDet.getProductTypeCode().equals("36")) {
+										if(!iDet.isWarrantyFull()) {	
 											List<String> serialsNumberInvoice = new ArrayList<String>();
 											List<String> serialsNumberWarranty = new ArrayList<String>();
 											if(iDet.getItemSerial().contains(",")) {
@@ -123,58 +353,24 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 												}
 												
 											}
-											
 											//Datos de los números de serie
 											WarrantyDataLinesDTO lines = new WarrantyDataLinesDTO();
 											List<WarrantyDataSerialLinesDTO> arraySerialItem = new ArrayList<WarrantyDataSerialLinesDTO>();
-											if(itemSerial != null && !itemSerial.isEmpty()) {
-//												if(iDet.getProductTypeCode().equals("36")) {
-//													WarrantyDataSerialLinesDTO byProductType = new WarrantyDataSerialLinesDTO();
-//													byProductType.setItemNumber(iDet.getItemNumber());
-//													byProductType.setItemSerial(iDet.getItemSerial());
-//													arraySerialItem.add(byProductType);							
-//												}else {
-												if(iDet.getItemSerial().contains(",")) {
-													//String[ ] serial = iDet.getItemSerial().split(",");
-													for(String s: serial) {
-														if(s.equals(itemSerial)) {
-															WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
-															moreData.setItemNumber(iDet.getItemNumber());
-															moreData.setItemSerial(s);
-															arraySerialItem.add(moreData);
-															
-														}
-													}
-												}else {
-													WarrantyDataSerialLinesDTO oneData = new WarrantyDataSerialLinesDTO();
-													oneData.setItemNumber(iDet.getItemNumber());
-													oneData.setItemSerial(iDet.getItemSerial());
-													arraySerialItem.add(oneData);
+											
+											if(iDet.getItemSerial().contains(",")) {
+												for(String s: serial) {
+													WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
+													moreData.setItemNumber(iDet.getItemNumber());
+													moreData.setItemSerial(s);
+													arraySerialItem.add(moreData);
 												}
-//												}
 											}else {
-//												if(iDet.getProductTypeCode().equals("36")) {
-//													WarrantyDataSerialLinesDTO byProductType = new WarrantyDataSerialLinesDTO();
-//													byProductType.setItemNumber(iDet.getItemNumber());
-//													byProductType.setItemSerial(iDet.getItemSerial());
-//													arraySerialItem.add(byProductType);							
-//												}else {
-												if(iDet.getItemSerial().contains(",")) {
-													//String[ ] serial = iDet.getItemSerial().split(",");
-													for(String s: serial) {
-														WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
-														moreData.setItemNumber(iDet.getItemNumber());
-														moreData.setItemSerial(s);
-														arraySerialItem.add(moreData);
-													}
-												}else {
-													WarrantyDataSerialLinesDTO oneData = new WarrantyDataSerialLinesDTO();
-													oneData.setItemNumber(iDet.getItemNumber());
-													oneData.setItemSerial(iDet.getItemSerial());
-													arraySerialItem.add(oneData);
-												}
-//												}
+												WarrantyDataSerialLinesDTO oneData = new WarrantyDataSerialLinesDTO();
+												oneData.setItemNumber(iDet.getItemNumber());
+												oneData.setItemSerial(iDet.getItemSerial());
+												arraySerialItem.add(oneData);
 											}
+											
 											//Demas datos de las líneas
 											lines.setItemNumber(iDet.getItemNumber());
 											lines.setEquipment(true);
@@ -189,82 +385,18 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 									}
 								}
 							}
-						}
+						}					
+						dataToAdd.setLinesWarranty(arrayLines);
 					}else {
-						for(InvoiceDetails iDet: inv.getInvoiceDetails()) {
-							if(iDet.getEquipmentReference().equals("E")) {
-								if(!iDet.getProductTypeCode().equals("36")) {
-									if(!iDet.isWarrantyFull()) {	
-										List<String> serialsNumberInvoice = new ArrayList<String>();
-										List<String> serialsNumberWarranty = new ArrayList<String>();
-										if(iDet.getItemSerial().contains(",")) {
-											String[] serialsNumberInvoice1 = iDet.getItemSerial().split(",");
-											for(String s: serialsNumberInvoice1) {
-												serialsNumberInvoice.add(s);
-											}
-										}else {
-											serialsNumberInvoice.add(iDet.getItemSerial());
-										}
-										if(NullValidator.isNull(iDet.getWarrantyUsed()).contains(",")) {
-											String[] serialsNumberWarranty1 = iDet.getWarrantyUsed().split(",");
-											for(String s: serialsNumberWarranty1) {
-												serialsNumberWarranty.add(s);
-											}
-										}else {
-											serialsNumberWarranty.add(iDet.getWarrantyUsed());
-										}
-										
-										List<String> serial = new ArrayList<String>();
-										for(String str: serialsNumberInvoice) {
-											if(str != null) {
-												if(!serialsNumberWarranty.toString().contains(str)) {
-													serial.add(str);
-												}
-											}
-											
-										}
-										//Datos de los números de serie
-										WarrantyDataLinesDTO lines = new WarrantyDataLinesDTO();
-										List<WarrantyDataSerialLinesDTO> arraySerialItem = new ArrayList<WarrantyDataSerialLinesDTO>();
-										
-										if(iDet.getItemSerial().contains(",")) {
-											for(String s: serial) {
-												WarrantyDataSerialLinesDTO moreData = new WarrantyDataSerialLinesDTO();
-												moreData.setItemNumber(iDet.getItemNumber());
-												moreData.setItemSerial(s);
-												arraySerialItem.add(moreData);
-											}
-										}else {
-											WarrantyDataSerialLinesDTO oneData = new WarrantyDataSerialLinesDTO();
-											oneData.setItemNumber(iDet.getItemNumber());
-											oneData.setItemSerial(iDet.getItemSerial());
-											arraySerialItem.add(oneData);
-										}
-										
-										//Demas datos de las líneas
-										lines.setItemNumber(iDet.getItemNumber());
-										lines.setEquipment(true);
-										lines.setItemBrand(iDet.getItemBrand());
-										lines.setItemDescription(iDet.getItemDescription());
-										lines.setItemModel(iDet.getItemModel());
-										lines.setProductType(iDet.getProductTypeCode());
-										lines.setItemSerial(arraySerialItem);
-										lines.setInvoiceLineType(iDet.getIsInvoiceLine());
-										arrayLines.add(lines);
-									}	
-								}
-							}
-						}
-					}					
-					dataToAdd.setLinesWarranty(arrayLines);
+						return data;
+					}
+					
+					data = dataToAdd;				
 				}else {
 					return data;
 				}
-				
-				data = dataToAdd;				
-			}else {
-				return data;
-			}
+			}*/
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			return data;

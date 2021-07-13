@@ -12,12 +12,14 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.IntegerType;
+import org.hibernate.type.LongType;
 import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartech.invoicingprod.dto.InvoicePayments;
+import com.smartech.invoicingprod.integration.dto.InvoiceInvoiceDetailsDTO;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 
@@ -361,5 +363,33 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getInvoiceIdFromInvoiceDetails(long id) {
+		SQLQuery query;
+		String sql;
+		Session session = sessionFactory.getCurrentSession();	
+		try {
+			sql = "SELECT * FROM invoice_invoiceDetails where invoiceDetails_id = '" + id + "'";
+			query = session.createSQLQuery(sql);
+			query.setResultTransformer(Transformers.aliasToBean(InvoiceInvoiceDetailsDTO.class));
+			query.addScalar("invoice_id", new LongType());
+			query.addScalar("invoiceDetails_id", new LongType());
+			List<InvoiceInvoiceDetailsDTO> invL = query.list();
+			if(!invL.isEmpty()) {
+				long numberId = invL.get(0).getInvoice_id();
+				Invoice inv = getSingleInvoiceById(numberId);
+				if(inv != null) {
+					return inv;
+				}else {
+					return new Invoice();
+				}
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
