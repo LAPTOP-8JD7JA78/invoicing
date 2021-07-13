@@ -637,6 +637,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											invoice.setFromSalesOrder(inv.getTransactionNumber());
 											invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);//b91184e3-a7c6-4fe7-9a39-6195306dbfeb
 											invoice.setStatus(AppConstants.STATUS_CANCEL_ERROR);
+											invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
 											ErrorLog seaE = errorLogService.searchError("REGISTRO NO TIENE FOLIO FISCAL, FAVOR DE ESPERAR A QUE EL FOLIO RELACIONADO TENGA UN TIBRE", inv.getTransactionNumber());
 											if(seaE == null) {
 												ErrorLog eLog = new ErrorLog();
@@ -1057,7 +1058,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 		sList.add(AppConstants.STATUS_START);
 		sList.add(AppConstants.STATUS_ERROR_DATA);
 		
-		
+		//Registros de cancelaciones
+		this.recolectCancelInvoice();
 		String incoterm = null;
 		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
 		if(invoiceList != null && !invoiceList.isEmpty()) {
@@ -5173,5 +5175,32 @@ public class InvoicingServiceImpl implements InvoicingService{
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	public void recolectCancelInvoice() {
+		try {
+			List<String> status = new ArrayList<String>();
+			status.add(AppConstants.STATUS_CANCEL_ERROR);
+			
+			List<String> orderType = new ArrayList<String>();
+			orderType.add(AppConstants.ORDER_TYPE_CANCEL);
+			
+			List<Invoice> cancelList = invoiceDao.getInvoiceListByStatusCode(status, orderType);
+			if(!cancelList.isEmpty()) {
+				for(Invoice inv: cancelList) {
+					Invoice invoice = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber());
+					if(invoice != null) {
+						if(invoice.getUUID() != null && !invoice.getUUID().isEmpty()) {
+							inv.setUUID(invoice.getUUID());
+							inv.setUUIDReference(invoice.getUUID());
+							inv.setStatus(AppConstants.STATUS_CANCEL_PENDING);
+							invoiceDao.updateInvoice(inv);
+						}
+					}
+				}
+			}
+		}catch(Exception e) {
+			log.error("ERROR AL RECUPERAR FACTURAS DE CANCELACIONES");
+		}
 	}
 }
