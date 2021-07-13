@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.smartech.invoicingprod.distribuitorportal.services.DistribuitorServices;
+import com.smartech.invoicingprod.integration.dto.InsertDataDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
 import com.smartech.invoicingprod.integration.service.InvoicingService;
 import com.smartech.invoicingprod.integration.service.MailService;
@@ -99,14 +100,17 @@ public class InvoiceController {
 	}
 	
 	@RequestMapping(value = "/warranty/insertData", method = RequestMethod.GET)
-	 public boolean insertData(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String productTypeCode) {
+	 public InsertDataDTO insertData(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String productTypeCode) {
 		
+		InsertDataDTO inData = new InsertDataDTO();
 		if((invoiceNumber == null || invoiceNumber.isEmpty()) ||
 				(itemNumber == null || itemNumber.isEmpty()) ||
 				(itemSerial == null || itemSerial.isEmpty() )) {
-			return false;
+			inData.setData(false);
+			return inData;
 		}
-		return distribuitorServices.insertData(invoiceNumber, itemNumber, itemSerial, productTypeCode); 
+		inData.setData(distribuitorServices.insertData(invoiceNumber, itemNumber, itemSerial, productTypeCode));
+		return inData;
 	}
 	
 	@RequestMapping(value = "/warranty/retreiveAllData", method = RequestMethod.GET)
@@ -118,6 +122,14 @@ public class InvoiceController {
 	}	
 	
 	public Map<String, Object> mapOK(WarrantyDataDTO list, int total) {
+		Map<String, Object> modelMap = new HashMap<String, Object>(3);
+		modelMap.put("total", total);
+		modelMap.put("data", list);
+		modelMap.put("success", true);
+		return modelMap;
+	}
+	
+	public Map<String, Object> mapOKInsertData(WarrantyDataDTO list, int total) {
 		Map<String, Object> modelMap = new HashMap<String, Object>(3);
 		modelMap.put("total", total);
 		modelMap.put("data", list);
