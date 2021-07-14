@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.smartech.invoicingprod.distribuitorportal.dto.FileInfoDTO;
 import com.smartech.invoicingprod.distribuitorportal.services.DistribuitorServices;
 import com.smartech.invoicingprod.integration.dto.InsertDataDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
@@ -120,6 +121,12 @@ public class InvoiceController {
 		}
 		return distribuitorServices.retrieveAllData(dataSearch); 		
 	}	
+	
+	@RequestMapping(value = "/distribuitors/invoiceFiles", method = RequestMethod.GET)
+	 public @ResponseBody FileInfoDTO getInvoiceFiles(@RequestParam String invoiceNumber, @RequestParam String invoiceType) {
+		FileInfoDTO fileInfo = distribuitorServices.getFileInfo(invoiceNumber, invoiceType);		
+		return fileInfo;
+	}
 	
 	public Map<String, Object> mapOK(WarrantyDataDTO list, int total) {
 		Map<String, Object> modelMap = new HashMap<String, Object>(3);

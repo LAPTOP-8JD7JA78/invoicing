@@ -91,7 +91,7 @@ public class SchedulerService {
 //		System.out.println(dia + " DE " + mes + " DEL " + alo);
 	}
 
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void InvoicesSchedule() throws ParseException {
 		log.info("\'InvoicesSchedule\' is started*******");	
 		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
@@ -152,7 +152,7 @@ public class SchedulerService {
 		}
 	}
 	
-	@Scheduled(fixedDelay = 45000, initialDelay = 45000)
+//	@Scheduled(fixedDelay = 45000, initialDelay = 45000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
 		try {
@@ -176,7 +176,7 @@ public class SchedulerService {
 		log.info("\'getDataForPetitionOrders\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void getPendingData() {
 		log.info("\'getPendingData\' is started*******");
 		//Facturas, notas de credito, transferencias, anticipos
@@ -231,7 +231,8 @@ public class SchedulerService {
 		
 	}
 	
-	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
+//	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
+	//@Scheduled(fixedDelay = 30000, initialDelay = 15000)
 	public void readDataPac() {
 		log.info("\'readDataPac\' is started*******");
 		if(!stampedService.readDataFromTxt()) {
@@ -240,7 +241,7 @@ public class SchedulerService {
 		log.info("\'readDataPac\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
+//	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
 	public void updateUUIDOracleERP() {
 		log.info("\'updateUUIDOracleERP\' is started*******");
 		try {
@@ -252,7 +253,7 @@ public class SchedulerService {
 		log.info("\'updateUUIDOracleERP\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void createPayments() {
 		log.info("\'createPayments\' is started*******");
 		try {
@@ -306,7 +307,7 @@ public class SchedulerService {
 		log.info("\'createPayments\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+//	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
 	public void createTransfer() {
 		log.info("\'createTransfer\' is started*******");
 		String nextSearch = sdf.format(new Date());
@@ -356,7 +357,7 @@ public class SchedulerService {
 		log.info("\'createTransfer\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay=40000, initialDelay=40000)
+//	@Scheduled(fixedDelay=40000, initialDelay=40000)
 	public void sendAllErrors() {
 		log.info("\'sendAllErrors\' is started*******");
 		try {
@@ -368,7 +369,7 @@ public class SchedulerService {
 		log.info("\'sendAllErrors\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay=15000, initialDelay=15000)
+//	@Scheduled(fixedDelay=15000, initialDelay=15000)
 	public void recolectListPayments() {
 		log.info("\'recolectListPayments\' is started*******");
 		try {

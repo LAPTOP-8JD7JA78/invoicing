@@ -1,15 +1,22 @@
 package com.smartech.invoicingprod.distribuitorportal.services;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.smartech.invoicingprod.dao.InvoiceDao;
 import com.smartech.invoicingprod.dao.InvoiceDetailsDao;
 import com.smartech.invoicingprod.dao.UdcDao;
+import com.smartech.invoicingprod.distribuitorportal.dto.FileInfoDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataLinesDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataSerialLinesDTO;
@@ -17,6 +24,8 @@ import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
 import com.smartech.invoicingprod.model.Udc;
+import com.smartech.invoicingprod.service.UdcService;
+import com.smartech.invoicingprod.util.AppConstantsUtil;
 import com.smartech.invoicingprod.util.NullValidator;
 
 @Service("distribuitorServices")
@@ -27,7 +36,9 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 	@Autowired
 	InvoiceDetailsDao invoiceDetailsDao;
 	@Autowired
-	UdcDao udcDao;
+	UdcDao udcDao;	
+	@Autowired
+	UdcService udcService;
 	
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
 	
@@ -413,7 +424,7 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 					for(InvoiceDetails iDet: inv.getInvoiceDetails()) {
 						boolean setTrue = false;
 						if(iDet.getItemNumber().equals(itemNumber)) {
-							if(NullValidator.isNull(iDet.getWarrantyUsed()).contains(itemSerial)) {
+							if(iDet.getWarrantyUsed().contains(itemSerial)) {
 								return false;
 							}
 							if(productTypeCode.equals("36") || iDet.getProductTypeCode().equals("36")) {
@@ -490,6 +501,7 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 		}		
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public List<WarrantyDataDTO> retrieveAllData(String dataSearch) {
 		// TODO Auto-generated method stub
@@ -643,4 +655,83 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 		}
 	}
 
+	@Override
+	public FileInfoDTO getFileInfo(String invoiceNumber, String invoiceType) {
+		FileInfoDTO fileInfo = new FileInfoDTO();
+		String filePathResponse = "";
+		String filePathPay = "";
+		String filePathResponsePdf = "";
+		String filePathPayPdf = "";
+		String fileName1 = "";
+		String fileName2 = "";
+		File file1;
+		File file2;
+		File fileZip;
+		byte[] fileContent1;
+		byte[] fileContent2;
+		byte[] fileContentZip;
+		String encodedFile;
+		
+		try {	
+			//Rutas donde estan guardados los archivos timbrados
+			List<Udc> udcPaths = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
+			for(Udc u: udcPaths) {
+				if(u.getStrValue1().equals(AppConstantsUtil.FILE_RESPONSE)) {
+					filePathResponse = u.getUdcKey();
+					filePathPay = u.getStrValue2();
+				}
+				
+				if(u.getStrValue1().equals(AppConstantsUtil.FILE_RESPONSE_PDF)) {
+					filePathResponsePdf = u.getUdcKey();
+					filePathPayPdf = u.getStrValue2();
+				}
+			}			
+			
+			fileName1 = invoiceNumber + ".xml";
+			fileName2 = invoiceNumber + ".pdf";
+			
+			if(AppConstants.ORDER_TYPE_FACTURA.equals(invoiceType) || AppConstants.ORDER_TYPE_NC.equals(invoiceType)) {
+				file1 = new File(filePathResponse + fileName1);
+				file2 = new File(filePathResponsePdf + fileName2);
+			} else {
+				file1 = new File(filePathPay + fileName1);
+				file2 = new File(filePathPayPdf + fileName2);
+			}
+
+			if(file1.exists() || file2.exists()) {
+				fileZip = new File(invoiceNumber + ".zip");
+				FileOutputStream out = new FileOutputStream(fileZip);
+				ZipOutputStream zipOut = new ZipOutputStream(out);
+				
+				if(file1.exists()) {
+					fileContent1 = FileUtils.readFileToByteArray(file1);
+					zipOut.putNextEntry(new ZipEntry(fileName1));
+					zipOut.write(fileContent1, 0, fileContent1.length);
+					zipOut.closeEntry();
+					zipOut.close();
+				}
+				
+				if(file2.exists()) {
+					fileContent2 = FileUtils.readFileToByteArray(file2);
+					zipOut.putNextEntry(new ZipEntry(fileName2));
+					zipOut.write(fileContent2, 0, fileContent2.length);
+					zipOut.closeEntry();
+					zipOut.close();
+				}
+
+				fileContentZip = FileUtils.readFileToByteArray(fileZip);
+				encodedFile = Base64.getEncoder().encodeToString(fileContentZip);
+				
+				fileInfo.setInvoiceNumber(invoiceNumber);
+				fileInfo.setInvoiceType(invoiceType);
+				fileInfo.setFileExt(".zip");
+				fileInfo.setFileContent(encodedFile);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		return fileInfo;
+	}
 }

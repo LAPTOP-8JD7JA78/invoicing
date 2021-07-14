@@ -19,6 +19,7 @@ public class AppConstantsUtil {
 	public static final String PAYMENT_METHOD = "PUE";
 	public static final String TAX_CODE = "002";
 	public static final String FILE_RESPONSE = "RESPONSE";
+	public static final String FILE_RESPONSE_PDF = "RESPONSEPDF";
 	public static final String FILE_SUCCESS = "SUCCESS";
 	public static final String[] STAMPED_CODES = {"100", "200", "300", "400"};
 	public static final String NUMBER_COPIES = "1";

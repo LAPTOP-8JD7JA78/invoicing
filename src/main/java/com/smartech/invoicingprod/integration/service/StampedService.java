@@ -13,4 +13,5 @@ public interface StampedService {
 	public boolean creatPaymentListFile(List<PaymentsList> pl);
 	public boolean createFileForCancel(Invoice inv);
 	public boolean createDistPortalInvoice(Invoice inv);
+	public boolean createDistPortalPayment(Payments pay, PaymentsList payList, boolean isUniquePayment);
 }

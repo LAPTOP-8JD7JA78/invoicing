@@ -804,6 +804,8 @@ public class StampedServiceImpl implements StampedService{
 									inv.setErrorMsg(null);
 									inv.setStatus(AppConstants.STATUS_INVOICED);
 									invoiceDao.updateInvoice(inv);
+									
+									//Enviar a Portal de Distribuidores
 									createDistPortalInvoice(inv);
 								}else if(inv.getInvoiceRelationType().equals(advPay)){
 									inv.setUUID(uuid);
@@ -820,6 +822,9 @@ public class StampedServiceImpl implements StampedService{
 											invoiceDao.updateInvoice(nc);
 										}
 									}
+									
+									//Enviar a Portal de Distribuidores
+									createDistPortalInvoice(inv);
 								}
 								break;
 							case AppConstants.ORDER_TYPE_NC:
@@ -827,8 +832,9 @@ public class StampedServiceImpl implements StampedService{
 								inv.setErrorMsg(null);
 								inv.setStatus(AppConstants.STATUS_INVOICED);
 								invoiceDao.updateInvoice(inv);
+								//Enviar a Portal de Distribuidores
 								createDistPortalInvoice(inv);
-								break;		
+								break;
 							case AppConstants.ORDER_TYPE_ADV:
 								List<Payments> advpay = new ArrayList<Payments>(inv.getPayments());
 								if(advPay != null && !advpay.isEmpty()) {
@@ -897,14 +903,24 @@ public class StampedServiceImpl implements StampedService{
 						pay.setPaymentError(null);
 						pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
 						paymentsService.updatePayment(pay);
+						
+						PaymentsList pl = paymentsListService.getByReceiptNumber(pay.getReceiptNumber());
+						if(pl == null) {
+							//Enviar a Portal de Distribuidores
+							if(AppConstants.PAYMENTS_CPAGO.equals(pay.getPaymentType())) {
+								createDistPortalPayment(pay, pl, true);
+							}							
+						}
 					}					
 				}catch(Exception e) {
-					log.info("NOSE A ENCONTRADO NADA" + e);
+					log.info("NO SE A ENCONTRADO NADA" + e);
 				}
 			}
 			
+			List<String> sentPayments = new ArrayList<String>();
 			List<PaymentsList> pllist = new ArrayList<PaymentsList>();
 			pllist = paymentsListService.getAllPayList(AppConstants.STATUS_UPDUUID);
+			
 			for(PaymentsList pl: pllist) {
 				for(Payments p: pl.getPayments()) {
 					if(p.getUUID()!= null && !p.getUUID().isEmpty()) {
@@ -914,7 +930,15 @@ public class StampedServiceImpl implements StampedService{
 						break;
 					}
 				}
-
+				
+				//Enviar a Portal de Distribuidores
+				if(!sentPayments.contains(pl.getFolio())) {					
+					Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+					if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+						createDistPortalPayment(firstPayment, pl, false);
+						sentPayments.add(pl.getFolio());
+					}
+				}
 			}
 			return true;
 		}catch(Exception e) {
@@ -942,6 +966,57 @@ public class StampedServiceImpl implements StampedService{
 			invoiceJSON.setSerial(inv.getSerial());
 			invoiceJSON.setStampDate(df.format(new Date()));
 			invoiceJSON.setUuid(inv.getUUID());
+			
+			String url = AppConstants.URL_ENDPOINT_INVOICE;
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/vnd.oracle.adf.resourceitem+json"));
+			
+			Map<String, Object> response = hTTPRequestDistribuitorsService.httpRESTRequest(AppConstants.PORTAL_DIST_USER, AppConstants.PORTAL_DIST_PASS,
+					url, HttpMethod.POST, headers, null, invoiceJSON);
+
+			int statusCode;
+			InvoiceJSON responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (InvoiceJSON) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@SuppressWarnings("unused")
+	@Override
+	public boolean createDistPortalPayment(Payments pay, PaymentsList payList, boolean isUniquePayment) {
+		try {
+			double paymentAmount;
+			
+			if(isUniquePayment) {
+				paymentAmount = Double.valueOf(pay.getPaymentAmount()).doubleValue(); 
+			} else {
+				paymentAmount = Double.valueOf(payList.getPaymentAmount()).doubleValue(); 
+			}
+			
+			InvoiceJSON invoiceJSON = new InvoiceJSON();
+			invoiceJSON.setBranch(pay.getBranch().getName());
+			invoiceJSON.setCompany(pay.getCompany().getName());
+			invoiceJSON.setCustomerName(pay.getCustomerName());
+			invoiceJSON.setCustomerTaxId(pay.getTaxIdentifier());
+			invoiceJSON.setFolio(pay.getFolio());
+			invoiceJSON.setInvoiceCurrency(pay.getCurrency());
+			invoiceJSON.setInvoiceSubTotal(paymentAmount);
+			invoiceJSON.setInvoiceTaxAmount(0);
+			invoiceJSON.setInvoiceTotal(paymentAmount);
+			invoiceJSON.setInvoiceType(AppConstants.PAYMENTS_CPAGO);
+			invoiceJSON.setSalesOrder("");
+			invoiceJSON.setSerial(pay.getSerial());
+			invoiceJSON.setStampDate(df.format(new Date()));
+			invoiceJSON.setUuid(pay.getUUID());
 			
 			String url = AppConstants.URL_ENDPOINT_INVOICE;
 			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
