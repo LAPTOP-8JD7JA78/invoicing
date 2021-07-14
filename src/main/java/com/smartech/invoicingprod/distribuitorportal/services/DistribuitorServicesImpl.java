@@ -10,6 +10,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import com.smartech.invoicingprod.distribuitorportal.dto.FileInfoDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataLinesDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataSerialLinesDTO;
+import com.smartech.invoicingprod.integration.service.InvoicingServiceImpl;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
@@ -39,7 +41,8 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 	UdcDao udcDao;	
 	@Autowired
 	UdcService udcService;
-	
+
+	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());	
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
 	
 	@Override
@@ -657,6 +660,7 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 
 	@Override
 	public FileInfoDTO getFileInfo(String invoiceNumber, String invoiceType) {
+		log.info("PORTAL DIST: NUMERO FACTURA " + invoiceNumber + " TIPO: " + invoiceType);
 		FileInfoDTO fileInfo = new FileInfoDTO();
 		String filePathResponse = "";
 		String filePathPay = "";
@@ -707,8 +711,7 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 					fileContent1 = FileUtils.readFileToByteArray(file1);
 					zipOut.putNextEntry(new ZipEntry(fileName1));
 					zipOut.write(fileContent1, 0, fileContent1.length);
-					zipOut.closeEntry();
-					zipOut.close();
+					zipOut.closeEntry();					
 				}
 				
 				if(file2.exists()) {
@@ -716,22 +719,24 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 					zipOut.putNextEntry(new ZipEntry(fileName2));
 					zipOut.write(fileContent2, 0, fileContent2.length);
 					zipOut.closeEntry();
-					zipOut.close();
 				}
 
+				zipOut.close();
 				fileContentZip = FileUtils.readFileToByteArray(fileZip);
 				encodedFile = Base64.getEncoder().encodeToString(fileContentZip);
 				
 				fileInfo.setInvoiceNumber(invoiceNumber);
 				fileInfo.setInvoiceType(invoiceType);
-				fileInfo.setFileExt(".zip");
+				fileInfo.setFileExt("zip");
 				fileInfo.setFileContent(encodedFile);
+				log.info("SE CREA ZIP CORRECTAMENTE.");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e);
+			log.info("PORTAL DIST: ", e);
 			return null;
 		}
-		
+		log.info("TERMINA PROCESO PORTAL DIST: NUMERO FACTURA " + invoiceNumber + " TIPO: " + invoiceType);
 		return fileInfo;
 	}
 }
