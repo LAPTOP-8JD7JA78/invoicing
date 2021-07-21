@@ -849,6 +849,8 @@ public class StampedServiceImpl implements StampedService{
 								inv.setErrorMsg(null);
 								inv.setStatus(AppConstants.STATUS_FINISHED);
 								invoiceDao.updateInvoice(inv);
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
 								break;
 							case AppConstants.ORDER_TYPE_TRANS:
 								inv.setUUID(uuid);
