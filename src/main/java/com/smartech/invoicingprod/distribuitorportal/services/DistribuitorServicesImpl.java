@@ -690,16 +690,17 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 					filePathPayPdf = u.getStrValue2();
 				}
 			}			
-			
-			fileName1 = invoiceNumber + ".xml";
-			fileName2 = invoiceNumber + ".pdf";
-			
-			if(AppConstants.ORDER_TYPE_FACTURA.equals(invoiceType) || AppConstants.ORDER_TYPE_NC.equals(invoiceType)) {
-				file1 = new File(filePathResponse + fileName1);
-				file2 = new File(filePathResponsePdf + fileName2);
-			} else {
+
+			if(AppConstants.PAYMENTS_CPAGO.equals(invoiceType)) {
+				fileName1 = "P_" + invoiceNumber + ".xml";
+				fileName2 = "P_" + invoiceNumber + ".pdf";				
 				file1 = new File(filePathPay + fileName1);
 				file2 = new File(filePathPayPdf + fileName2);
+			} else {
+				fileName1 = invoiceNumber + ".xml";
+				fileName2 = invoiceNumber + ".pdf";
+				file1 = new File(filePathResponse + fileName1);
+				file2 = new File(filePathResponsePdf + fileName2);
 			}
 
 			if(file1.exists() || file2.exists()) {
