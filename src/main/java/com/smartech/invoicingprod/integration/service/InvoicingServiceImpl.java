@@ -1245,7 +1245,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 																inv.setUUIDReference(advInvoice.getUUID());
 															}else {
 																inv.setUUIDReference(inv.getUUIDReference() + ","+advInvoice.getUUID());
-															}	
+															}
 															double paymentAmount = Math.round(number.doubleValue()*100.00)/100.00;
 															double paymentAvailable = Math.round(NullValidator.isNullD(advInvoice.getRemainingBalanceAmount())*100.00)/100.00;
 															double paymentExchangeRate = Math.round(NullValidator.isNullD(advInvoice.getExchangeRate())*100.00)/100.00;
@@ -1373,6 +1373,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 													AppConstants.EMAIL_ADV_PAYMENTS_CONTENT_PENDING_PAY.replace("_FOLIO_", inv.getFolio()),
 													null);
 										}
+										invoiceDao.updateInvoice(inv);
 									}
 								}
 							} else {

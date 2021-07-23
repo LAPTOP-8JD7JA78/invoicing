@@ -952,7 +952,16 @@ public class StampedServiceImpl implements StampedService{
 	@SuppressWarnings("unused")
 	@Override
 	public boolean createDistPortalInvoice(Invoice inv) {
-		try {			
+		try {
+			
+			String invoiceType;
+			
+			if(AppConstants.ORDER_TYPE_ADV.equals(inv.getInvoiceType())) {
+				invoiceType = AppConstants.DIST_ORDER_TYPE_ANTICIPO;
+			} else {
+				invoiceType = inv.getInvoiceType();
+			}
+			
 			InvoiceJSON invoiceJSON = new InvoiceJSON();
 			invoiceJSON.setBranch(inv.getBranch().getName());
 			invoiceJSON.setCompany(inv.getCompany().getName());
@@ -963,7 +972,7 @@ public class StampedServiceImpl implements StampedService{
 			invoiceJSON.setInvoiceSubTotal(inv.getInvoiceSubTotal());
 			invoiceJSON.setInvoiceTaxAmount(inv.getInvoiceTaxAmount());
 			invoiceJSON.setInvoiceTotal(inv.getInvoiceTotal());
-			invoiceJSON.setInvoiceType(inv.getInvoiceType());
+			invoiceJSON.setInvoiceType(invoiceType);
 			invoiceJSON.setSalesOrder(inv.getFromSalesOrder());
 			invoiceJSON.setSerial(inv.getSerial());
 			invoiceJSON.setStampDate(df.format(new Date()));

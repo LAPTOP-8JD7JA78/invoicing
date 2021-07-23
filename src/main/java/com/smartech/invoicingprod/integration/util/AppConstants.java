@@ -11,8 +11,8 @@ public class AppConstants {
 	public static final String ORACLE_URL = "https://fa-epog-test-saasfaprod1.fa.ocs.oraclecloud.com";
 //	public static final String ORACLE_URL = "https://fa-epog-saasfaprod1.fa.ocs.oraclecloud.com";
 	
-//	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/design/Portal_test_Security/1.0.10/resources/data";
-	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/data";
+	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/design/Portal_test_Security/1.0.12/resources/data";
+//	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/data";
 	
 	public static final String ORACLE_ITEMMASTER = "IMA";
 	
@@ -246,4 +246,6 @@ public class AppConstants {
 	
 	//PORTAL DE DISTRIBUIDORES
 	public static final String UDC_SYSTEM_GET_ALL_DISTRIBUITORS = "DISTRIBUITORSNAMES";
+	
+	public static final String DIST_ORDER_TYPE_ANTICIPO = "ANTICIPO";
 }
