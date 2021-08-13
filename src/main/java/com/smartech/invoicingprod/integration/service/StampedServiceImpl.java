@@ -978,11 +978,24 @@ public class StampedServiceImpl implements StampedService{
 			invoiceJSON.setStampDate(df.format(new Date()));
 			invoiceJSON.setUuid(inv.getUUID());
 			
+			String portalUsr = "";
+			String portalPwd = "";
+			List<Udc> udcCredentials = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PORTALDIST);
+			
+			for(Udc udc : udcCredentials) {
+				if(AppConstants.UDC_KEY_PORTALDIST_USER.equals(udc.getUdcKey())) {
+					portalUsr = udc.getStrValue1();
+				}
+				if(AppConstants.UDC_KEY_PORTALDIST_PWD.equals(udc.getUdcKey())) {
+					portalPwd = udc.getStrValue1();
+				}
+			}
+			
 			String url = AppConstants.URL_ENDPOINT_INVOICE;
 			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
 			headers.add(new HeadersRestDTO("Content-Type", "application/vnd.oracle.adf.resourceitem+json"));
 			
-			Map<String, Object> response = hTTPRequestDistribuitorsService.httpRESTRequest(AppConstants.PORTAL_DIST_USER, AppConstants.PORTAL_DIST_PASS,
+			Map<String, Object> response = hTTPRequestDistribuitorsService.httpRESTRequest(portalUsr, portalPwd,
 					url, HttpMethod.POST, headers, null, invoiceJSON);
 
 			int statusCode;
@@ -1029,11 +1042,24 @@ public class StampedServiceImpl implements StampedService{
 			invoiceJSON.setStampDate(df.format(new Date()));
 			invoiceJSON.setUuid(pay.getUUID());
 			
+			String portalUsr = "";
+			String portalPwd = "";
+			List<Udc> udcCredentials = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PORTALDIST);
+			
+			for(Udc udc : udcCredentials) {
+				if(AppConstants.UDC_KEY_PORTALDIST_USER.equals(udc.getUdcKey())) {
+					portalUsr = udc.getStrValue1();
+				}
+				if(AppConstants.UDC_KEY_PORTALDIST_PWD.equals(udc.getUdcKey())) {
+					portalPwd = udc.getStrValue1();
+				}
+			}
+			
 			String url = AppConstants.URL_ENDPOINT_INVOICE;
 			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
 			headers.add(new HeadersRestDTO("Content-Type", "application/vnd.oracle.adf.resourceitem+json"));
 			
-			Map<String, Object> response = hTTPRequestDistribuitorsService.httpRESTRequest(AppConstants.PORTAL_DIST_USER, AppConstants.PORTAL_DIST_PASS,
+			Map<String, Object> response = hTTPRequestDistribuitorsService.httpRESTRequest(portalUsr, portalPwd,
 					url, HttpMethod.POST, headers, null, invoiceJSON);
 
 			int statusCode;
