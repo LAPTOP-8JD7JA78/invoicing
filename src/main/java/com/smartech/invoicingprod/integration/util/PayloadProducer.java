@@ -435,7 +435,8 @@ public class PayloadProducer {
 //				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_IVA_16_\" s_42\r\n" +
 				"FROM \"Receivables - Standard Receipts Application Details Real Time\"\r\n" + 
 				"WHERE\r\n" + 
-				"(\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "')\r\n" + 
+//				"(\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "')\r\n" +
+				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "') AND (\"Standard Receipt Application Details\".\"Accounted\" IN ('Sí', 'Yes')))" +
 				"Order by s_20 asc\r\n" +
 				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
 				"         </v7:sql>\r\n" + 

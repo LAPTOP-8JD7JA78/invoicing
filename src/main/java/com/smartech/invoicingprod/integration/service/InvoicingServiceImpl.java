@@ -141,7 +141,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		List<String> service1 = new ArrayList<String>();
 		List<String> serviceSeamex = new ArrayList<String>();
 		List<String> othersProducts = new ArrayList<String>();
-		List<String> cancelList = new ArrayList<String>();
+//		List<String> cancelList = new ArrayList<String>();
 		try {
 			//Fechas
 			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
@@ -170,9 +170,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 						serviceSeamex.add(u.getStrValue1());
 					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
 						othersProducts.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
+					}/*else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
 						cancelList.add(u.getStrValue1());
-					}
+					}*/
 				}
 			}else {
 				return false;
@@ -207,8 +207,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 							fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
 							service1.toString().contains(inv.getTransactionTypeName()) || 
 							serviceSeamex.toString().contains(inv.getTransactionTypeName()) || 
-							othersProducts.toString().contains(inv.getTransactionTypeName()) || 
-							cancelList.toString().contains(inv.getTransactionTypeName())) {
+							othersProducts.toString().contains(inv.getTransactionTypeName())/* || 
+							cancelList.toString().contains(inv.getTransactionTypeName())*/) {
 						if(arr.contains(inv.getTransactionNumber())) {
 							continue;
 						}
@@ -216,8 +216,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 								fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
 								service1.toString().contains(inv.getTransactionTypeName()) || 
 								serviceSeamex.toString().contains(inv.getTransactionTypeName()) || 
-								othersProducts.toString().contains(inv.getTransactionTypeName()) || 
-								cancelList.toString().contains(inv.getTransactionTypeName())) {					
+								othersProducts.toString().contains(inv.getTransactionTypeName())/* || 
+								cancelList.toString().contains(inv.getTransactionTypeName())*/) {					
 							udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
 							for(Udc u: udc) {
 								if(u.getStrValue1().equals(inv.getCustomerCountry())) {
@@ -612,7 +612,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 								}else {
 									continue;
 								}
-							}else if(cancelList.toString().contains(inv.getTransactionTypeName())) {
+							}/*else if(cancelList.toString().contains(inv.getTransactionTypeName())) {
 								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_CANCEL);
 								if(seaExisCNAdv == null){
 									log.info("AQUI EMPIEZA LA RECOLECCIÓN DE DATOS PARA CANCELAR UNA FACTURA " + inv.getTransactionNumber());
@@ -667,7 +667,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 								}else {
 									continue;
 								}
-							}else {
+							}*/else {
 								continue;
 							}
 							invoice.setInvoiceCurrency(inv.getCurrency());
@@ -909,7 +909,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		List<String> fixedAsset = new ArrayList<String>();
 		List<String> serviceSeamex = new ArrayList<String>();
 		List<String> otrosProductos = new ArrayList<String>();
-		List<String> cancelList = new ArrayList<String>();
+//		List<String> cancelList = new ArrayList<String>();
 		try {
 			List<Udc> ant = udcService.searchBySystem(AppConstants.UDC_SYSTEM_REPINVOICE);
 			for(Udc u: ant) {
@@ -921,9 +921,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 					serviceSeamex.add(u.getStrValue1());
 				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
 					otrosProductos.add(u.getStrValue1());
-				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
+				}/*else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
 					cancelList.add(u.getStrValue1());
-				}
+				}*/
 			}
 			//Datos del cliente para facturación
 			invoice.setCustomerName(NullValidator.isNull(r.getColumn0()));
@@ -1002,8 +1002,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					fixedAsset.toString().contains(invoice.getTransactionTypeName()) ||
 					invoice.getTransactionSource().equals("CARGA INICIAL") ||
 					serviceSeamex.toString().contains(invoice.getTransactionTypeName())||
-					otrosProductos.toString().contains(invoice.getTransactionTypeName()) || 
-					cancelList.toString().contains(invoice.getTransactionTypeName())) {
+					otrosProductos.toString().contains(invoice.getTransactionTypeName())/* || 
+					cancelList.toString().contains(invoice.getTransactionTypeName())*/) {
 				log.info(invoice.getTransactionTypeName());
 				return invoice;
 			}
@@ -1498,8 +1498,11 @@ public class InvoicingServiceImpl implements InvoicingService{
 					
 					//Revisar las lineas
 					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
-						for(SalesOrderLinesDTO line: so.getLines()) {						
-							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity() 
+						for(SalesOrderLinesDTO line: so.getLines()) {		
+							double quan = Double.parseDouble(line.getOrderedQuantity());
+							double quan2 = Double.parseDouble(df.format(quan));
+//							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity()
+							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && quan2 == invLine.getQuantity() 
 									&& (line.getOrderedUOMCode().contains(invLine.getUomName()) || line.getOrderedUOM().toUpperCase().contains(invLine.getUomName().toUpperCase())) 
 											&& "CLOSED".contains(line.getStatusCode())) {
 								if(invLine.getIsInvoiceLine().equals("D")){
