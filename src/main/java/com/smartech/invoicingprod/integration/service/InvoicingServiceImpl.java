@@ -4552,6 +4552,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 				}
 				for(PaymentsList plist: pl) {
+					if(NullValidator.isNull(plist.getPaymentAmount()).length() == 0) {
+						continue;
+					}
 					List<Payments> pListVer = new ArrayList<Payments>(plist.getPayments());
 					double total = 0.00;
 					double totalList = Double.parseDouble(NullValidator.isNull(plist.getPaymentAmount()));
@@ -4559,7 +4562,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						if(plist.getCurrency().equals(pa.getCurrency())) {
 							String val = df.format(Double.parseDouble(pa.getPaymentAmount()));
 							total = total + Math.floor(Double.parseDouble(val));
-						}else if(pa.getCurrency().equals(AppConstants.DEFAUL_CURRENCY)) {//Pago en dlls
+						}else if(NullValidator.isNull(pa.getCurrency()).equals(AppConstants.DEFAUL_CURRENCY)) {//Pago en dlls
 							String pago = df.format(Double.parseDouble(pa.getPaymentAmount()) / Double.parseDouble(plist.getExchangeRate()));
 							total = total + Double.parseDouble(df.format(Double.parseDouble(pago)));
 							pa.setExchangeRate(plist.getExchangeRate());

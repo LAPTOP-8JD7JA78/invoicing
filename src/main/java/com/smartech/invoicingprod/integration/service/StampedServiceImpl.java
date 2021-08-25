@@ -29,10 +29,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.smartech.invoicingprod.dao.InvoiceDao;
 import com.smartech.invoicingprod.distribuitorportal.dto.HeadersRestDTO;
-import com.smartech.invoicingprod.distribuitorportal.dto.ParamsRestDTO;
 import com.smartech.invoicingprod.distribuitorportal.json.InvoiceJSON;
 import com.smartech.invoicingprod.distribuitorportal.services.HTTPRequestDistribuitorsService;
-import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
@@ -1147,7 +1145,8 @@ public class StampedServiceImpl implements StampedService{
 					NullValidator.isNull(i.getAcountBankTaxIdentifier()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getPayerAccount()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getBeneficiaryAccount()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
+//					NullValidator.isNull(i.getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
+					NullValidator.isNull(i.getReceiptNumber()) + AppConstantsUtil.FILES_SEPARATOR +
 					"\n"+
 					AppConstantsUtil.PAYMENT_DETAILS + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getUuidReference()) + AppConstantsUtil.FILES_SEPARATOR +
@@ -1456,7 +1455,8 @@ public class StampedServiceImpl implements StampedService{
 						NullValidator.isNull(pay.get(0).getAcountBankTaxIdentifier()) + AppConstantsUtil.FILES_SEPARATOR +
 						NullValidator.isNull(pay.get(0).getPayerAccount()) + AppConstantsUtil.FILES_SEPARATOR +
 						NullValidator.isNull(pay.get(0).getBeneficiaryAccount()) + AppConstantsUtil.FILES_SEPARATOR +
-						NullValidator.isNull(pay.get(0).getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
+//						NullValidator.isNull(pay.get(0).getBenBankAccTaxIden()) + AppConstantsUtil.FILES_SEPARATOR +
+						NullValidator.isNull(plist.getReceiptNumber()) + AppConstantsUtil.FILES_SEPARATOR +
 						"\r\n";
 				for(Payments p: pay) {
 					content = content +
