@@ -6,7 +6,7 @@ import com.smartech.invoicingprod.model.Invoice;
 
 public interface InvoiceDao {
 	Invoice getSingleInvoiceById(long id);
-	Invoice getSingleInvoiceByFolio(String folio);
+	Invoice getSingleInvoiceByFolio(String folio, String invType);
 	boolean updateInvoice(Invoice o);
 	boolean saveInvoice(Invoice o);
 	List<Invoice> getInvoiceByParams(String folio, 

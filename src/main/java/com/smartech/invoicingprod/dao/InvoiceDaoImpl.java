@@ -37,12 +37,13 @@ public class InvoiceDaoImpl implements InvoiceDao{
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Invoice getSingleInvoiceByFolio(String folio) {
+	public Invoice getSingleInvoiceByFolio(String folio, String invType) {
 		try {
 			Session session = this.sessionFactory.getCurrentSession();
 			Criteria criteria = session.createCriteria(Invoice.class);
 			criteria.add( Restrictions.eq("folio",  folio ));
-			criteria.add( Restrictions.eq("invoiceType", AppConstants.ORDER_TYPE_FACTURA));
+//			criteria.add( Restrictions.eq("invoiceType", AppConstants.ORDER_TYPE_FACTURA));
+			criteria.add( Restrictions.eq("invoiceType", invType));
 			//criteria.add( Restrictions.ge("updatedDate", new SimpleDateFormat("yyyy-MM-dd").parse("2021-05-01")));
 			List<Invoice> list =  criteria.list();
 			if(!list.isEmpty()){

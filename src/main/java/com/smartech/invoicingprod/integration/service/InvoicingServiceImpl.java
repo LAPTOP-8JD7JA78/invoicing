@@ -187,7 +187,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
 			List<Invoice> invList = new ArrayList<Invoice>();
 			for(Row ro: r) {
-				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(NullValidator.isNull(ro.getColumn9()));
+				String invType = "";
+				if(NullValidator.isNull(ro.getColumn11()).contains("NC")) {
+					invType = AppConstants.ORDER_TYPE_NC;
+				}else {
+					invType = AppConstants.ORDER_TYPE_FACTURA;
+				}
+				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(NullValidator.isNull(ro.getColumn9()), invType);
 				if(searchExistingInvoice == null) {
 					InvoicesByReportsDTO invReports = new InvoicesByReportsDTO();
 					invReports = fullDTO(ro);
@@ -201,7 +207,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 			//llenar header---------------------------------------------------------------------------------------------------
 			for(InvoicesByReportsDTO inv: invlist) {	
 				//Datos para anticipos
-				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber());
+				String invType = "";
+				if(NullValidator.isNull(inv.getTransactionTypeName()).toUpperCase().contains("NC")) {
+					invType = AppConstants.ORDER_TYPE_NC;
+				}else {
+					invType = AppConstants.ORDER_TYPE_FACTURA;
+				}
+				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber(), invType);
 				if(searchExistingInvoice == null) {
 					if(inv.getPreviousSalesOrder() != null && !inv.getPreviousSalesOrder().isEmpty() || 
 							fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
@@ -706,7 +718,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 					int disc = 0;
 					
 					for(InvoicesByReportsDTO in : invlist) {
-						Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(in.getTransactionNumber());
+						String invType = "";
+						if(NullValidator.isNull(in.getTransactionTypeName()).contains("NC")) {
+							invType = AppConstants.ORDER_TYPE_NC;
+						}else {
+							invType = AppConstants.ORDER_TYPE_FACTURA;
+						}
+						Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(in.getTransactionNumber(), invType);
 						if(searchExistingInvoice == null) {
 							if(i.getInvoiceType() != null) {							
 								if(i.getFolio().equals(in.getTransactionNumber()) || NullValidator.isNull(i.getFromSalesOrder()).equals((in.getPreviousSalesOrder()))) {
@@ -886,7 +904,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}
 						}						
 						//Guarda los datos en la base de datos pero antes valida si ya existe esa factura
-						if(invoiceDao.getSingleInvoiceByFolio(i.getFolio()) == null) {
+						if(invoiceDao.getSingleInvoiceByFolio(i.getFolio(), i.getInvoiceType()) == null) {
 							if(i.getInvoiceDetails().size() > 0) {
 								if(!invoiceService.createInvoice(i)) {
 									System.out.println(false);
@@ -1475,7 +1493,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//SI ES NC
 					if(!inv.isInvoice()) {
-						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber());
+						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
 						if(invRef != null && (invRef.getUUID() != null && !"".contains(invRef.getUUID()))) {
 							inv.setUUIDReference(invRef.getUUID());
 							if(invRef.isExtCom()) {
@@ -2495,7 +2513,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			
 			Invoice inv = new Invoice();
 			if(r.getColumn12() != null && !r.getColumn12().isEmpty()) {
-				inv = invoiceDao.getSingleInvoiceByFolio(r.getColumn12());//TransactionReference
+				inv = invoiceDao.getSingleInvoiceByFolio(r.getColumn12(), AppConstants.ORDER_TYPE_FACTURA);//TransactionReference
 				if(inv == null) {
 					return null;
 				}
@@ -5025,7 +5043,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			}
 			//llenar header---------------------------------------------------------------------------------------------------
 			for(InvoicesByReportsDTO inv: invlist) {	
-				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber());
+				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber(), inv.getTransactionType());
 				if(searchExistingInvoice == null) {
 						if(!arr.contains(inv.getTransactionNumber())) {					
 							udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
@@ -5167,7 +5185,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 
 							invoice.setRemainingBalanceAmount(String.valueOf(invoice.getInvoiceTotal()));
 							//Guarda los datos en la base de datos pero antes valida si ya existe esa factura
-							if(invoiceDao.getSingleInvoiceByFolio(invoice.getFolio()) == null) {
+							if(invoiceDao.getSingleInvoiceByFolio(invoice.getFolio(), invoice.getInvoiceType()) == null) {
 								if(invoice.getInvoiceDetails().size() > 0) {
 									if(!invoiceService.createInvoice(invoice)) {
 										System.out.println(false);
@@ -5195,7 +5213,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			List<Invoice> cancelList = invoiceDao.getInvoiceListByStatusCode(status, orderType);
 			if(!cancelList.isEmpty()) {
 				for(Invoice inv: cancelList) {
-					Invoice invoice = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber());
+					Invoice invoice = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber(), inv.getInvoiceType());
 					if(invoice != null) {
 						if(invoice.getUUID() != null && !invoice.getUUID().isEmpty()) {
 							inv.setUUID(invoice.getUUID());

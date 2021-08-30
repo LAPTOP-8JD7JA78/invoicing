@@ -421,7 +421,7 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 	@Override
 	public boolean insertData(String invoiceNumber, String itemNumber, String itemSerial, String productTypeCode) {		
 		try{
-			Invoice inv = invoiceDao.getSingleInvoiceByFolio(invoiceNumber);
+			Invoice inv = invoiceDao.getSingleInvoiceByFolio(invoiceNumber, AppConstants.ORDER_TYPE_FACTURA);
 			if(inv != null) {
 				if(inv.getInvoiceDetails().size() > 0) {
 					for(InvoiceDetails iDet: inv.getInvoiceDetails()) {

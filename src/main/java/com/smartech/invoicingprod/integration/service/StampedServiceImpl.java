@@ -927,18 +927,27 @@ public class StampedServiceImpl implements StampedService{
 						pl.setUuid(p.getUUID());
 						pl.setStatus(AppConstants.STATUS_FINISHED);
 						paymentsListService.updatePaymentsList(pl);
+						
+						//Enviar a Portal de Distribuidores
+						if(!sentPayments.contains(pl.getFolio())) {					
+							Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+							if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+								createDistPortalPayment(firstPayment, pl, false);
+								sentPayments.add(pl.getFolio());
+							}
+						}
 						break;
 					}
 				}
 				
-				//Enviar a Portal de Distribuidores
-				if(!sentPayments.contains(pl.getFolio())) {					
-					Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
-					if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
-						createDistPortalPayment(firstPayment, pl, false);
-						sentPayments.add(pl.getFolio());
-					}
-				}
+//				//Enviar a Portal de Distribuidores
+//				if(!sentPayments.contains(pl.getFolio())) {					
+//					Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+//					if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+//						createDistPortalPayment(firstPayment, pl, false);
+//						sentPayments.add(pl.getFolio());
+//					}
+//				}
 			}
 			return true;
 		}catch(Exception e) {
@@ -1015,7 +1024,7 @@ public class StampedServiceImpl implements StampedService{
 	@SuppressWarnings("unused")
 	@Override
 	public boolean createDistPortalPayment(Payments pay, PaymentsList payList, boolean isUniquePayment) {
-		try {
+		try {		
 			double paymentAmount;
 			
 			if(isUniquePayment) {
@@ -1053,6 +1062,20 @@ public class StampedServiceImpl implements StampedService{
 				}
 			}
 			
+			//Búsqueda de información
+//			String urlSearch = AppConstants.URL_ENDPOINT_INVOICE;
+//			List<HeadersRestDTO> headersSearch = new ArrayList<HeadersRestDTO>();
+//			headersSearch.add(new HeadersRestDTO("Content-Type", "application/vnd.oracle.adf.resourceitem+json"));
+//			
+//			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+//			params.add(new ParamsRestDTO("q", "invoiceType like '" + AppConstants.PAYMENTS_CPAGO + "' and serial like '" + invoiceJSON.getSerial() +"' and folio like '" + invoiceJSON.getFolio() + "'"));
+//			params.add(new ParamsRestDTO("expand", "totals"));
+//			params.add(new ParamsRestDTO("onlyData", true));
+//			
+//			Map<String, Object> responseSearch = hTTPRequestDistribuitorsService.httpRESTRequest(portalUsr, portalPwd,
+//					urlSearch, HttpMethod.GET, headersSearch, params, null);
+			
+			//Inserción de datos
 			String url = AppConstants.URL_ENDPOINT_INVOICE;
 			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
 			headers.add(new HeadersRestDTO("Content-Type", "application/vnd.oracle.adf.resourceitem+json"));
