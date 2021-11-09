@@ -80,6 +80,7 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "lineType", nullable=true)
 	private String lineType;
 	
+	@Lob
 	@Column(name = "itemSerial", nullable=true)
 	private String itemSerial;
 	
@@ -152,6 +153,7 @@ public class InvoiceDetails implements Serializable{
 	@Column(name = "isInvoiceLine", nullable=true)
 	private String isInvoiceLine;
 	
+	@Lob
 	@Column(name = "serialPdf", nullable=true)
 	private String serialPdf;
 	

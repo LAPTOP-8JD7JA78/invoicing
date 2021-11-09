@@ -541,6 +541,9 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 											soLine.setUsedTheLine(false);
+											soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
+											soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
+											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));
 											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 											if(value.equals("INCLUDED")) {
 												soLine.setExistCombo(true);
@@ -631,7 +634,9 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 										soLine.setUsedTheLine(false);
-										
+										soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
+										soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
+										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));										
 										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 										if(value.equals("INCLUDED")) {
 											soLine.setExistCombo(true);
@@ -810,7 +815,9 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 											soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 											soLine.setUsedTheLine(false);
-											
+											soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
+											soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
+											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));											
 											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 											if(value.equals("INCLUDED")) {
 												soLine.setExistCombo(true);
@@ -900,7 +907,9 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setSourceTransactionLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SourceTransactionLineIdentifier").toString()));
 										soLine.setInventoryOrganizationName(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:InventoryOrganizationName").toString()));
 										soLine.setUsedTheLine(false);
-										
+										soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
+										soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
+										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));										
 										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 										if(value.equals("INCLUDED")) {
 											soLine.setExistCombo(true);

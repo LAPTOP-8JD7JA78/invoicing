@@ -20,6 +20,9 @@ public class SalesOrderLinesDTO {
 	private List<SalesLineLotSerDTO> lotSerials;
 	private boolean isUsedTheLine;
 	private boolean existCombo;
+	private String transformFromLineIdentifier;
+	private String splitFromFlineIdentifier;
+	private String itemSubTypeCode;
 	
 	public String getSourceTransactionLineNumber() {
 		return sourceTransactionLineNumber;
@@ -122,6 +125,24 @@ public class SalesOrderLinesDTO {
 	}
 	public void setExistCombo(boolean existCombo) {
 		this.existCombo = existCombo;
+	}
+	public String getTransformFromLineIdentifier() {
+		return transformFromLineIdentifier;
+	}
+	public void setTransformFromLineIdentifier(String transformFromLineIdentifier) {
+		this.transformFromLineIdentifier = transformFromLineIdentifier;
+	}
+	public String getSplitFromFlineIdentifier() {
+		return splitFromFlineIdentifier;
+	}
+	public void setSplitFromFlineIdentifier(String splitFromFlineIdentifier) {
+		this.splitFromFlineIdentifier = splitFromFlineIdentifier;
+	}
+	public String getItemSubTypeCode() {
+		return itemSubTypeCode;
+	}
+	public void setItemSubTypeCode(String itemSubTypeCode) {
+		this.itemSubTypeCode = itemSubTypeCode;
 	}
 	
 }

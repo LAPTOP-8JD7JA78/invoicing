@@ -52,8 +52,10 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 		try {
 			//Jalar datos desde el número de serie
 			if(itemSerial != null && !itemSerial.isEmpty()) {
-				List<InvoiceDetails> invDetails = invoiceDetailsDao.searchBySerialNumber(itemSerial);
-				if(invDetails != null && invDetails.size() > 0) {
+				List<InvoiceDetails> invDetails2 = invoiceDetailsDao.searchBySerialNumber(itemSerial);
+				if(invDetails2 != null && invDetails2.size() > 0) {
+					List<InvoiceDetails> invDetails = new ArrayList<InvoiceDetails>();
+					invDetails.add(invDetails2.get(0));
 					List<WarrantyDataLinesDTO> arrayLines = new ArrayList<WarrantyDataLinesDTO>();
 					for(InvoiceDetails iD: invDetails) {
 						if(!iD.isWarrantyFull()) {

@@ -880,7 +880,8 @@ public class StampedServiceImpl implements StampedService{
 						line = bufReader.readLine(); 
 					}
 					String data = sb.toString();
-					JSONObject xmlJSONObj = XML.toJSONObject(data, true);
+//					JSONObject xmlJSONObj = XML.toJSONObject(data, true);
+					JSONObject xmlJSONObj = XML.toJSONObject(data);
 					JsonElement jelement = new JsonParser().parse(xmlJSONObj.toString());
 					JsonObject jobject = jelement.getAsJsonObject();
 					JsonElement soapEnvelope = jobject.get("cfdi:Comprobante").getAsJsonObject().get("cfdi:Complemento");
