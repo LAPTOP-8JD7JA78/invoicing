@@ -18,11 +18,14 @@ public class SalesOrderLinesDTO {
 	private String SourceTransactionLineIdentifier;
 	private String InventoryOrganizationName;
 	private List<SalesLineLotSerDTO> lotSerials;
+	private List<SalesLineDocumentReferenceDTO> documentReference;
 	private boolean isUsedTheLine;
 	private boolean existCombo;
 	private String transformFromLineIdentifier;
 	private String splitFromFlineIdentifier;
 	private String itemSubTypeCode;
+	private String returnReason;
+	private String shippingInstruction;
 	
 	public String getSourceTransactionLineNumber() {
 		return sourceTransactionLineNumber;
@@ -71,6 +74,12 @@ public class SalesOrderLinesDTO {
 	}
 	public void setLotSerials(List<SalesLineLotSerDTO> lotSerials) {
 		this.lotSerials = lotSerials;
+	}
+	public List<SalesLineDocumentReferenceDTO> getDocumentReference() {
+		return documentReference;
+	}
+	public void setDocumentReference(List<SalesLineDocumentReferenceDTO> documentReference) {
+		this.documentReference = documentReference;
 	}
 	public String getStatusCode() {
 		return statusCode;
@@ -143,6 +152,18 @@ public class SalesOrderLinesDTO {
 	}
 	public void setItemSubTypeCode(String itemSubTypeCode) {
 		this.itemSubTypeCode = itemSubTypeCode;
+	}
+	public String getReturnReason() {
+		return returnReason;
+	}
+	public void setReturnReason(String returnReason) {
+		this.returnReason = returnReason;
+	}
+	public String getShippingInstruction() {
+		return shippingInstruction;
+	}
+	public void setShippingInstruction(String shippingInstruction) {
+		this.shippingInstruction = shippingInstruction;
 	}
 	
 }

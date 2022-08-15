@@ -15,7 +15,6 @@ import com.smartech.invoicingprod.integration.AnalyticsService;
 import com.smartech.invoicingprod.integration.RESTService;
 import com.smartech.invoicingprod.integration.SOAPService;
 import com.smartech.invoicingprod.integration.dto.AnalyticsDTO;
-import com.smartech.invoicingprod.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicingprod.integration.service.InvoicingService;
 import com.smartech.invoicingprod.integration.service.MailService;
 import com.smartech.invoicingprod.integration.service.NumberLetterService;
@@ -91,7 +90,7 @@ public class SchedulerService {
 //		System.out.println(dia + " DE " + mes + " DEL " + alo);
 	}
 
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+	@Scheduled(fixedDelay = 180000, initialDelay = 30000)
 	public void InvoicesSchedule() throws ParseException {
 		log.info("\'InvoicesSchedule\' is started*******");	
 		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
@@ -140,19 +139,8 @@ public class SchedulerService {
 		}
 		log.info("\'InvoicesSchedule\' is finished*******");
 	}
-
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
-	public void testRestService() {
-		InventoryOrganization response = restService.getInventoryOrganization();
-		if(response != null && !response.getItems().isEmpty()) {
-			for(com.smartech.invoicingprod.integration.json.invorg.Item item : response.getItems()) {
-				System.out.println(item.getOrganizationCode() + "-" + item.getOrganizationId());
-			}
-		}
-	}
-	
-	@Scheduled(fixedDelay = 45000, initialDelay = 45000)
+	@Scheduled(fixedDelay = 180001, initialDelay = 45000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
 		try {
@@ -164,19 +152,7 @@ public class SchedulerService {
 		log.info("\'getDataForNewOrders\' is finished*******");
 	}
 	
-//	@Scheduled(fixedDelay=1000, initialDelay=1000)
-	public void getDataForPetitionOrders() {
-		log.info("\'getDataForPetitionOrders\' is started*******");
-		try {
-			invoicingService.updatePetitionInvoiceList();
-		}catch(Exception e) {
-			e.printStackTrace();
-			log.error("ERROR DURANTE EL PROCESO DE \'getDataForPetitionOrders\'-----------------------------", e);
-		}
-		log.info("\'getDataForPetitionOrders\' is finished*******");
-	}
-	
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+	@Scheduled(fixedDelay = 180002, initialDelay = 60000)//20000
 	public void getPendingData() {
 		log.info("\'getPendingData\' is started*******");
 		//Facturas, notas de credito, transferencias, anticipos
@@ -231,7 +207,7 @@ public class SchedulerService {
 		
 	}
 	
-	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
+	@Scheduled(fixedDelay = 90000, initialDelay = 55000)
 	public void readDataPac() {
 		log.info("\'readDataPac\' is started*******");
 		if(!stampedService.readDataFromTxt()) {
@@ -240,7 +216,7 @@ public class SchedulerService {
 		log.info("\'readDataPac\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 15000, initialDelay = 15000)
+	@Scheduled(fixedDelay = 300000, initialDelay = 50000)
 	public void updateUUIDOracleERP() {
 		log.info("\'updateUUIDOracleERP\' is started*******");
 		try {
@@ -252,7 +228,7 @@ public class SchedulerService {
 		log.info("\'updateUUIDOracleERP\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+	@Scheduled(fixedDelay = 360003, initialDelay = 35000)//10000
 	public void createPayments() {
 		log.info("\'createPayments\' is started*******");
 		try {
@@ -306,7 +282,7 @@ public class SchedulerService {
 		log.info("\'createPayments\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay = 30000, initialDelay = 30000)
+	@Scheduled(fixedDelay = 600000, initialDelay = 40000)
 	public void createTransfer() {
 		log.info("\'createTransfer\' is started*******");
 		String nextSearch = sdf.format(new Date());
@@ -356,7 +332,7 @@ public class SchedulerService {
 		log.info("\'createTransfer\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay=40000, initialDelay=40000)
+//	@Scheduled(fixedDelay = 3600000, initialDelay = 60000)
 	public void sendAllErrors() {
 		log.info("\'sendAllErrors\' is started*******");
 		try {
@@ -368,7 +344,7 @@ public class SchedulerService {
 		log.info("\'sendAllErrors\': is finished********");
 	}
 	
-	@Scheduled(fixedDelay=15000, initialDelay=15000)
+	@Scheduled(fixedDelay = 300000, initialDelay = 15000)//45000
 	public void recolectListPayments() {
 		log.info("\'recolectListPayments\' is started*******");
 		try {
@@ -380,53 +356,102 @@ public class SchedulerService {
 		log.info("\'recolectListPayments\': is finished********");
 	}
 	
-//	@Scheduled(fixedDelay = 10000, initialDelay = 10000)
-	public void invoicesInitialCharge() {
-		log.info("\'invoicesInitialCharge\' is started*******");
+//	@Scheduled(fixedDelay = 240000, initialDelay = 60000)
+	public void DebitMemoSchedule() throws ParseException {
+		log.info("\'DebitMemoSchedule\' is started*******");	
+		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
 		String nextSearch = sdf.format(new Date());
 		AnalyticsDTO analytics = new AnalyticsDTO();
-		try {
-			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_KEY_INITIAL_CHARGE);
-			if(da != null) {
-				Date dateSearch = da.getDateValue();
-				String search = sdf.format(dateSearch);
-				analytics.setAr_Report_date(search);
-				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
-						AppConstants.SERVICE_AR_REPORT_INITIAL_CHARGE, analytics);
-				if(!r.getRow().isEmpty()) {
-					if(!invoicingService.createInvoiceByInitialCharge(r.getRow())) {
-						if(da.getIntValue() == 5) {
-							List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
-							List<String> email = new ArrayList<String>();
-							for(Udc u: emails) {
-								email.add(u.getUdcKey());
-							}
-							mailService.sendMail(email,
-									AppConstants.EMAIL_TRANSFER_SUBJECT,
-									AppConstants.EMAIL_TRANSFER_CONTENT + sdf.format(new Date()), null);
-							String date = sdf.format(new Date());
-							da.setDateValue(sdf.parse(date));
-							da.setIntValue(0);
-							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);							
-						}else {
-							da.setIntValue(da.getIntValue() + 1);
-							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+		Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_DEBIT_MEMO);
+		if(da != null) {
+			Date dateSearch = da.getDateValue();
+			String search = sdf.format(dateSearch);
+			analytics.setAr_Report_date(search);
+			Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+					AppConstants.SERVICE_AR_REPORT_DEBIT_MEMO, analytics);
+			if(!r.getRow().isEmpty()) {
+				if(!invoicingService.debitMemoProcess(r.getRow())) {
+					if(da.getIntValue() == 5) {		
+						List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+						List<String> email = new ArrayList<String>();
+						for(Udc u: emails) {
+							email.add(u.getUdcKey());
 						}
-					}else {
-						da.setDateValue(sdf.parse(nextSearch));
+						mailService.sendMail(email,
+								AppConstants.EMAIL_INVOICE_SUBJECT,
+								AppConstants.EMAIL_INVOICE_CONTENT + sdf.format(new Date()),
+								null);
+						String date = sdf.format(new Date());
+						da.setDateValue(sdf.parse(date));
 						da.setIntValue(0);
 						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
-					}
+					}else {
+						da.setIntValue(da.getIntValue() + 1);
+						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+					}					
 				}else {
-					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+					da.setDateValue(sdf.parse(nextSearch));
+					udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 				}
 			}else {
-				log.error("ERROR EN LA BUSQUEDA DE LA UDC (createTransfer) PARA LAS FECHAS DEL REPORTE");
+				log.warn("REPORTS " + r.getRow() + " WITHOUT INFORMATON");
+				da.setDateValue(sdf.parse(nextSearch));
+				da.setIntValue(0);
+				udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
 			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			log.error("ERROR AL CREAR EL CFDI DE TRASLADOS: " + e);
+		}else {
+			log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
 		}
-		log.info("\'invoicesInitialCharge\': is finished********");
+		log.info("\'DebitMemoSchedule\' is finished*******");
 	}
+	
+//	@Scheduled(fixedDelay = 10000, initialDelay = 10000)
+//	public void invoicesInitialCharge() {
+//		log.info("\'invoicesInitialCharge\' is started*******");
+//		String nextSearch = sdf.format(new Date());
+//		AnalyticsDTO analytics = new AnalyticsDTO();
+//		try {
+//			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_KEY_INITIAL_CHARGE);
+//			if(da != null) {
+//				Date dateSearch = da.getDateValue();
+//				String search = sdf.format(dateSearch);
+//				analytics.setAr_Report_date(search);
+//				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+//						AppConstants.SERVICE_AR_REPORT_INITIAL_CHARGE, analytics);
+//				if(!r.getRow().isEmpty()) {
+//					if(!invoicingService.createInvoiceByInitialCharge(r.getRow())) {
+//						if(da.getIntValue() == 5) {
+//							List<Udc> emails = udcService.searchBySystem(AppConstants.UDC_SYSTEM_EMAILS);
+//							List<String> email = new ArrayList<String>();
+//							for(Udc u: emails) {
+//								email.add(u.getUdcKey());
+//							}
+//							mailService.sendMail(email,
+//									AppConstants.EMAIL_TRANSFER_SUBJECT,
+//									AppConstants.EMAIL_TRANSFER_CONTENT + sdf.format(new Date()), null);
+//							String date = sdf.format(new Date());
+//							da.setDateValue(sdf.parse(date));
+//							da.setIntValue(0);
+//							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);							
+//						}else {
+//							da.setIntValue(da.getIntValue() + 1);
+//							udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+//						}
+//					}else {
+//						da.setDateValue(sdf.parse(nextSearch));
+//						da.setIntValue(0);
+//						udcService.update(da, new Date(), AppConstants.USER_DEFAULT);
+//					}
+//				}else {
+//					log.warn("REPORTS " + r.getRow() + " MESSAGE TO READ");
+//				}
+//			}else {
+//				log.error("ERROR EN LA BUSQUEDA DE LA UDC (createTransfer) PARA LAS FECHAS DEL REPORTE");
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			log.error("ERROR AL CREAR EL CFDI DE TRASLADOS: " + e);
+//		}
+//		log.info("\'invoicesInitialCharge\': is finished********");
+//	}
 }

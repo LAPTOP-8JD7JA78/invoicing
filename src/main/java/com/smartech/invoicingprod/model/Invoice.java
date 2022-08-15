@@ -221,6 +221,22 @@ public class Invoice implements Serializable{
 	@Column(name = "salesOrderType", nullable=true)
 	private String salesOrderType;
 	
+	@Column(name = "cancelationReason", nullable=true)
+	private String cancelationReason;
+	
+	@Column(name = "sustitutionUuid", nullable=true)
+	private String sustitutionUuid;
+	
+	@Column(name = "catExportacion", nullable=true)
+	private String catExportacion;
+	
+	@Column(name = "regimenFiscal", nullable=true)
+	private String regimenFiscal;
+	
+	@Lob
+	@Column(name = "shippingInstruction", nullable=true)
+	private String shippingInstruction;
+	
 	public long getId() {
 		return id;
 	}
@@ -715,6 +731,46 @@ public class Invoice implements Serializable{
 
 	public void setSalesOrderType(String salesOrderType) {
 		this.salesOrderType = salesOrderType;
+	}
+
+	public String getCancelationReason() {
+		return cancelationReason;
+	}
+
+	public void setCancelationReason(String cancelationReason) {
+		this.cancelationReason = cancelationReason;
+	}
+
+	public String getSustitutionUuid() {
+		return sustitutionUuid;
+	}
+
+	public void setSustitutionUuid(String sustitutionUuid) {
+		this.sustitutionUuid = sustitutionUuid;
+	}
+
+	public String getCatExportacion() {
+		return catExportacion;
+	}
+
+	public void setCatExportacion(String catExportacion) {
+		this.catExportacion = catExportacion;
+	}
+
+	public String getRegimenFiscal() {
+		return regimenFiscal;
+	}
+
+	public void setRegimenFiscal(String regimenFiscal) {
+		this.regimenFiscal = regimenFiscal;
+	}
+
+	public String getShippingInstruction() {
+		return shippingInstruction;
+	}
+
+	public void setShippingInstruction(String shippingInstruction) {
+		this.shippingInstruction = shippingInstruction;
 	}
 	
 }

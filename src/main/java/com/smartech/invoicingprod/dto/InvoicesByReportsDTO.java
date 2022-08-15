@@ -81,6 +81,23 @@ public class InvoicesByReportsDTO {
 	private String itemDescriptionDetailsForService;
 	private String uuidInitialCharge;
 	
+	private String transactionClassCode;
+	private String transactionTimbrarFlexfield;
+	private String transactionFacElecCampoCalculado;
+	private String transactionLineCodigoSATManual;
+	private String cfdiRelacionado1;
+	private String cfdiRelacionado2;
+	private String cfdiRelacionado3;
+	private String cfdiRelacionado4;
+	private String cfdiRelacionado5;
+	private String salesOrderLineNumber;
+	private String cancelationReason;
+	private String uuidSustitution;
+	private String advancePayments;
+	private String regimenFiscal;
+	private String catExportacion;
+	private String catObjImp;
+	
 	public String getCustomerName() {
 		return customerName;
 	}
@@ -551,4 +568,101 @@ public class InvoicesByReportsDTO {
 	public void setUuidInitialCharge(String uuidInitialCharge) {
 		this.uuidInitialCharge = uuidInitialCharge;
 	}
+	public String getTransactionClassCode() {
+		return transactionClassCode;
+	}
+	public void setTransactionClassCode(String transactionClassCode) {
+		this.transactionClassCode = transactionClassCode;
+	}
+	public String getTransactionTimbrarFlexfield() {
+		return transactionTimbrarFlexfield;
+	}
+	public void setTransactionTimbrarFlexfield(String transactionTimbrarFlexfield) {
+		this.transactionTimbrarFlexfield = transactionTimbrarFlexfield;
+	}
+	public String getTransactionFacElecCampoCalculado() {
+		return transactionFacElecCampoCalculado;
+	}
+	public void setTransactionFacElecCampoCalculado(String transactionFacElecCampoCalculado) {
+		this.transactionFacElecCampoCalculado = transactionFacElecCampoCalculado;
+	}
+	public String getTransactionLineCodigoSATManual() {
+		return transactionLineCodigoSATManual;
+	}
+	public void setTransactionLineCodigoSATManual(String transactionLineCodigoSATManual) {
+		this.transactionLineCodigoSATManual = transactionLineCodigoSATManual;
+	}
+	public String getCfdiRelacionado1() {
+		return cfdiRelacionado1;
+	}
+	public void setCfdiRelacionado1(String cfdiRelacionado1) {
+		this.cfdiRelacionado1 = cfdiRelacionado1;
+	}
+	public String getCfdiRelacionado2() {
+		return cfdiRelacionado2;
+	}
+	public void setCfdiRelacionado2(String cfdiRelacionado2) {
+		this.cfdiRelacionado2 = cfdiRelacionado2;
+	}
+	public String getCfdiRelacionado3() {
+		return cfdiRelacionado3;
+	}
+	public void setCfdiRelacionado3(String cfdiRelacionado3) {
+		this.cfdiRelacionado3 = cfdiRelacionado3;
+	}
+	public String getCfdiRelacionado4() {
+		return cfdiRelacionado4;
+	}
+	public void setCfdiRelacionado4(String cfdiRelacionado4) {
+		this.cfdiRelacionado4 = cfdiRelacionado4;
+	}
+	public String getCfdiRelacionado5() {
+		return cfdiRelacionado5;
+	}
+	public void setCfdiRelacionado5(String cfdiRelacionado5) {
+		this.cfdiRelacionado5 = cfdiRelacionado5;
+	}
+	public String getSalesOrderLineNumber() {
+		return salesOrderLineNumber;
+	}
+	public void setSalesOrderLineNumber(String salesOrderLineNumber) {
+		this.salesOrderLineNumber = salesOrderLineNumber;
+	}
+	public String getCancelationReason() {
+		return cancelationReason;
+	}
+	public void setCancelationReason(String cancelationReason) {
+		this.cancelationReason = cancelationReason;
+	}
+	public String getUuidSustitution() {
+		return uuidSustitution;
+	}
+	public void setUuidSustitution(String uuidSustitution) {
+		this.uuidSustitution = uuidSustitution;
+	}
+	public String getAdvancePayments() {
+		return advancePayments;
+	}
+	public void setAdvancePayments(String advancePayments) {
+		this.advancePayments = advancePayments;
+	}
+	public String getRegimenFiscal() {
+		return regimenFiscal;
+	}
+	public void setRegimenFiscal(String regimenFiscal) {
+		this.regimenFiscal = regimenFiscal;
+	}
+	public String getCatExportacion() {
+		return catExportacion;
+	}
+	public void setCatExportacion(String catExportacion) {
+		this.catExportacion = catExportacion;
+	}
+	public String getCatObjImp() {
+		return catObjImp;
+	}
+	public void setCatObjImp(String catObjImp) {
+		this.catObjImp = catObjImp;
+	}
+	
 }

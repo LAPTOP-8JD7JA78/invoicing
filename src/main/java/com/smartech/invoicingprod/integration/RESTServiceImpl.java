@@ -20,6 +20,7 @@ import com.smartech.invoicingprod.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicingprod.integration.json.itemCategories.ItemCategory;
 import com.smartech.invoicingprod.integration.json.priceList.PriceLists;
 import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByItem;
+import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
@@ -416,6 +417,40 @@ public class RESTServiceImpl implements RESTService {
 			if(response != null) {
 				statusCode = (int) response.get("code");
 				responseRest = (ItemCosts) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
+
+	@Override
+	public ReceivablesInvoices getInvoiceData(String transactionNumber) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("q", "TransactionNumber=" + transactionNumber));
+			params.add(new ParamsRestDTO("fields", "InvoiceCurrencyCode,TransactionNumber,TransactionType,ConversionRateType,EnteredAmount,InvoiceBalanceAmount,BillToCustomerName,BillToCustomerNumber,BillToContact"));
+			params.add(new ParamsRestDTO("onlyData", true));
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					AppConstants.URL_REST_RECEIVABLES_INVOICES , HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_RECEIVABLES_INVOICES);
+			
+			int statusCode;
+			ReceivablesInvoices responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (ReceivablesInvoices) response.get("response");
 				if(statusCode >= 200 && statusCode < 300) {
 					return responseRest;
 				}

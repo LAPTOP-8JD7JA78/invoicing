@@ -70,6 +70,9 @@ public class Branch implements Serializable {
 	
 	@Column(name = "zipAddressPdf", nullable=true)
     private String zipAddressPdf;
+	
+	@Column(name = "taxRegime", nullable=true)
+    private String taxRegime;
 
 	public long getId() {
 		return id;
@@ -205,6 +208,14 @@ public class Branch implements Serializable {
 
 	public void setZipAddressPdf(String zipAddressPdf) {
 		this.zipAddressPdf = zipAddressPdf;
+	}
+
+	public String getTaxRegime() {
+		return taxRegime;
+	}
+
+	public void setTaxRegime(String taxRegime) {
+		this.taxRegime = taxRegime;
 	}
 		
 }

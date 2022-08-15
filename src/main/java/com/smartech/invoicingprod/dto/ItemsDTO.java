@@ -12,6 +12,7 @@ public class ItemsDTO {
 	private String itemDFFModelo;
 	private boolean itemDFFIsImported;
 	private List<CategoryDTO> itemCategory;
+	private String itemDFFObjImp;
 	
 	public String getItemNumber() {
 		return itemNumber;
@@ -61,4 +62,11 @@ public class ItemsDTO {
 	public void setItemDFFIsImported(boolean itemDFFIsImported) {
 		this.itemDFFIsImported = itemDFFIsImported;
 	}
+	public String getItemDFFObjImp() {
+		return itemDFFObjImp;
+	}
+	public void setItemDFFObjImp(String itemDFFObjImp) {
+		this.itemDFFObjImp = itemDFFObjImp;
+	}
+	
 }

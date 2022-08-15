@@ -38,6 +38,23 @@ public class PaymentsDaoImpl implements PaymentsDao{
 		}
 		return null;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> getPaymentsList(String uuid, String customerName, String folioRel) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+//			criteria.add(Restrictions.eq("uuidReference", uuid));
+			criteria.add(Restrictions.eq("customerName", customerName));
+			criteria.add(Restrictions.eq("folioRel", folioRel));
+			criteria.addOrder(Order.desc("paymentNumber"));
+			return criteria.list();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -61,6 +78,24 @@ public class PaymentsDaoImpl implements PaymentsDao{
 			Session session = this.sessionFactory.getCurrentSession();
 			Criteria criteria = session.createCriteria(Payments.class);	
 			criteria.add( Restrictions.eq("receiptNumber", id));	
+			List<Payments> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Payments getReceiptId(String receiptId) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);	
+			criteria.add( Restrictions.eq("receiptId", receiptId));	
 			List<Payments> list =  criteria.list();
 			if(!list.isEmpty()){
 				return list.get(0);
@@ -176,6 +211,26 @@ public class PaymentsDaoImpl implements PaymentsDao{
 		}
 		return null;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Payments getPayByUuidRId(String receiptId, String uuid, String folioRel) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);	
+			criteria.add(Restrictions.eq("receiptId", receiptId));	
+			criteria.add(Restrictions.eq("folioRel", folioRel));	
+//			criteria.add(Restrictions.eq("uuidReference", uuid));			
+			List<Payments> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -205,6 +260,37 @@ public class PaymentsDaoImpl implements PaymentsDao{
 			}
 			return null;
 		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> getPaymentListReceitId(String receiptId) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+			criteria.add(Restrictions.eq("receiptId", receiptId));
+			return criteria.list();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Payments> getPaymentsListCustomer(String uuid, String customerName, String folioRel) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+//			criteria.add(Restrictions.eq("uuidReference", uuid));
+			criteria.add(Restrictions.like("customerName", "%" + customerName + "%"));
+			criteria.add(Restrictions.eq("folioRel", folioRel));
+			criteria.addOrder(Order.desc("paymentNumber"));
+			return criteria.list();
+		}catch(Exception e){
 			e.printStackTrace();
 		}
 		return null;

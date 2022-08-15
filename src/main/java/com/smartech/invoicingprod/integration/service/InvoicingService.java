@@ -9,7 +9,7 @@ import com.smartech.invoicingprod.model.Invoice;
 public interface InvoicingService {
 	boolean createStampInvoice(List<Row> r, String errors);
 	void updateStartInvoiceSOAPList() throws ParseException;
-	boolean createAdvPayNC(Invoice invoice, double paymentAmount, double exchangeRate, String currencyCode);
+	boolean createAdvPayNC(Invoice invoice, double paymentAmount, double exchangeRate, String currencyCode,  String orderNumberCloud);
 	void getInvoicedListForUpdateUUID();
 	void updatePetitionInvoiceList();
 	boolean createStampedPayments(List<Row> r);
@@ -17,4 +17,5 @@ public interface InvoicingService {
 	void sendAllErrors();
 	void recolectListPayments();
 	boolean createInvoiceByInitialCharge(List<Row> r);
+	boolean debitMemoProcess(List<Row> r);
 }

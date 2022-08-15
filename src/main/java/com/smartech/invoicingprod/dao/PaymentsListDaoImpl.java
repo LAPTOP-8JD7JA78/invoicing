@@ -77,4 +77,61 @@ public class PaymentsListDaoImpl implements PaymentsListDao{
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public PaymentsList getByReceiptNumberCustomer(String receiptNumber, String customer) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(PaymentsList.class);	
+			criteria.add( Restrictions.eq("receiptNumber", receiptNumber));	
+			criteria.add( Restrictions.eq("customerName", customer));
+			List<PaymentsList> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public PaymentsList getByReceiptIdCustomer(String receiptId, String customer) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(PaymentsList.class);	
+			criteria.add( Restrictions.eq("receiptId", receiptId));	
+			criteria.add( Restrictions.eq("customerName", customer));
+			List<PaymentsList> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public PaymentsList getByReceiptIdCustomerLike(String receiptId, String customer) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(PaymentsList.class);	
+			criteria.add( Restrictions.eq("receiptId", receiptId));	
+			criteria.add( Restrictions.like("customerName", "%" + customer + "%"));
+			List<PaymentsList> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

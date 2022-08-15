@@ -24,6 +24,7 @@ import com.smartech.invoicingprod.dto.CustomerInformationDTO;
 import com.smartech.invoicingprod.dto.EmailAdressDTO;
 import com.smartech.invoicingprod.dto.ItemGtinDTO;
 import com.smartech.invoicingprod.dto.ItemsDTO;
+import com.smartech.invoicingprod.dto.SalesLineDocumentReferenceDTO;
 import com.smartech.invoicingprod.dto.SalesLineLotSerDTO;
 import com.smartech.invoicingprod.dto.SalesOrderDTO;
 import com.smartech.invoicingprod.dto.SalesOrderLinesDTO;
@@ -112,6 +113,7 @@ public class SOAPServiceImpl implements SOAPService {
 										item.setItemDFFFraccionArancelaria(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "fraccionArancelaria").toString()));
 										item.setItemDFFMarca(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "marca").toString()));
 										item.setItemDFFModelo(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "modelo").toString()));
+										item.setItemDFFObjImp(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "catObjetoImpuesto").toString()));//FACT 4.0
 										//Importación
 										String isImported = NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "importacion").toString());
 										if(isImported != null && !"".contains(isImported) && "SI".contains(isImported)) {
@@ -381,6 +383,7 @@ public class SOAPServiceImpl implements SOAPService {
 										item.setItemDFFFraccionArancelaria(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "fraccionArancelaria").toString()));
 										item.setItemDFFMarca(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "marca").toString()));
 										item.setItemDFFModelo(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "modelo").toString()));
+										item.setItemDFFObjImp(NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "catObjetoImpuesto").toString()));//FACT 4.0
 										//Importación
 										String isImported = NullValidator.isNull(result.get("ns1:ItemDFF").getAsJsonObject().get(udcFlex.getStrValue1() + "importacion").toString());
 										if(isImported != null && !"".contains(isImported) && "SI".contains(isImported)) {
@@ -448,47 +451,13 @@ public class SOAPServiceImpl implements SOAPService {
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
-									//Ambiente test
-									/*if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
-										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBUSOCFDIprivateVO")) {
-										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBUSOCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));									
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO")) {
-										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
-										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionAnticipo").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO")) {
-										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO")) {
-										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO")) {
-										String fecha = NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "fechacontrarecibo").toString());
-										so.setFechaContraRecibo(FCR.parse(fecha));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
-										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO")) {
-										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
-										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
-										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
-										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cP").toString()));
-										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO")) {
-										so.setCertificadoOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "certificadoOrigen").toString()));
-										so.setValorCerOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "valorCertificadoOrigen").toString()));
-									}*/
 									//Ambiente productivo
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));
 										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
 										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionAnticipo").toString()));
+										so.setCatExportacion(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "catExporatcion").toString()));//FAC 4.0
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO")) {
 										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
@@ -496,6 +465,7 @@ public class SOAPServiceImpl implements SOAPService {
 										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
 										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cp").toString()));
 										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
+										so.setRegimenFiscal(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "regimenFiscal").toString()));//FAC 4.0
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO")) {
 										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
@@ -511,6 +481,7 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
+										so.setCancelationReason(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "motivoDeCancelacion").toString()));
 									}
 								}
 								
@@ -544,7 +515,9 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
 											soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
 											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));
-											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
+											soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
+											soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));
+											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());
 											if(value.equals("INCLUDED")) {
 												soLine.setExistCombo(true);
 											}else {
@@ -573,6 +546,25 @@ public class SOAPServiceImpl implements SOAPService {
 													lotSerialsList.add(soSerLot);
 												}
 												soLine.setLotSerials(lotSerialsList);
+											}
+											
+											if(oeLine.getAsJsonObject().has("ns0:LineDocumentReference")) {
+												List<SalesLineDocumentReferenceDTO> lotSerialsList = new ArrayList<SalesLineDocumentReferenceDTO>();
+												if(oeLine.getAsJsonObject().get("ns0:LineDocumentReference").isJsonArray()) {
+													JsonArray jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonArray();
+													for(int j = 0; j < jaSerLots.size(); j++) {
+														JsonElement oeSerLot = jaSerLots.get(j).getAsJsonObject();
+														SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+														soSerLot.setDocumentLineIdentifier(NullValidator.isNull(oeSerLot.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+														lotSerialsList.add(soSerLot);
+													}
+												}else {
+													JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonObject();
+													SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+													soSerLot.setDocumentLineIdentifier(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+													lotSerialsList.add(soSerLot);
+												}
+												soLine.setDocumentReference(lotSerialsList);
 											}
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
@@ -636,7 +628,9 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setUsedTheLine(false);
 										soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
 										soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
-										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));										
+										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));	
+										soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
+										soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));									
 										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 										if(value.equals("INCLUDED")) {
 											soLine.setExistCombo(true);
@@ -667,6 +661,25 @@ public class SOAPServiceImpl implements SOAPService {
 												lotSerialsList.add(soSerLot);
 											}
 											soLine.setLotSerials(lotSerialsList);
+										}
+										
+										if(oeLine.getAsJsonObject().has("ns0:LineDocumentReference")) {
+											List<SalesLineDocumentReferenceDTO> lotSerialsList = new ArrayList<SalesLineDocumentReferenceDTO>();
+											if(oeLine.getAsJsonObject().get("ns0:LineDocumentReference").isJsonArray()) {
+												JsonArray jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonArray();
+												for(int j = 0; j < jaSerLots.size(); j++) {
+													JsonElement oeSerLot = jaSerLots.get(j).getAsJsonObject();
+													SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+													soSerLot.setDocumentLineIdentifier(NullValidator.isNull(oeSerLot.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+													lotSerialsList.add(soSerLot);
+												}
+											}else {
+												JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonObject();
+												SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+												soSerLot.setDocumentLineIdentifier(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+												lotSerialsList.add(soSerLot);
+											}
+											soLine.setDocumentReference(lotSerialsList);
 										}
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
@@ -725,47 +738,13 @@ public class SOAPServiceImpl implements SOAPService {
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
 									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
-									//Ambiente test
-									/*if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO")) {
-										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBMETODOPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBUSOCFDIprivateVO")) {
-										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBUSOCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));									
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO")) {
-										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
-										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFORMAPAGOprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionanticipo").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO")) {
-										so.setContraRecibo(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNumeroContrareciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contraRecibo").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO")) {
-										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBPEDIDOLIVERPOOLprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO")) {
-										String fecha = NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFechaContraReciboprivateVO").getAsJsonObject().get(udc.getStrValue2() + "fechacontrarecibo").toString());
-										so.setFechaContraRecibo(FCR.parse(fecha));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
-										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO")) {
-										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
-										so.setCustomerTaxIden(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "rfc").toString()));
-										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
-										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cP").toString()));
-										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBNombredelClienteprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
-									}
-									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO")) {
-										so.setCertificadoOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "certificadoOrigen").toString()));
-										so.setValorCerOrigen(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCERTIFICADO__ORIGENprivateVO").getAsJsonObject().get(udc.getStrValue2() + "valorCertificadoOrigen").toString()));
-									}*/
 									//Ambiente productivo
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));
 										so.setFormaPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "formapago").toString()));
 										so.setReceivables(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "relacionAnticipo").toString()));
+										so.setCatExportacion(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "catExporatcion").toString()));//FAC 4.0
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO")) {
 										so.setCustomerName(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "nombre").toString()) + " " + NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "apellidos").toString()));
@@ -773,6 +752,7 @@ public class SOAPServiceImpl implements SOAPService {
 										so.setCustomerEmail(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
 										so.setCustomerZip(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cp").toString()));
 										so.setCustomerAddress(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "direccion").toString()));
+										so.setRegimenFiscal(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBVENTASMOSTRADORprivateVO").getAsJsonObject().get(udc.getStrValue2() + "regimenFiscal").toString()));
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO")) {
 										so.setPedidoLiverpool(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBCOMPLEMENTODETALLISTAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "pedidoliverpool").toString()));
@@ -787,6 +767,7 @@ public class SOAPServiceImpl implements SOAPService {
 									}
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
+										so.setCancelationReason(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "motivoDeCancelacion").toString()));
 									}
 								}
 								
@@ -817,7 +798,9 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setUsedTheLine(false);
 											soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
 											soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
-											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));											
+											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));
+											soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
+											soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));											
 											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 											if(value.equals("INCLUDED")) {
 												soLine.setExistCombo(true);
@@ -848,6 +831,25 @@ public class SOAPServiceImpl implements SOAPService {
 													lotSerialsList.add(soSerLot);
 												}
 												soLine.setLotSerials(lotSerialsList);
+											}
+											
+											if(oeLine.getAsJsonObject().has("ns0:LineDocumentReference")) {
+												List<SalesLineDocumentReferenceDTO> lotSerialsList = new ArrayList<SalesLineDocumentReferenceDTO>();
+												if(oeLine.getAsJsonObject().get("ns0:LineDocumentReference").isJsonArray()) {
+													JsonArray jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonArray();
+													for(int j = 0; j < jaSerLots.size(); j++) {
+														JsonElement oeSerLot = jaSerLots.get(j).getAsJsonObject();
+														SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+														soSerLot.setDocumentLineIdentifier(NullValidator.isNull(oeSerLot.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+														lotSerialsList.add(soSerLot);
+													}
+												}else {
+													JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonObject();
+													SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+													soSerLot.setDocumentLineIdentifier(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+													lotSerialsList.add(soSerLot);
+												}
+												soLine.setDocumentReference(lotSerialsList);
 											}
 											
 											if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {
@@ -909,7 +911,9 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setUsedTheLine(false);
 										soLine.setTransformFromLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:TransformFromLineIdentifier").toString()));
 										soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
-										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));										
+										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));	
+										soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
+										soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));									
 										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 										if(value.equals("INCLUDED")) {
 											soLine.setExistCombo(true);
@@ -940,6 +944,25 @@ public class SOAPServiceImpl implements SOAPService {
 												lotSerialsList.add(soSerLot);
 											}
 											soLine.setLotSerials(lotSerialsList);
+										}
+										
+										if(oeLine.getAsJsonObject().has("ns0:LineDocumentReference")) {
+											List<SalesLineDocumentReferenceDTO> lotSerialsList = new ArrayList<SalesLineDocumentReferenceDTO>();
+											if(oeLine.getAsJsonObject().get("ns0:LineDocumentReference").isJsonArray()) {
+												JsonArray jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonArray();
+												for(int j = 0; j < jaSerLots.size(); j++) {
+													JsonElement oeSerLot = jaSerLots.get(j).getAsJsonObject();
+													SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+													soSerLot.setDocumentLineIdentifier(NullValidator.isNull(oeSerLot.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+													lotSerialsList.add(soSerLot);
+												}
+											}else {
+												JsonElement jaSerLots = oeLine.getAsJsonObject().get("ns0:LineDocumentReference").getAsJsonObject();
+												SalesLineDocumentReferenceDTO soSerLot = new SalesLineDocumentReferenceDTO();
+												soSerLot.setDocumentLineIdentifier(NullValidator.isNull(jaSerLots.getAsJsonObject().get("ns0:DocumentLineIdentifier").toString()));
+												lotSerialsList.add(soSerLot);
+											}
+											soLine.setDocumentReference(lotSerialsList);
 										}
 										
 										if(oeLine.getAsJsonObject().has("ns0:LineAttachment")) {

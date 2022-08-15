@@ -35,6 +35,7 @@ import com.smartech.invoicingprod.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicingprod.integration.json.itemCategories.ItemCategory;
 import com.smartech.invoicingprod.integration.json.priceList.PriceLists;
 import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByItem;
+import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
@@ -251,6 +252,12 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 					map.put("code", respS10.getStatusCode().value());
 					map.put("response", respS10.hasBody()?respS10.getBody():null);
 					map.put("httpResponse", respS10.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_RECEIVABLES_INVOICES:
+					ResponseEntity<ReceivablesInvoices> respS11 = rt.exchange(url, method, re, ReceivablesInvoices.class);
+					map.put("code", respS11.getStatusCode().value());
+					map.put("response", respS11.hasBody()?respS11.getBody():null);
+					map.put("httpResponse", respS11.getHeaders());
 					break;
 			}		
 		}catch(Exception e) {

@@ -7,6 +7,7 @@ import com.smartech.invoicingprod.model.Invoice;
 public interface InvoiceDao {
 	Invoice getSingleInvoiceById(long id);
 	Invoice getSingleInvoiceByFolio(String folio, String invType);
+	Invoice getSingleInvoiceByFolioLike(String folio, String invType);
 	boolean updateInvoice(Invoice o);
 	boolean saveInvoice(Invoice o);
 	List<Invoice> getInvoiceByParams(String folio, 
@@ -28,4 +29,6 @@ public interface InvoiceDao {
 	Invoice getSingleInvoiceByFolioAndType(String folio, String orderType);
 	List<Invoice> getAllInvoiceToWarranty(String dataSearch);
 	Invoice getInvoiceIdFromInvoiceDetails(long id);
+	Invoice getSingleInvoiceByFolioCustomer(String folio, String invType, String customer);
+	Invoice getSingleInvoiceByFolioCustomerLike(String folio, String invType, String customer);
 }

@@ -86,6 +86,9 @@ public class Company implements Serializable{
 	
 	@Column(name = "valorationUnit", nullable=true)
     private String valorationUnit;
+	
+	@Column(name = "businessUnitNameExtensive", nullable=true)
+    private String businessUnitNameExtensive;
 
 	public long getId() {
 		return id;
@@ -261,6 +264,14 @@ public class Company implements Serializable{
 
 	public void setValorationUnit(String valorationUnit) {
 		this.valorationUnit = valorationUnit;
+	}
+
+	public String getBusinessUnitNameExtensive() {
+		return businessUnitNameExtensive;
+	}
+
+	public void setBusinessUnitNameExtensive(String businessUnitNameExtensive) {
+		this.businessUnitNameExtensive = businessUnitNameExtensive;
 	}
 	
 }

@@ -54,8 +54,27 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			e.printStackTrace();
 			return null;
 		}
+	}
 
-		
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getSingleInvoiceByFolioLike(String folio, String invType) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);
+			criteria.add( Restrictions.like("folio", "%" + folio + "%" ));
+//			criteria.add( Restrictions.eq("invoiceType", AppConstants.ORDER_TYPE_FACTURA));
+			criteria.add( Restrictions.eq("invoiceType", invType));
+			//criteria.add( Restrictions.ge("updatedDate", new SimpleDateFormat("yyyy-MM-dd").parse("2021-05-01")));
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
@@ -393,4 +412,46 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}
 		return null;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getSingleInvoiceByFolioCustomer(String folio, String invType, String customer) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);
+			criteria.add( Restrictions.eq("folio",  folio ));
+			criteria.add( Restrictions.like("customerName", "%" + customer + "%"));
+			criteria.add( Restrictions.eq("invoiceType", invType));
+			//criteria.add( Restrictions.ge("updatedDate", new SimpleDateFormat("yyyy-MM-dd").parse("2021-05-01")));
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getSingleInvoiceByFolioCustomerLike(String folio, String invType, String customer) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);
+			criteria.add( Restrictions.like("folio", "%" + folio + "%" ));
+			criteria.add( Restrictions.like("customerName", "%" + customer + "%"));
+			criteria.add( Restrictions.eq("invoiceType", invType));
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 }

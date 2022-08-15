@@ -108,6 +108,21 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 					case AppConstants.SERVICE_AR_REPORT_INITIAL_CHARGE:
 						request = PayloadProducer.getArReportInitialCharge(sessionId, dto.getAr_Report_date());
 						break;
+					case AppConstants.SERVICE_AR_RECEIPTS_REPORTS_HELP:
+						request = PayloadProducer.getReportHelpPayments(sessionId, dto.getReceiptNumber());
+						break;
+					case AppConstants.SERVICE_AR_REPORT_DEBIT_MEMO:
+						request = PayloadProducer.debitMemoRequest(sessionId, dto.getAr_Report_date());
+						break;
+					case AppConstants.SERVICE_AR_REPORT_NUMREGIDTRIB:
+						request = PayloadProducer.searchNumRegIdTrib(sessionId, dto.getCustomerName());
+						break;
+					case AppConstants.SERVICE_AR_REPORT_TAX_REGIME:
+						request = PayloadProducer.searchTaxRegime(sessionId, dto.getCustomerName());
+						break;
+					case AppConstants.SERVICE_AR_REPORT_GET_UUID:
+						request = PayloadProducer.searchUUID(sessionId, dto.getTransactionNumber());
+						break;
 				}
 	
 				if(!"".contains(request)) {

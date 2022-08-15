@@ -28,9 +28,11 @@ public class AppConstants {
 	//Servicios
 	public static final String SERVICE_TEST1 = "TEST1";
 	public static final String SERVICE_AR_REPORT_INVOICES = "AR_REPORT_INVOICES";
+	public static final String SERVICE_AR_REPORT_NUMREGIDTRIB = "AR_REPORT_NUMREGIDTRIB";
 	public static final String SERVICE_AR_REPORT_PAYMENTS = "AR_REPORT_PAYMENTS";
 	public static final String SERVICE_AR_REPORT_TRANSFER = "AR_REPORT_TRANSFER";
 	public static final String SERVICE_AR_REPORT_INITIAL_CHARGE = "AR_REPORT_INITIAL_CHARGE";
+	public static final String SERVICE_AR_REPORT_DEBIT_MEMO = "AR_REPORT_DEBIT_MEMO";
 	public static final String SERVICE_ITEM_COST_FOR_SO = "ITEM_COST_FOR_SO";
 	public static final String SERVICE_ITEM_COST_FOR_TRANSFER = "ITEM_COST_FOR_TRANSFER";
 	public static final String SERVICE_ASSET_LABEL_REPORT = "ASSET_LABEL";
@@ -46,6 +48,10 @@ public class AppConstants {
 	public static final String SERVICE_REST_ITEM_CATEGORY = "SERVICE_ITEM_CATEGORY";
 	public static final String SERVICE_REST_ITEM_SERIAL_NUMBER = "SERVICE_ITEM_SERIAL_NUMBER";
 	public static final String SERVICE_REST_ITEM_COSTS = "ITEM_COSTS";
+	public static final String SERVICE_REST_RECEIVABLES_INVOICES = "RECEIVABLES_INVOICES";
+	public static final String SERVICE_AR_RECEIPTS_REPORTS_HELP = "RECEIPTS_HELP";
+	public static final String SERVICE_AR_REPORT_TAX_REGIME = "AR_REPORT_TAX_REGIME";
+	public static final String SERVICE_AR_REPORT_GET_UUID = "AR_REPORT_GET_UUID";
 	//REST API
 	public static final String URL_REST_INVORG = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryOrganizations";
 	public static final String URL_REST_SALESORDER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
@@ -56,6 +62,7 @@ public class AppConstants {
 	public static final String URL_REST_ITEM_CATEGORY = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/itemCategories";
 	public static final String URL_REST_ITEM_SERIAL_NUMBER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryItemSerialNumbers";
 	public static final String URL_REST_ITEM_COSTS = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/itemCosts";
+	public static final String URL_REST_RECEIVABLES_INVOICES = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/receivablesInvoices";
 	//SOAP SERVICE
 	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + ":443/fscmService/ItemServiceV2?invoke=";
 	public static final String URL_SOAP_DFFFIN =  ORACLE_URL + "/fscmService/ErpObjectDFFUpdateService?invoke=";
@@ -82,53 +89,15 @@ public class AppConstants {
 	public static final String STATUS_ERROR_DATA_PAY_LIST = "ERROR PAYMENTS LIST";
 	public static final String STATUS_CANCEL_PENDING = "CANCEL PENDING";
 	public static final String STATUS_CANCEL_ERROR = "CANCEL ERROR";
-	
+	public static final String STATUS_CANCEL_PENDING_NC = "CANCEL PENDING NC";
+	public static final String STATUS_CANCELATION_NC = "CANCELATION";
+	public static final String STATUS_CANCELATION_BY_ORDER_NC = "CANCELATION_ORDER";
+	public static final String STATUS_CANCELATION_PAYMENTS = "CANCEL PAYMENTS";
+	public static final String STATUS_CANCEL_CLOSE = "CANCEL CLOSE";
 	
 	public static final String STATUS_PAYMENT_LIST_START = "PAY_START";
 
 	public static final String PAY_METHOD= "PUE";
-	
-	//Estados de reportes
-	public static final String STATUS_REPORTS_ING = "Invoice";
-	public static final String STATUS_REPORTS_ESP = "Factura";
-	public static final String STATUS_REPORTS_LIV_CON_16 = "Fac contado 16";
-	
-	public static final String STATUS_REPORTS_FCON16 = "Factura contado 16";
-	public static final String STATUS_REPORTS_FCRE16 = "Factura credito 16";
-	public static final String STATUS_REPORTS_FCON0 = "Factura contado 0";
-	public static final String STATUS_REPORTS_FCRE0 = "Factura credito 0";
-	public static final String STATUS_REPORTS_FECON = "Fac exp contado";
-	public static final String STATUS_REPORTS_FECRE = "Fac exp credito";
-	public static final String STATUS_REPORTS_INVOICE = "Invoice";
-	public static final String STATUS_REPORTS_FACTURA = "Factura";
-	public static final String STATUS_REPORTS_CREDIT_NOTE = "Credit Memo";
-	public static final String STATUS_REPORTS_FACCON16 = "Fac contado 16";
-	public static final String STATUS_REPORTS_FACCRE16 = "Fac credito 16";
-	public static final String STATUS_REPORTS_FACCRE0 = "Fac credito 0";
-	public static final String STATUS_REPORTS_FACCON0 = "Fac contado 0";
-	
-	public static final String STATUS_REPORTS_NC_CON_16 = "Nc contado 16";
-	public static final String STATUS_REPORTS_NC_CON_0 = "Nc contado 0";
-	public static final String STATUS_REPORTS_NC_CRE_16 = "Nc credito 16";
-	public static final String STATUS_REPORTS_NC_CRE_0 = "Nc contado 0";
-		
-	public static final String[] STATUS_ALL_INVOICES = {
-														"Factura contado 16", 
-														"Factura credito 16", 
-														"Factura contado 0", 
-														"Factura credito 0",
-														"Fac exp contado",
-														"Fac exp credito",
-														"Invoice",
-														"Factura"};
-	public static final String[] STATUS_ALL_NC = {
-													"Nc contado 16",
-													"Nc credito 16",
-													"Nc contado 0",
-													"Nc credito 0",
-													"Nc exp contado",
-													"Nc exp credito",
-													"Credit Memo"};
 	
 	//Lineas del reporte
 	public static final String REPORT_LINE_TYPE_NOR = "NORMAL";
@@ -144,6 +113,14 @@ public class AppConstants {
 	public static final String ORDER_TYPE_ADV = "ADVPAYMENT";
 	public static final String ORDER_TYPE_TRANS = "TRANSFER";
 	public static final String ORDER_TYPE_CANCEL = "CANCEL";
+	public static final String ORDER_TYPE_CANCELATION = "CANCELATION";
+	public static final String ORDER_TYPE_CANCEL_PAYMENT = "CANPAY";
+	public static final String ORDER_TYPE_DEBIT_MEMO = "DEBIT_MEMO";
+	
+	//Clase de transacción
+	public static final String INVOICING_INVOICE = "INV";
+	public static final String INVOICING_CREDITMEMO = "CM";
+	public static final String INVOICING_ONACC = "ONACC";
 	
 	public static final String PAYMENTS_CPAGO = "CPAGO";
 	public static final String PAYMENTS_ADVPAY = "ADVPAY";
@@ -158,7 +135,9 @@ public class AppConstants {
 
 	//Datos para anticipos
 	public static final double INVOICE_TAX_CODE_000 = 0;
+	public static final double INVOICE_TAX_CODE_008 = 0.08;
 	public static final double INVOICE_TAX_CODE_016 = 0.16;
+	public static final double INVOICE_TAX_CODE_108 = 1.08;
 	public static final double INVOICE_TAX_CODE_116 = 1.16;
 	public static final String INVOICE_ADVPAY_DEFAULT_UOM = "PZ";
 	public static final double INVOICE_ADVPAY_DEFAULT_QUANTITY = 1.00;
@@ -177,6 +156,7 @@ public class AppConstants {
 	public static final String UDC_STRVALUE1_TIMEZONE = "USO HORARIO";
 	public static final String UDC_SYSTEM_SCHEDULER = "SCHEDULER";
 	public static final String UDC_STRVALUE1_INVOICES = "INVOICES";
+	public static final String UDC_STRVALUE1_DEBIT_MEMO = "DEBIT_MEMO";
 	public static final String UDC_SYSTEM_EMAILS = "EMAILS";
 	public static final String UDC_SYSTEM_EMAILSERRORS = "EMAILSERRORS";
 	public static final String UDC_STRVALUE1_PAYMENTS = "PAYMENTS";
@@ -205,6 +185,12 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_PORTALDIST = "PORTALDIST";
 	public static final String UDC_KEY_PORTALDIST_USER = "USER";
 	public static final String UDC_KEY_PORTALDIST_PWD = "PWD";
+	public static final String UDC_STRVALUE1_CANCEL = "CANCEL";
+	public static final String UDC_STRVALUE1_CANCEL_PAYMENTS = "CANCELPAYMENTS";
+	public static final String UDC_SYSTEM_PATHS = "STAMPED";
+	public static final String UDC_KEY_CANCELATION_TRANSACTION_TYPE = "CANCELATION";
+	public static final String UDC_KEY_SUSTITUTION = "SUSTITUCION";
+	public static final String UDC_SYSTEM_CFDIUSE = "USOCFDI";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";
@@ -253,4 +239,18 @@ public class AppConstants {
 	public static final String UDC_SYSTEM_GET_ALL_DISTRIBUITORS = "DISTRIBUITORSNAMES";
 	
 	public static final String DIST_ORDER_TYPE_ANTICIPO = "ANTICIPO";
+	
+	//Pagos 2.0
+	public static final String COMP_PAGOS_FAC_16 = "IVA16";
+	public static final String COMP_PAGOS_FAC_8 = "IVA8";
+	public static final String COMP_PAGOS_FAC_0 = "IVA0";
+	public static final String COMP_PAGOS_FAC_EXENTO = "IVAEXENTO";
+	
+	public static final String RFC_GENERICO_NACIONAL = "XAXX010101000";
+	public static final String RFC_GENERICO_EXTRANJERO = "XEXX010101000";
+	
+	//ORDEN DEVOLUCIÓN
+	public static final String INVOICE_ORDER_TYPE_RETURN = "IME-DEVESTANDAR";
+	public static final String UDC_KEY_ORDER_TYPE_RETURN = "RETURN";
+	
 }

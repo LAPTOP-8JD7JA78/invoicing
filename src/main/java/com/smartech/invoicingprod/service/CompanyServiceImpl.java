@@ -57,4 +57,9 @@ public class CompanyServiceImpl implements CompanyService{
 	public Company getCompanyByBook(String book) {
 		return companyDao.getCompanyByBook(book);
 	}
+
+	@Override
+	public Company getCompanyByLegalEntity(String legalEntity) {
+		return companyDao.getCompanyByLegalEntity(legalEntity);
+	}
 }

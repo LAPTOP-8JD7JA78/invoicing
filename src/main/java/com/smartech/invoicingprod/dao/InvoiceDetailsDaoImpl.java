@@ -68,6 +68,7 @@ public class InvoiceDetailsDaoImpl implements InvoiceDetailsDao{
 		Session session = this.sessionFactory.getCurrentSession();
 		Criteria criteria = session.createCriteria(InvoiceDetails.class);
 		criteria.add(Restrictions.like("itemSerial", "%" + itemSerial + "%"));
+		criteria.add(Restrictions.isNotNull("lineType"));
 		criteria.addOrder(Order.desc("id"));
 		return  criteria.list();
 	}

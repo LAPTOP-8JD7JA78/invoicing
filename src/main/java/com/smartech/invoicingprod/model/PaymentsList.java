@@ -63,8 +63,26 @@ public class PaymentsList implements Serializable{
 	@Column(name = "receiptNumber", nullable=true)
     private String receiptNumber;
 	
+	@Column(name = "receiptId", nullable = true)
+    private String receiptId;
+	
+	@Column(name = "relationType", nullable = true)
+    private String relationType;
+	
+	@Column(name = "relationTypeUUID", nullable = true)
+    private String relationTypeUUID;
+	
 	@OneToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
 	private Set<Payments> payments;
+	
+	@Column(name = "taxRegime", nullable = true)
+    private String taxRegime;
+	
+	@Column(name = "customerZipCode", nullable = true)
+    private String customerZipCode;
+	
+	@Column(name = "catExportacion", nullable = true)
+    private String catExportacion;
 
 	public long getId() {
 		return id;
@@ -170,12 +188,60 @@ public class PaymentsList implements Serializable{
 		this.receiptNumber = receiptNumber;
 	}
 
+	public String getReceiptId() {
+		return receiptId;
+	}
+
+	public void setReceiptId(String receiptId) {
+		this.receiptId = receiptId;
+	}
+
 	public Set<Payments> getPayments() {
 		return payments;
 	}
 
 	public void setPayments(Set<Payments> payments) {
 		this.payments = payments;
+	}
+
+	public String getRelationType() {
+		return relationType;
+	}
+
+	public void setRelationType(String relationType) {
+		this.relationType = relationType;
+	}
+
+	public String getRelationTypeUUID() {
+		return relationTypeUUID;
+	}
+
+	public void setRelationTypeUUID(String relationTypeUUID) {
+		this.relationTypeUUID = relationTypeUUID;
+	}
+
+	public String getTaxRegime() {
+		return taxRegime;
+	}
+
+	public void setTaxRegime(String taxRegime) {
+		this.taxRegime = taxRegime;
+	}
+
+	public String getCustomerZipCode() {
+		return customerZipCode;
+	}
+
+	public void setCustomerZipCode(String customerZipCode) {
+		this.customerZipCode = customerZipCode;
+	}
+
+	public String getCatExportacion() {
+		return catExportacion;
+	}
+
+	public void setCatExportacion(String catExportacion) {
+		this.catExportacion = catExportacion;
 	}
 	
 }

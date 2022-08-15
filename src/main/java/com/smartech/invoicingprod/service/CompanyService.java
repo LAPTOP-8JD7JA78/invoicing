@@ -12,4 +12,5 @@ public interface CompanyService {
 	boolean create(Company c);
 	boolean delete(int id);
 	Company getCompanyByBook(String book);
+	Company getCompanyByLegalEntity(String legalEntity);
 }

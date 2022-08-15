@@ -168,6 +168,15 @@ public class InvoiceDetails implements Serializable{
 	
 	@Column(name = "isWarrantyFull", nullable=true)
 	private boolean isWarrantyFull;
+	
+//	@Column(name = "invoicingLine", nullable=true)
+//	private boolean invoicingLine;
+	
+	@Column(name = "salesOrderLine", nullable=true)
+	private String salesOrderLine;
+	
+	@Column(name = "catObjImp", nullable=true)
+	private String catObjImp;
 
 	public long getId() {
 		return id;
@@ -528,5 +537,29 @@ public class InvoiceDetails implements Serializable{
 	public void setWarrantyFull(boolean isWarrantyFull) {
 		this.isWarrantyFull = isWarrantyFull;
 	}
+
+	public String getSalesOrderLine() {
+		return salesOrderLine;
+	}
+
+	public void setSalesOrderLine(String salesOrderLine) {
+		this.salesOrderLine = salesOrderLine;
+	}
+
+	public String getCatObjImp() {
+		return catObjImp;
+	}
+
+	public void setCatObjImp(String catObjImp) {
+		this.catObjImp = catObjImp;
+	}
+
+//	public boolean isInvoicingLine() {
+//		return invoicingLine;
+//	}
+//
+//	public void setInvoicingLine(boolean invoicingLine) {
+//		this.invoicingLine = invoicingLine;
+//	}
 	
 }

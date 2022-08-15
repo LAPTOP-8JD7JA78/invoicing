@@ -10,4 +10,8 @@ public interface PaymentsListDao {
 	boolean updateListPay(PaymentsList pl);
 	List<PaymentsList> getListPay(String status);
 	PaymentsList getByReceiptNumber(String receiptNumber);
+	PaymentsList getByReceiptNumberCustomer(String receiptNumber, String customer);
+	PaymentsList getByReceiptIdCustomer(String receiptId, String customer);
+	PaymentsList getByReceiptIdCustomerLike(String receiptId, String customer);
+
 }

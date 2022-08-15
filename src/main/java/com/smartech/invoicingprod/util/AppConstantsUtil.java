@@ -9,7 +9,11 @@ public class AppConstantsUtil {
 	public static final String FILES_DETAILS = "D";
 	public static final String PAYMENT_HEADER = "H";
 	public static final String PAYMENT_PAYMENT = "P";
+	public static final String PAYMENT_PAYMENT_M = "M";
+	public static final String PAYMENT_PAYMENT_N = "N";
 	public static final String PAYMENT_DETAILS = "D";
+	public static final String PAYMENT_DETAILS_Y = "Y";
+	public static final String PAYMENT_DETAILS_X = "X";
 	public static final String FILES_COMPLEMENT_CE = "";
 	public static final String FILES_SEPARATOR = "|";
 	public static final String VOUCHER_I = "I";
@@ -18,6 +22,7 @@ public class AppConstantsUtil {
 	public static final String VOUCHER_T = "T";
 	public static final String PAYMENT_METHOD = "PUE";
 	public static final String TAX_CODE = "002";
+	public static final String TAX_CODE_NAME = "Tasa";
 	public static final String FILE_RESPONSE = "RESPONSE";
 	public static final String FILE_RESPONSE_PDF = "RESPONSEPDF";
 	public static final String FILE_SUCCESS = "SUCCESS";

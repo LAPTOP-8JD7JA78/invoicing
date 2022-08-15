@@ -53,6 +53,9 @@ public class Payments implements Serializable{
 	@Column(name = "relationType", nullable = true)
     private String relationType;
 	
+	@Column(name = "relationTypeUUID", nullable = true)
+    private String relationTypeUUID;
+	
 	@Column(name = "uuidReference", nullable = true)
     private String uuidReference;
 	
@@ -143,6 +146,30 @@ public class Payments implements Serializable{
 	@Column(name = "serialRel", nullable = true)
 	private String serialRel;
 	
+	@Column(name = "helpFolRel", nullable = true)
+    private String helpFolRel;
+	
+	@Column(name = "cancelationReason", nullable = true)
+    private String cancelationReason;
+	
+	@Column(name = "catExportacion", nullable = true)
+    private String catExportacion;
+	
+	@Column(name = "customerTaxRegime", nullable = true)
+    private String customerTaxRegime;
+	
+	@Column(name = "customerZipCode", nullable = true)
+    private String customerZipCode;
+	
+	@Column(name = "taxCode", nullable = true)
+    private String taxCode;
+	
+	@Column(name = "taxAmount", nullable = true)
+    private double taxAmount;
+	
+	@Column(name = "base", nullable=true)
+    private double base;
+	
 	public int getId() {
 		return id;
 	}
@@ -213,6 +240,14 @@ public class Payments implements Serializable{
 
 	public void setRelationType(String relationType) {
 		this.relationType = relationType;
+	}
+
+	public String getRelationTypeUUID() {
+		return relationTypeUUID;
+	}
+
+	public void setRelationTypeUUID(String relationTypeUUID) {
+		this.relationTypeUUID = relationTypeUUID;
 	}
 
 	public String getUuidReference() {
@@ -453,6 +488,70 @@ public class Payments implements Serializable{
 
 	public void setSerialRel(String serialRel) {
 		this.serialRel = serialRel;
+	}
+
+	public String getHelpFolRel() {
+		return helpFolRel;
+	}
+
+	public void setHelpFolRel(String helpFolRel) {
+		this.helpFolRel = helpFolRel;
+	}
+
+	public String getCancelationReason() {
+		return cancelationReason;
+	}
+
+	public void setCancelationReason(String cancelationReason) {
+		this.cancelationReason = cancelationReason;
+	}
+
+	public String getCatExportacion() {
+		return catExportacion;
+	}
+
+	public void setCatExportacion(String catExportacion) {
+		this.catExportacion = catExportacion;
+	}
+
+	public String getCustomerTaxRegime() {
+		return customerTaxRegime;
+	}
+
+	public void setCustomerTaxRegime(String customerTaxRegime) {
+		this.customerTaxRegime = customerTaxRegime;
+	}
+
+	public String getCustomerZipCode() {
+		return customerZipCode;
+	}
+
+	public void setCustomerZipCode(String customerZipCode) {
+		this.customerZipCode = customerZipCode;
+	}
+
+	public String getTaxCode() {
+		return taxCode;
+	}
+
+	public void setTaxCode(String taxCode) {
+		this.taxCode = taxCode;
+	}
+
+	public double getTaxAmount() {
+		return taxAmount;
+	}
+
+	public void setTaxAmount(double taxAmount) {
+		this.taxAmount = taxAmount;
+	}
+
+	public double getBase() {
+		return base;
+	}
+
+	public void setBase(double base) {
+		this.base = base;
 	}
 	
 }

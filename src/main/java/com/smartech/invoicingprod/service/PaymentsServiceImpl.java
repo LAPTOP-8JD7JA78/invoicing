@@ -20,8 +20,18 @@ public class PaymentsServiceImpl implements PaymentsService{
 	}
 
 	@Override
+	public List<Payments> getPaymentsListReference(String reference, String customerName, String folioRel) {
+		return paymentsDao.getPaymentsList(reference, customerName, folioRel);
+	}
+
+	@Override
 	public Payments getPayment(String id) {
 		return paymentsDao.getPayment(id);
+	}
+	
+	@Override
+	public Payments getReceiptById(String id) {
+		return paymentsDao.getReceiptId(id);
 	}
 
 	@Override
@@ -60,6 +70,11 @@ public class PaymentsServiceImpl implements PaymentsService{
 	}
 
 	@Override
+	public Payments getPayByUuidRId(String receiptId, String uuid, String folioRel) {
+		return paymentsDao.getPayByUuidRId(receiptId, uuid, folioRel);
+	}
+
+	@Override
 	public List<Payments> getAllError(boolean isError) {
 		return paymentsDao.getAllError(isError);
 	}
@@ -67,5 +82,15 @@ public class PaymentsServiceImpl implements PaymentsService{
 	@Override
 	public Payments getPaymentsByCusAndReceipt(String receiptNumber, String customerName) {
 		return paymentsDao.getPayByRecNumberAndCustomer(receiptNumber, customerName);
+	}
+	
+	@Override
+	public List<Payments> getPaymentsListReceiptId(String receiptId) {
+		return paymentsDao.getPaymentListReceitId(receiptId);
+	}
+
+	@Override
+	public List<Payments> getPaymentsListCustomer(String reference, String customerName, String folioRel) {
+		return paymentsDao.getPaymentsList(reference, customerName, folioRel);
 	}
 }

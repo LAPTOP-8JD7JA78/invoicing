@@ -33,5 +33,20 @@ public class PaymentsListServiceImpl implements PaymentsListService{
 	public PaymentsList getByReceiptNumber(String receiptNumber) {
 		return paymentsListDao.getByReceiptNumber(receiptNumber);
 	}
+
+	@Override
+	public PaymentsList getByReceiptNumberCustomer(String receiptNumber, String customer) {
+		return paymentsListDao.getByReceiptNumberCustomer(receiptNumber, customer);
+	}
+
+	@Override	
+	public PaymentsList getByReceiptIdCustomer(String receiptId, String customer) {
+		return paymentsListDao.getByReceiptIdCustomer(receiptId, customer);
+	}
+
+	@Override	
+	public PaymentsList getByReceiptIdCustomerLike(String receiptId, String customer) {
+		return paymentsListDao.getByReceiptIdCustomerLike(receiptId, customer);
+	}
 	
 }

@@ -40,6 +40,9 @@ public class SalesOrderDTO {
 	private String discountValueText;
 	private String salesPerson;
 	private String salesOrderType;
+	private String cancelationReason;
+	private String catExportacion;
+	private String regimenFiscal;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -313,6 +316,30 @@ public class SalesOrderDTO {
 
 	public void setSalesOrderType(String salesOrderType) {
 		this.salesOrderType = salesOrderType;
+	}
+
+	public String getCancelationReason() {
+		return cancelationReason;
+	}
+
+	public void setCancelationReason(String cancelationReason) {
+		this.cancelationReason = cancelationReason;
+	}
+
+	public String getCatExportacion() {
+		return catExportacion;
+	}
+
+	public void setCatExportacion(String catExportacion) {
+		this.catExportacion = catExportacion;
+	}
+
+	public String getRegimenFiscal() {
+		return regimenFiscal;
+	}
+
+	public void setRegimenFiscal(String regimenFiscal) {
+		this.regimenFiscal = regimenFiscal;
 	}
 	
 }

@@ -127,4 +127,21 @@ public class CompanyDaoImpl implements CompanyDao{
 		}
 		return null;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Company getCompanyByLegalEntity(String legalEntity) {
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Company.class);
+		criteria.add(Restrictions.eq("businessUnitName", legalEntity));		
+		List<Company> list = criteria.list();
+		if(list != null) {
+			if(list.size() > 0) {
+				return list.get(0);
+			}
+		}else {
+			return null;
+		}
+		return null;
+	}
 }

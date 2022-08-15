@@ -8,6 +8,7 @@ import com.smartech.invoicingprod.integration.json.invorg.InventoryOrganization;
 import com.smartech.invoicingprod.integration.json.itemCategories.ItemCategory;
 import com.smartech.invoicingprod.integration.json.priceList.PriceLists;
 import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByItem;
+import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
@@ -26,4 +27,5 @@ public interface RESTService {
 	public ItemCategory getCategoryCode(String categoryName);
 	public InventoryItemSerialNumbers getInventoryItemSerialModel(String orgCode, String itemNumber, String SerialNumber);
 	public ItemCosts getItemCostWitoutSerialNumber(String itemNumber);
+	public ReceivablesInvoices getInvoiceData(String transactionNumber);
 }

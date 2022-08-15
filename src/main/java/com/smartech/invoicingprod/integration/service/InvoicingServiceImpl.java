@@ -1,5 +1,9 @@
 package com.smartech.invoicingprod.integration.service;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -41,12 +45,14 @@ import com.smartech.invoicingprod.integration.json.itemCategories.ItemCategory;
 import com.smartech.invoicingprod.integration.json.priceList.Item;
 import com.smartech.invoicingprod.integration.json.priceList.PriceLists;
 import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByItem;
+import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.unitCost.CostDetails;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.integration.xml.rowset.Row;
 import com.smartech.invoicingprod.integration.xml.rowset.Rowset;
 import com.smartech.invoicingprod.model.Branch;
+import com.smartech.invoicingprod.model.Company;
 import com.smartech.invoicingprod.model.ErrorLog;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
@@ -133,14 +139,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 		String shipCountry = "";
 		String timeZone = "";
 		String pTerms = "";
-		List<String> facturas = new ArrayList<String>();
-		List<String> notasCredito = new ArrayList<String>();
-		List<String> noIva = new ArrayList<String>();
-		List<String> anticipos = new ArrayList<String>();
-		List<String> fiextAsset = new ArrayList<String>();
-		List<String> service1 = new ArrayList<String>();
-		List<String> serviceSeamex = new ArrayList<String>();
-		List<String> othersProducts = new ArrayList<String>();
+//		List<String> facturas = new ArrayList<String>();
+//		List<String> notasCredito = new ArrayList<String>();
+//		List<String> noIva = new ArrayList<String>();
+//		List<String> anticipos = new ArrayList<String>();
+//		List<String> fiextAsset = new ArrayList<String>();
+//		List<String> service1 = new ArrayList<String>();
+//		List<String> serviceSeamex = new ArrayList<String>();
+//		List<String> othersProducts = new ArrayList<String>();
 //		List<String> cancelList = new ArrayList<String>();
 		try {
 			//Fechas
@@ -150,8 +156,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					timeZone = u.getUdcKey();
 				}
 			}
-			Udc noteCredite = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_RTYPE, AppConstants.INVOICE_SAT_TYPE_E);
-			List<Udc> invcnni = udcService.searchBySystem(AppConstants.UDC_SYSTEM_REPINVOICE);
+			/*List<Udc> invcnni = udcService.searchBySystem(AppConstants.UDC_SYSTEM_REPINVOICE);
 			if(invcnni != null) {
 				for(Udc u: invcnni) {
 					if(u.getUdcKey().equals(AppConstants.ORDER_TYPE_FACTURA)) {
@@ -170,28 +175,40 @@ public class InvoicingServiceImpl implements InvoicingService{
 						serviceSeamex.add(u.getStrValue1());
 					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
 						othersProducts.add(u.getStrValue1());
-					}/*else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
+					}
+					else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCELATION_TRANSACTION_TYPE)) {
 						cancelList.add(u.getStrValue1());
-					}*/
+					}
 				}
 			}else {
 				return false;
-			}
+			}*/
 			
 			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 			sdfNoTime.setTimeZone(TimeZone.getTimeZone("UTC"));
 			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
 			//Llenado de objeto DTO de la respuesta del reporte de facturas
 			List<String> arr = new ArrayList<String>();
-			List<String> arrSales = new ArrayList<String>();
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
 			List<Invoice> invList = new ArrayList<Invoice>();
 			for(Row ro: r) {
+//				if(ro.getColumn9().equals("85100")) {
+//					System.out.print(true);
+//				}
+				if(NullValidator.isNull(ro.getColumn68()).equals("N")) {
+					continue;
+				}
 				String invType = "";
-				if(NullValidator.isNull(ro.getColumn11()).contains("NC")) {
-					invType = AppConstants.ORDER_TYPE_NC;
-				}else {
+				if(NullValidator.isNull(ro.getColumn63()).equals(AppConstants.INVOICING_INVOICE)) {
 					invType = AppConstants.ORDER_TYPE_FACTURA;
+				}else {
+					if(NullValidator.isNull(ro.getColumn63()).equals(AppConstants.INVOICING_CREDITMEMO) || NullValidator.isNull(ro.getColumn63()).equals(AppConstants.INVOICING_ONACC)) {
+						if(NullValidator.isNull(ro.getColumn62()).equals("SI")) {
+							invType = AppConstants.ORDER_TYPE_NC;
+						}else {
+							invType = AppConstants.ORDER_TYPE_CANCELATION;
+						}
+					}
 				}
 				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(NullValidator.isNull(ro.getColumn9()), invType);
 				if(searchExistingInvoice == null) {
@@ -206,24 +223,31 @@ public class InvoicingServiceImpl implements InvoicingService{
 			
 			//llenar header---------------------------------------------------------------------------------------------------
 			for(InvoicesByReportsDTO inv: invlist) {	
-				//Datos para anticipos
 				String invType = "";
-				if(NullValidator.isNull(inv.getTransactionTypeName()).toUpperCase().contains("NC")) {
-					invType = AppConstants.ORDER_TYPE_NC;
-				}else {
+				if(NullValidator.isNull(inv.getTransactionClassCode()).equals(AppConstants.INVOICING_INVOICE)) {
 					invType = AppConstants.ORDER_TYPE_FACTURA;
+				}else {
+					if(NullValidator.isNull(inv.getTransactionClassCode()).equals(AppConstants.INVOICING_CREDITMEMO) || NullValidator.isNull(inv.getTransactionClassCode()).equals(AppConstants.INVOICING_ONACC)) {
+						if(NullValidator.isNull(inv.getTransactionTimbrarFlexfield()).equals("SI")) {
+							invType = AppConstants.ORDER_TYPE_NC;
+						}else {
+							invType = AppConstants.ORDER_TYPE_CANCELATION;
+						}
+					}
 				}
 				Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(inv.getTransactionNumber(), invType);
 				if(searchExistingInvoice == null) {
 					if(inv.getPreviousSalesOrder() != null && !inv.getPreviousSalesOrder().isEmpty() || 
+							inv.getTransactionNumber() != null && !inv.getTransactionNumber().isEmpty()/*|| 
 							fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
 							service1.toString().contains(inv.getTransactionTypeName()) || 
 							serviceSeamex.toString().contains(inv.getTransactionTypeName()) || 
-							othersProducts.toString().contains(inv.getTransactionTypeName())/* || 
+							othersProducts.toString().contains(inv.getTransactionTypeName()) || 
 							cancelList.toString().contains(inv.getTransactionTypeName())*/) {
 						if(arr.contains(inv.getTransactionNumber())) {
 							continue;
 						}
+						if(!arr.contains(inv.getTransactionNumber())/* ||
 						if(!arr.contains(inv.getTransactionNumber()) && !arrSales.contains(inv.getPreviousSalesOrder()) || 
 								fiextAsset.toString().contains(inv.getTransactionTypeName()) || 
 								service1.toString().contains(inv.getTransactionTypeName()) || 
@@ -292,7 +316,11 @@ public class InvoicingServiceImpl implements InvoicingService{
 							invoice.setFolio(inv.getTransactionNumber());
 							invoice.setInvoiceDetails(null);
 							invoice.setStatus(AppConstants.STATUS_START);
-							if(facturas.toString().contains(inv.getTransactionTypeName())) {
+							
+							//Añadir el regimen fiscal
+							invoice.setRegimenFiscal(inv.getRegimenFiscal());// Fac 4.0
+							
+							/*if(facturas.toString().contains(inv.getTransactionTypeName())) {
 								invoice.setInvoice(true);
 								invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 								invoice.setFromSalesOrder(inv.getPreviousSalesOrder());
@@ -405,7 +433,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 									log.info("AQUI EMPIEZA LA FACTURA PARA SERVICIOS1" + inv.getTransactionNumber());
 									Branch branch = branchService.getBranchByCode("SERVICIOS");
 									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-//									NextNumber nNumber = nextNumberService.getNumberById(Integer.parseInt(String.valueOf(branch.getId())));
 									invoice.setInvoice(true);	
 									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
 									invoice.setBranch(branch);	
@@ -560,7 +587,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 										branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
 										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
 									}
-//									NextNumber nNumber = nextNumberService.getNumberById(Integer.parseInt(String.valueOf(branch.getId())));
 									invoice.setSerial(nNumber.getSerie());
 									invoice.setInvoice(true);
 									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
@@ -624,64 +650,192 @@ public class InvoicingServiceImpl implements InvoicingService{
 								}else {
 									continue;
 								}
-							}/*else if(cancelList.toString().contains(inv.getTransactionTypeName())) {
-								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_CANCEL);
-								if(seaExisCNAdv == null){
-									log.info("AQUI EMPIEZA LA RECOLECCIÓN DE DATOS PARA CANCELAR UNA FACTURA " + inv.getTransactionNumber());
-									Invoice getInvoiceToCancel = invoiceDao.getSingleInvoiceByFolioAndType(inv.getPreviousTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-									if(getInvoiceToCancel != null) {
-										if(getInvoiceToCancel.getUUID() != null && !getInvoiceToCancel.getUUID().isEmpty()) {
-											invoice.setBranch(getInvoiceToCancel.getBranch());
-											invoice.setSerial("CAN" + getInvoiceToCancel.getSerial());
-											invoice.setInvoice(false);
-											invoice.setUUID(getInvoiceToCancel.getUUID());
-											invoice.setUUIDReference(getInvoiceToCancel.getUUID());
-											invoice.setFromSalesOrder(inv.getTransactionNumber());
-											invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
-											invoice.setStatus(AppConstants.STATUS_CANCEL_PENDING);
-											invoice.setFromSalesOrder(inv.getTransactionNumber());
-										}else {
-											invoice.setBranch(getInvoiceToCancel.getBranch());
-											invoice.setSerial("CAN" + getInvoiceToCancel.getSerial());
-											invoice.setInvoice(false);
-											invoice.setUUID(getInvoiceToCancel.getUUID());
-											invoice.setUUIDReference(getInvoiceToCancel.getUUID());
-											invoice.setFromSalesOrder(inv.getTransactionNumber());
-											invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);//b91184e3-a7c6-4fe7-9a39-6195306dbfeb
-											invoice.setStatus(AppConstants.STATUS_CANCEL_ERROR);
-											invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
-											ErrorLog seaE = errorLogService.searchError("REGISTRO NO TIENE FOLIO FISCAL, FAVOR DE ESPERAR A QUE EL FOLIO RELACIONADO TENGA UN TIBRE", inv.getTransactionNumber());
-											if(seaE == null) {
-												ErrorLog eLog = new ErrorLog();
-												eLog.setErrorMsg("REGISTRO NO TIENE FOLIO FISCAL, FAVOR DE ESPERAR A QUE EL FOLIO RELACIONADO TENGA UN TIBRE");
-												eLog.setCreationDate(sdf.format(new Date()));
-												eLog.setUpdateDate(sdf.format(new Date()));
-												eLog.setNew(true);
-												eLog.setOrderNumber(inv.getTransactionNumber());
-												eLog.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
-												errorLogService.saveError(eLog);
-											}
-										}
-									}else {
-										ErrorLog seaE = errorLogService.searchError("NO EXISTE LA FACTURA BÚSCADA", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("NO EXISTE LA FACTURA BÚSCADA");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
-											errorLogService.saveError(eLog);
-											continue;
-										}
-									}
-								}else {
-									continue;
-								}
-							}*/else {
+							}else {
 								continue;
+							}*/
+
+							Udc noteCredite = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_RTYPE, AppConstants.INVOICE_SAT_TYPE_E);
+							//Datos
+							if(inv.getTransactionSource().equals("Manual IMEMSA")) {
+								//Fact 4.0
+								invoice.setCatExportacion(inv.getCatExportacion());
+								//Datos flex
+								if(inv.getFausoCFDI() != null && !inv.getFausoCFDI().isEmpty()) {
+									invoice.setCFDIUse(inv.getFausoCFDI());	
+								}else {
+									ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
+									if(seaE == null) {
+										ErrorLog eLog = new ErrorLog();
+										eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
+										eLog.setCreationDate(sdf.format(new Date()));
+										eLog.setUpdateDate(sdf.format(new Date()));
+										eLog.setNew(true);
+										eLog.setOrderNumber(inv.getTransactionNumber());
+										eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
+										errorLogService.saveError(eLog);
+										continue;
+									}else {
+										continue;
+									}
+								}
+								if(inv.getFaPaymentMethod() != null && !inv.getFaPaymentMethod().isEmpty()) {
+									invoice.setPaymentMethod(inv.getFaPaymentMethod());
+								}else {
+									ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
+									if(seaE == null) {
+										ErrorLog eLog = new ErrorLog();
+										eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
+										eLog.setCreationDate(sdf.format(new Date()));
+										eLog.setUpdateDate(sdf.format(new Date()));
+										eLog.setNew(true);
+										eLog.setOrderNumber(inv.getTransactionNumber());
+										eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
+										errorLogService.saveError(eLog);
+										continue;
+									}else {
+										continue;
+									}
+								}
+								if(inv.getFaPaymentForm() != null && !inv.getFaPaymentForm().isEmpty()) {
+									invoice.setPaymentType(inv.getFaPaymentForm());
+								}else {
+									ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
+									if(seaE == null) {
+										ErrorLog eLog = new ErrorLog();
+										eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
+										eLog.setCreationDate(sdf.format(new Date()));
+										eLog.setUpdateDate(sdf.format(new Date()));
+										eLog.setNew(true);
+										eLog.setOrderNumber(inv.getTransactionNumber());
+										eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
+										errorLogService.saveError(eLog);
+										continue;
+									}else {
+										continue;
+									}
+								}
+								//Datos flex
+								Branch branch = new Branch();
+								NextNumber nNumber = new NextNumber();
+								if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_INVOICE)) {//Facturas tipo ingresos
+									if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+										branch = branchService.getBranchByCode("CEDIS");
+										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
+									}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
+										branch = branchService.getBranchByCode("PLR");
+										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
+									}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
+										branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
+										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
+									}
+									invoice.setSerial(nNumber.getSerie());
+									invoice.setInvoice(true);
+									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
+									invoice.setBranch(branch);
+									invoice.setStatus(AppConstants.STATUS_PENDING);
+									invoice.setFromSalesOrder(inv.getTransactionNumber());
+									
+								}else if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_CREDITMEMO) || inv.getTransactionClassCode().equals(AppConstants.INVOICING_ONACC)){//Facturas tipo egreso
+									String orderType = "";
+//									if(cancelList.toString().contains(inv.getTransactionTypeName())) {
+									if(!NullValidator.isNull(inv.getTransactionTimbrarFlexfield()).equals("SI")) {//Cancelaciones
+										orderType = AppConstants.ORDER_TYPE_CANCELATION;
+//										invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
+										invoice.setInvoiceType(orderType);
+										invoice.setCancelationReason(inv.getCancelationReason());
+										invoice.setSustitutionUuid(inv.getUuidSustitution());
+										invoice.setStatus(AppConstants.STATUS_CANCELATION_NC);
+									}else {//Notas de crédito
+										orderType = AppConstants.ORDER_TYPE_NC;
+										invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
+										invoice.setStatus(AppConstants.STATUS_PENDING);
+									}
+									
+									if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+										branch = branchService.getBranchByCode("CEDIS");
+										nNumber = nextNumberService.getNumberCon(orderType, branch);
+									}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
+										branch = branchService.getBranchByCode("PLR");
+										nNumber = nextNumberService.getNumberCon(orderType, branch);
+									}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
+										branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
+										nNumber = nextNumberService.getNumberCon(orderType, branch);
+									}
+									
+									invoice.setSerial(nNumber.getSerie());
+									invoice.setInvoice(false);
+									invoice.setBranch(branch);
+									invoice.setFromSalesOrder(inv.getTransactionNumber());
+									if(inv.getPreviousTransactionNumber() != null && !inv.getPreviousTransactionNumber().isEmpty()) {
+										invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
+//										Invoice invSearchUuid = invoiceDao.getSingleInvoiceByFolioLike(inv.getPreviousTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+//										invoice.setUUIDReference(invSearchUuid.getUUID());
+//										invoice.setCustomerEmail(NullValidator.isNull(invSearchUuid.getCustomerEmail()));
+									}									
+									invoice.setInvoiceRelationType(noteCredite.getStrValue1());
+									//Aqui va la lectura y concatenación de los UUID para notas de credito
+									if(inv.getUuidRelated() != null && !inv.getUuidRelated().isEmpty()) {
+										if(inv.getCfdiRelacionado1() != null && !inv.getCfdiRelacionado1().isEmpty()) {
+											if(inv.getCfdiRelacionado2() != null && !inv.getCfdiRelacionado2().isEmpty()) {
+												if(inv.getCfdiRelacionado3() != null && !inv.getCfdiRelacionado3().isEmpty()) {
+													if(inv.getCfdiRelacionado4() != null && !inv.getCfdiRelacionado4().isEmpty()) {
+														invoice.setUUIDReference(NullValidator.isNull(invoice.getUUIDReference()) + "," +inv.getUuidRelated() + "," + inv.getCfdiRelacionado1() + "," + inv.getCfdiRelacionado2() + "," + inv.getCfdiRelacionado3() + "," + inv.getCfdiRelacionado4());
+													}else {
+														invoice.setUUIDReference(NullValidator.isNull(invoice.getUUIDReference()) + "," +inv.getUuidRelated() + "," + inv.getCfdiRelacionado1() + "," + inv.getCfdiRelacionado2() + "," + inv.getCfdiRelacionado3());
+													}
+												}else {
+													invoice.setUUIDReference(NullValidator.isNull(invoice.getUUIDReference()) + "," +inv.getUuidRelated() + "," + inv.getCfdiRelacionado1() + "," + inv.getCfdiRelacionado2());
+												}
+											}else {
+												invoice.setUUIDReference(NullValidator.isNull(invoice.getUUIDReference()) + "," +inv.getUuidRelated() + "," + inv.getCfdiRelacionado1());
+											}
+										}else {
+											invoice.setUUIDReference(NullValidator.isNull(invoice.getUUIDReference()) + "," + NullValidator.isNull(inv.getUuidRelated()));
+										}										
+									}else {
+										invoice.setUUIDReference(invoice.getUUIDReference());										
+									}	
+									if(invoice.getUUIDReference() == null || invoice.getUUIDReference().isEmpty()) {
+										invoice.setInvoiceRelationType(null);
+									}
+								}
+							}else {//Por ordenes de venta
+								if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_INVOICE)) {//Facturas tipo ingresos
+									invoice.setInvoice(true);
+									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
+									invoice.setFromSalesOrder(inv.getPreviousSalesOrder());
+								}else if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_CREDITMEMO)){//Facturas tipo egreso
+									String orderType = "";
+//									if(cancelList.toString().contains(inv.getTransactionTypeName())) {//Cancelaciones
+									if(!NullValidator.isNull(inv.getTransactionTimbrarFlexfield()).equals("SI")) {//Cancelaciones
+										Branch branch = new Branch();
+										NextNumber nNumber = new NextNumber();
+										orderType = AppConstants.ORDER_TYPE_CANCELATION;
+//										invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
+										invoice.setInvoiceType(orderType);
+										invoice.setStatus(AppConstants.STATUS_CANCELATION_BY_ORDER_NC);
+										if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+											branch = branchService.getBranchByCode("CEDIS");
+											nNumber = nextNumberService.getNumberCon(orderType, branch);
+										}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
+											branch = branchService.getBranchByCode("PLR");
+											nNumber = nextNumberService.getNumberCon(orderType, branch);
+										}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
+											branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
+											nNumber = nextNumberService.getNumberCon(orderType, branch);
+										}
+										invoice.setSerial(nNumber.getSerie());
+									}else {//Notas de crédito
+										orderType = AppConstants.ORDER_TYPE_NC;
+										invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
+									}
+									invoice.setInvoice(false);
+									invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
+									invoice.setFromSalesOrder(inv.getPreviousSalesOrder());	
+									invoice.setInvoiceRelationType(noteCredite.getStrValue1());
+								}
 							}
+							
 							invoice.setInvoiceCurrency(inv.getCurrency());
 							if(inv.getExchangeRate().isEmpty()) {
 								invoice.setInvoiceExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
@@ -704,7 +858,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							//Añadir registro a la lista facturas
 							invList.add(invoice);
 							arr.add(inv.getTransactionNumber());
-							arrSales.add(inv.getPreviousSalesOrder());
+//							arrSales.add(inv.getPreviousSalesOrder());
 						}
 					}
 				}
@@ -719,15 +873,22 @@ public class InvoicingServiceImpl implements InvoicingService{
 					
 					for(InvoicesByReportsDTO in : invlist) {
 						String invType = "";
-						if(NullValidator.isNull(in.getTransactionTypeName()).contains("NC")) {
-							invType = AppConstants.ORDER_TYPE_NC;
-						}else {
+						if(NullValidator.isNull(in.getTransactionClassCode()).equals(AppConstants.INVOICING_INVOICE)) {
 							invType = AppConstants.ORDER_TYPE_FACTURA;
+						}else {
+							if(NullValidator.isNull(in.getTransactionClassCode()).equals(AppConstants.INVOICING_CREDITMEMO) || NullValidator.isNull(in.getTransactionClassCode()).equals(AppConstants.INVOICING_ONACC)) {
+								if(NullValidator.isNull(in.getTransactionTimbrarFlexfield()).equals("SI")) {
+									invType = AppConstants.ORDER_TYPE_NC;
+								}else {
+									invType = AppConstants.ORDER_TYPE_CANCELATION;
+								}
+							}
 						}
 						Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(in.getTransactionNumber(), invType);
 						if(searchExistingInvoice == null) {
 							if(i.getInvoiceType() != null) {							
-								if(i.getFolio().equals(in.getTransactionNumber()) || NullValidator.isNull(i.getFromSalesOrder()).equals((in.getPreviousSalesOrder()))) {
+								//if(i.getFolio().equals(in.getTransactionNumber()) || NullValidator.isNull(i.getFromSalesOrder()).equals((in.getPreviousSalesOrder()))) {
+								if(i.getFolio().equals(in.getTransactionNumber())) {
 									if(!i.getFolio().contains(in.getTransactionNumber())){
 										i.setFolio(i.getFolio() + "-" + in.getTransactionNumber());
 									}
@@ -739,6 +900,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invDetails.setItemDescription(in.getItemDescription());
 									invDetails.setCurrency(in.getCurrency());
 									invDetails.setUomName(in.getUomCode());
+									invDetails.setSalesOrderLine(NullValidator.isNull(in.getSalesOrderLineNumber()));
 									if(in.getExchangeRate().isEmpty()) {
 										invDetails.setExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
 									}else {
@@ -754,31 +916,33 @@ public class InvoicingServiceImpl implements InvoicingService{
 										}	
 										in.setTransactionType(AppConstants.LIVERPOOL_INVOICE);
 									}else if(NullValidator.isNull(i.getInvoiceType()).equals(AppConstants.ORDER_TYPE_NC)) {
-										if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) < 0) {
+										if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) > 0) {
 											invDetails.setUnitPrice(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice()))))));
 											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
 										}else {
-											invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
-											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
+											invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())*(-1)))));
+											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
 										}
 										in.setTransactionType(AppConstants.LIVERPOOL_CREDIT_NOTE);
-									}else if(NullValidator.isNull(i.getInvoiceType()).equals(AppConstants.ORDER_TYPE_CANCEL)){
+									}else if(NullValidator.isNull(i.getInvoiceType()).equals(AppConstants.ORDER_TYPE_CANCELATION)){
 										if(NullValidator.isNull(Double.parseDouble(in.getTransactionLineUnitSellingPrice())) < 0) {
-											invDetails.setUnitPrice(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice()))))));
+											invDetails.setUnitPrice(NullValidator.isNull(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())*(-1))))));
 											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
 										}else {
 											invDetails.setUnitPrice(Math.abs(Double.parseDouble(df.format(Double.parseDouble(in.getTransactionLineUnitSellingPrice())))));
-											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_DIS);
+											invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
 										}
 									}
-									//Datos para activos fijos
+									//Datos para activos fijos o facturas manuales
 									if(i.getStatus().equals(AppConstants.STATUS_PENDING)) {
-										invDetails.setUnitProdServ(NullValidator.isNull(in.getFaCodigoSat()));
+										invDetails.setUnitProdServ(NullValidator.isNull(in.getTransactionLineCodigoSATManual()));
 										Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, in.getUomCode());
 										invDetails.setUomName(satUOM.getStrValue2().toUpperCase());
 										invDetails.setUomCode(satUOM.getStrValue1());
 										invDetails.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
-										if(in.getItemDescriptionDetailsForService() == null){
+										invDetails.setItemDescription(in.getItemDescriptionDetailsForService());
+										invDetails.setCatObjImp(in.getCatObjImp());// Fac 4.0
+										/*if(in.getItemDescriptionDetailsForService() == null){
 											if(in.getItemDescription() != null && !in.getItemDescription().isEmpty()) {
 												invDetails.setItemDescription(in.getItemDescription());
 											}else {
@@ -787,8 +951,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											}
 										}else {//Descripción para servicios
 											invDetails.setItemDescription(NullValidator.isNull(in.getItemDescriptionDetailsForService()));
-										}
-										
+										}*/
 									}
 									invDetails.setTransactionLineNumber(in.getTransactionLineNumber());
 									if(i.isInvoice()) {
@@ -800,7 +963,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 										}
 									}else {
 										if(in.getQuantityCredited() != null && !in.getQuantityCredited().isEmpty()) {
-											invDetails.setQuantity(Double.parseDouble(df.format(Double.parseDouble(NullValidator.isNull(in.getQuantityCredited())))));
+											if(Float.parseFloat(in.getQuantityCredited()) > 0) {
+												invDetails.setQuantity(Double.parseDouble(df.format(Double.parseDouble(NullValidator.isNull(in.getQuantityCredited())))));
+												in.setInvoicedQuantity(String.valueOf((invDetails.getQuantity())));
+											}else {
+												invDetails.setQuantity(Double.parseDouble(df.format(Double.parseDouble(NullValidator.isNull(in.getQuantityCredited()))*(-1))));
+												in.setInvoicedQuantity(String.valueOf((invDetails.getQuantity())));
+											}
+										}else if(in.getQuantityInvoiced() != null && !in.getQuantityInvoiced().isEmpty()){
+											invDetails.setQuantity(Double.parseDouble(df.format(Double.parseDouble(NullValidator.isNull(in.getQuantityInvoiced())))));
 											in.setInvoicedQuantity(String.valueOf((invDetails.getQuantity())));
 										}else {
 											continue;
@@ -824,6 +995,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									for(TaxCodes tc: tcl) {
 										if(tc.getTaxName().equals(in.getTaxClassificationCode())) {
 											tcList.add(tc);
+											break;
 										}
 									}
 									if(tcList.size() == 0) {
@@ -924,30 +1096,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 	
 	public InvoicesByReportsDTO fullDTO (Row r) {
 		InvoicesByReportsDTO invoice = new InvoicesByReportsDTO();
-		List<String> service1 = new ArrayList<String>();
-		List<String> fixedAsset = new ArrayList<String>();
-		List<String> serviceSeamex = new ArrayList<String>();
-		List<String> otrosProductos = new ArrayList<String>();
-//		List<String> cancelList = new ArrayList<String>();
 		try {
-			List<Udc> ant = udcService.searchBySystem(AppConstants.UDC_SYSTEM_REPINVOICE);
-			for(Udc u: ant) {
-				if(u.getUdcKey().equals(AppConstants.UDC_KEY_SERVICE1)) {
-					service1.add(u.getStrValue1());
-				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_FIXED_ASSET)) {
-					fixedAsset.add(u.getStrValue1());
-				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_SERVICE_SEAMEX)) {
-					serviceSeamex.add(u.getStrValue1());
-				}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
-					otrosProductos.add(u.getStrValue1());
-				}/*else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCEL_TRANSACTION_TYPE)) {
-					cancelList.add(u.getStrValue1());
-				}*/
-			}
 			//Datos del cliente para facturación
 			invoice.setCustomerName(NullValidator.isNull(r.getColumn0()));
 			invoice.setCustomerNumber(NullValidator.isNull(r.getColumn1()));
-			invoice.setCustomerState(NullValidator.isNull(r.getColumn51()));
+			if(!NullValidator.isNull(r.getColumn51()).isEmpty()) {
+				invoice.setCustomerState(NullValidator.isNull(r.getColumn51()));
+			}else {
+				invoice.setCustomerState(NullValidator.isNull(r.getColumn81()));
+			}
 			invoice.setCustomerTaxIdentifier(NullValidator.isNull(r.getColumn2()));
 			invoice.setCustomerCountry(NullValidator.isNull(r.getColumn3()));
 			invoice.setCustomerPostalCode(NullValidator.isNull(r.getColumn4()));
@@ -989,16 +1146,37 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setShipToCity(NullValidator.isNull(r.getColumn37()));
 			invoice.setShipToCountry(NullValidator.isNull(r.getColumn38()));
 			invoice.setShipToZip(NullValidator.isNull(r.getColumn39()));
-			invoice.setShipToState(NullValidator.isNull(r.getColumn40()));
 			invoice.setCustomerPartyNumber(NullValidator.isNull(r.getColumn41()));
-			//Datos para activos Fijos
-			invoice.setFaCodigoSat(NullValidator.isNull(r.getColumn55()));
-			invoice.setFaPaymentForm(NullValidator.isNull(r.getColumn56()));
-			invoice.setFaPaymentMethod(NullValidator.isNull(r.getColumn57()));
-			invoice.setFausoCFDI(NullValidator.isNull(r.getColumn58()));
-			invoice.setItemDescriptionFA(NullValidator.isNull(r.getColumn59()));
-			invoice.setItemDescriptionDetailsForService(r.getColumn60());
-			invoice.setUuidInitialCharge(NullValidator.isNull(r.getColumn61()).replaceAll("\\s",""));
+			if(!NullValidator.isNull(r.getColumn40()).isEmpty()) {
+				invoice.setShipToState(NullValidator.isNull(r.getColumn40()));
+			}else {
+				invoice.setShipToState(NullValidator.isNull(r.getColumn80()));
+			}
+			//Datos para activos Fijos O otras transacciones
+//			invoice.setFaCodigoSat(NullValidator.isNull(r.getColumn56()));
+			invoice.setRegimenFiscal(NullValidator.isNull(r.getColumn56()));//Fact 4.0
+			invoice.setFaPaymentForm(NullValidator.isNull(r.getColumn57()));
+			invoice.setFaPaymentMethod(NullValidator.isNull(r.getColumn58()));
+			invoice.setFausoCFDI(NullValidator.isNull(r.getColumn59()));
+//			invoice.setItemDescriptionFA(NullValidator.isNull(r.getColumn60()));
+			invoice.setCatExportacion(NullValidator.isNull(r.getColumn60()));//Fact 4.0
+			invoice.setItemDescriptionDetailsForService(NullValidator.isNull(r.getColumn61()) + NullValidator.isNull(r.getColumn77()) + NullValidator.isNull(r.getColumn78()));
+//			invoice.setUuidInitialCharge(NullValidator.isNull(r.getColumn61()).replaceAll("\\s",""));
+			invoice.setTransactionClassCode(NullValidator.isNull(r.getColumn63()));
+			invoice.setTransactionTimbrarFlexfield(NullValidator.isNull(r.getColumn62()));
+			invoice.setTransactionFacElecCampoCalculado(NullValidator.isNull(r.getColumn68()));
+			invoice.setTransactionLineCodigoSATManual(NullValidator.isNull(r.getColumn67()));
+			invoice.setCfdiRelacionado1(NullValidator.isNull(r.getColumn69()));
+			invoice.setCfdiRelacionado2(NullValidator.isNull(r.getColumn70()));
+			invoice.setCfdiRelacionado3(NullValidator.isNull(r.getColumn71()));
+			invoice.setCfdiRelacionado4(NullValidator.isNull(r.getColumn72()));
+//			invoice.setCfdiRelacionado5(NullValidator.isNull(r.getColumn73()));
+			invoice.setSalesOrderLineNumber(NullValidator.isNull(r.getColumn73()));
+			invoice.setCancelationReason(NullValidator.isNull(r.getColumn74()));
+			invoice.setAdvancePayments(NullValidator.isNull(r.getColumn75()));
+			invoice.setUuidSustitution(NullValidator.isNull(r.getColumn76()));
+			invoice.setUuidSustitution(NullValidator.isNull(r.getColumn76()));
+			invoice.setCatObjImp(NullValidator.isNull(r.getColumn79()));// Fac 4.0
 			//Complemento detallista
 			if(r.getColumn43() != null) {
 				if(r.getColumn43().equals("Y")) {
@@ -1016,13 +1194,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			}else {
 				invoice.setDetCom(false);
 			}
-			if((invoice.getSalesOrderNumber() != null && !invoice.getSalesOrderNumber().isEmpty()) || 
-					service1.toString().contains(invoice.getTransactionTypeName()) ||
-					fixedAsset.toString().contains(invoice.getTransactionTypeName()) ||
-					invoice.getTransactionSource().equals("CARGA INICIAL") ||
-					serviceSeamex.toString().contains(invoice.getTransactionTypeName())||
-					otrosProductos.toString().contains(invoice.getTransactionTypeName())/* || 
-					cancelList.toString().contains(invoice.getTransactionTypeName())*/) {
+			if(NullValidator.isNull(r.getColumn68()).equals("Y") || NullValidator.isNull(invoice.getTransactionSource()).equals("CARGA INICAL")) {
 				log.info(invoice.getTransactionTypeName());
 				return invoice;
 			}
@@ -1072,13 +1244,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 		List<String> otList = new ArrayList<String>();
 		otList.add(AppConstants.ORDER_TYPE_FACTURA);
 		otList.add(AppConstants.ORDER_TYPE_NC);
+		otList.add(AppConstants.ORDER_TYPE_CANCELATION);
 		
 		List<String> sList = new ArrayList<String>();
 		sList.add(AppConstants.STATUS_START);
 		sList.add(AppConstants.STATUS_ERROR_DATA);
+		sList.add(AppConstants.STATUS_CANCELATION_BY_ORDER_NC);//Revisar las cancelaciones
 		
 		//Registros de cancelaciones
-		this.recolectCancelInvoice();
+		this.cancelationAndCreditMemo();
 		String incoterm = null;
 		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);
 		if(invoiceList != null && !invoiceList.isEmpty()) {
@@ -1093,6 +1267,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 				SalesOrderDTO so = soapService.getSalesOrderInformation(inv.getFromSalesOrder());
 				IncotermByRest inco = restService.getIncoterm(inv.getFromSalesOrder()); 
 				if(so != null && !so.getLines().isEmpty()) {
+					if(inv.getStatus().equals(AppConstants.STATUS_CANCELATION_BY_ORDER_NC)) {
+						inv.setSustitutionUuid(so.getSusticionCFDI());
+						inv.setCancelationReason(so.getCancelationReason());
+						inv.setStatus(AppConstants.STATUS_CANCELATION_NC);
+						invoiceDao.updateInvoice(inv);
+						continue;
+					}
 					salesOrderNumber = so.getSalesOrderNumber();
 					msg = inv.getErrorMsg();
 					//OBTENER EL DESCUENTO A NIVEL CABERO
@@ -1139,6 +1320,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Saber si tiene complemento exterior
 					if(so.getOrderType().equals(AppConstants.INVOICE_EXTERIOR_COMPLEMENT)) {
 						inv.setExtCom(true);
+						inv.setCatExportacion(NullValidator.isNull(so.getCatExportacion()));
 						//buscar el dato del catalogo de incoterm
 						try {
 							if(inco != null) {
@@ -1149,6 +1331,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}catch(Exception e) {
 							log.warn("ERROR AL CONSULTAR Y TRAER EL INCOTERM DE LA ORDEN: " + inv.getFromSalesOrder());
 							incoterm = null;
+						}
+						//Buscar NumRegIdTrib FAC 4.0
+						AnalyticsDTO analytics = new AnalyticsDTO();
+						analytics.setCustomerName(inv.getCustomerName());
+						Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+								AppConstants.SERVICE_AR_REPORT_NUMREGIDTRIB, analytics);
+						if(!r.getRow().isEmpty()) {
+							inv.setCustomerTaxIdentifier(r.getRow().get(0).getColumn2());
+						}else {
+							invStatus = false;
+							msgError = msgError + ";NUMREGIDTRIB, Error al intentar obetener el dato";
+							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL DATO DE NUMREGIDTRIB");
 						}
 					}else {
 						inv.setExtCom(false);
@@ -1178,50 +1372,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//Proceso anticipo					
 					if(so.getReceivables() != null && !so.getReceivables().isEmpty()) {	
-//						if(so.getReceivables().contains("|")) {//Varios cobros
-//						String[] cobros = so.getReceivables().split("\\|");
-//						for(String s: cobros) {
-//							Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(s, inv.getCustomerName());
-//							if(advInvoice != null) {
-//								if(advInvoice.getUUID() != null) {
-//									inv.setInvoiceRelationType("07");
-//									if(inv.getUUIDReference() == null){
-//										inv.setUUIDReference(advInvoice.getUUID());
-//									}else {
-//										inv.setUUIDReference(inv.getUUIDReference() + ","+advInvoice.getUUID());
-//									}										
-//								}else {
-//									invStatus = false;
-//									msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-//									log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
-//								}
-//								advInvoice.setAdvanceApplied(true);
-//								paymentsService.updatePayment(advInvoice);
-//								Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
-//								advInvoice2.setAdvanceAplied(true);
-//								invoiceDao.updateInvoice(advInvoice2);
-//							}
-//						}
-//					}else {//Un solo cobro
-//						Payments advInvoice = paymentsService.getPaymentsByCusAndReceipt(so.getReceivables(), inv.getCustomerName());
-//						if(advInvoice != null) {
-//							if(advInvoice.getUUID() != null) {
-//								inv.setInvoiceRelationType("07");
-//								inv.setUUIDReference(advInvoice.getUUID());
-//								advInvoice.setAdvanceApplied(true);
-//								paymentsService.updatePayment(advInvoice);
-//								Invoice advInvoice2 = invoiceDao.getInvoiceByUuid(advInvoice.getUUID());
-//								advInvoice2.setAdvanceAplied(true);
-//								invoiceDao.updateInvoice(advInvoice2);
-//							}else {
-//								invStatus = false;
-//								msgError = msgError + ";ANTICIPOS-Error al obtener el UUID relacionado";
-//								log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL UUID RELACIONADO ANTICIPOS");
-//							}
-//						}
-//					}
-					//Cambios pendientes
-//						System.out.println(inv.getFromSalesOrder());
 						List<Invoice> listNC = invoiceDao.getInvoiceByOtFolioCustomer(AppConstants.ORDER_TYPE_NC, inv.getFromSalesOrder(), inv.getCustomerName());
 						if(listNC == null || (listNC != null && listNC.isEmpty())) {
 							int pipeMatches = org.apache.commons.lang3.StringUtils.countMatches(so.getReceivables(), "|");
@@ -1259,7 +1409,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 														if(advInvoice.getUUID() != null) {
 															Udc relationTypeUDC = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_INVOICE_RELTYPE, AppConstants.UDC_KEY_ADVPAYMENT);
 															inv.setInvoiceRelationType(relationTypeUDC.getStrValue1());
-//															inv.setUUIDReference(advInvoice.getUUID());
 															if(inv.getUUIDReference() == null){
 																inv.setUUIDReference(advInvoice.getUUID());
 															}else {
@@ -1373,7 +1522,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											for(Payments payment : updatedPaymentList) {
 												if(receiptNumber.equals(payment.getReceiptNumber())) {
 													double paymentExchangeRate = Math.round(Double.valueOf(payment.getExchangeRate())*100.00)/100.00;
-													this.createAdvPayNC(inv, paymentAmount, paymentExchangeRate, payment.getCurrency());
+													this.createAdvPayNC(inv, paymentAmount, paymentExchangeRate, payment.getCurrency(), salesOrderNumber);
 													paymentsService.updatePayment(payment);
 													break;
 												}
@@ -1459,13 +1608,54 @@ public class InvoicingServiceImpl implements InvoicingService{
 						inv.setCustomerState(null);
 						inv.setShipToState(null);
 					}
+					if(so.getRegimenFiscal() != null && !so.getRegimenFiscal().isEmpty()) {//FAC 4.0
+						inv.setRegimenFiscal(so.getRegimenFiscal());
+					}
+					//Validación codigo postal
+					if(inv.getCustomerTaxIdentifier().equals(AppConstants.RFC_GENERICO_NACIONAL) || inv.getCustomerTaxIdentifier().equals(AppConstants.RFC_GENERICO_NACIONAL)){
+						inv.setCustomerZip(inv.getBranch().getZip());
+						inv.setShipToZip(inv.getBranch().getZip());
+					}else {
+						inv.setCustomerZip(inv.getCustomerZip());
+						inv.setShipToZip(inv.getShipToZip());
+					}
+					//Validación de regimen fiscal
+//					if(inv.getRegimenFiscal() == null || inv.getRegimenFiscal().isEmpty()) {
+//						//Busqueda del regimen fiscal Fac 4.0
+//						AnalyticsDTO analytics = new AnalyticsDTO();
+//						analytics.setCustomerName(inv.getCustomerName());
+//						Rowset rowSet = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+//								AppConstants.SERVICE_AR_REPORT_TAX_REGIME, analytics);
+//						if(!rowSet.getRow().isEmpty()) {
+//							inv.setRegimenFiscal(NullValidator.isNull(rowSet.getRow().get(0).getColumn1()));
+//						}else {
+//							invStatus = false;
+//							msgError = msgError + ";REGIMEN FISCAL - Error al obtener el Regimen Fiscal del cliente";
+//							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER el Regimen Fiscal");
+//						}
+//					}
+//					//Validación de uso cfdi
+//					if(inv.getCFDIUse() != null && !inv.getCFDIUse().isEmpty()) {
+//						String cfUse = inv.getCFDIUse();
+//						Udc cfdi = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_CFDIUSE, cfUse);
+//						if(cfdi != null && (inv.getRegimenFiscal() != null && !inv.getRegimenFiscal().isEmpty())) {
+//							if(!cfdi.getStrValue1().contains(inv.getRegimenFiscal())) {
+//								invStatus = false;
+//								msgError = msgError + ";USCO CFDI - Error al validar el USO CFDI con el Regimen Fiscal";
+//								log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL VALIDAR EL USO CFDI CON EL REGIMEN FISCAL");
+//							}
+//						}else{
+//							invStatus = false;
+//							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL VALIDAR EL USO CFDI CON EL REGIMEN FISCAL");
+//						}
+//					}
 					//Consulta de la dirreción del cliente de correo electrónico
 					if(inv.getCustomerEmail() == null || "".contains(NullValidator.isNull(inv.getCustomerEmail()))) {
 						CustomerInformationDTO ciDTO = soapService.getEmaiAdress(inv.getCustomerName(), inv.getCustomerPartyNumber());
 						if(ciDTO != null) {
 							if(ciDTO.getEmailAdress() != null) {
 								for(EmailAdressDTO eA: ciDTO.getEmailAdress()) {
-									if(!eA.getPartyName().equals("COSME MONGE")) {
+									if(!eA.getPartyName().contains("COSME MONGE")) {
 										inv.setCustomerEmail(eA.getObjectEmailAddress());
 										break;
 									}
@@ -1494,9 +1684,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//SI ES NC
 					if(!inv.isInvoice()) {
-						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+//						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+						Invoice invRef = invoiceDao.getSingleInvoiceByFolioLike(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
 						if(invRef != null && (invRef.getUUID() != null && !"".contains(invRef.getUUID()))) {
 							inv.setUUIDReference(invRef.getUUID());
+							//Mapeo de tipo de relación con tipo de orden IME-DEVESTANDAR
+							Udc returnDev = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_RTYPE, AppConstants.UDC_KEY_ORDER_TYPE_RETURN);
+							if(inv.getSalesOrderType() != null && !inv.getSalesOrderType().isEmpty()) {
+								if(inv.getSalesOrderType().equals(returnDev.getStrValue1())) {
+									inv.getInvoiceRelationType().equals(returnDev.getStrValue2());
+								}
+							}
 							if(invRef.isExtCom()) {
 								inv.setExtCom(true);
 							}else {
@@ -1508,7 +1706,11 @@ public class InvoicingServiceImpl implements InvoicingService{
 							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL TRAER LA FACTURA DE REFEENCIA");
 						}
 					}
-					
+					//Validar campo de instrucciones de envio
+//					if(so.getLines().get(0).getShippingInstruction() != null && !so.getLines().get(0).getShippingInstruction().isEmpty()) {
+//						inv.setShippingInstruction(so.getLines().get(0).getShippingInstruction());
+//					}
+					 
 					int count = 0;
 					int countCombo = 0;
 					String productsType = "";
@@ -1516,120 +1718,28 @@ public class InvoicingServiceImpl implements InvoicingService{
 
 					
 					//Revisar las lineas
-					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {
+					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {//300000070203994 --300000070191406
 						for(SalesOrderLinesDTO line: so.getLines()) {		
 							double quan = Double.parseDouble(line.getOrderedQuantity());
 							double quan2 = Double.parseDouble(df.format(quan));
+							String transactionLineId = "";
+							if(inv.isInvoice()) {
+								transactionLineId = line.getSourceTransactionLineIdentifier();
+							}else {
+								transactionLineId = line.getDocumentReference().get(0).getDocumentLineIdentifier();
+							}
 //							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity()
 							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && quan2 == invLine.getQuantity() 
 									&& (line.getOrderedUOMCode().contains(invLine.getUomName()) || line.getOrderedUOM().toUpperCase().contains(invLine.getUomName().toUpperCase())) 
-											&& "CLOSED".contains(line.getStatusCode())) {
+											&& "CLOSED".contains(line.getStatusCode()) && transactionLineId.equals(NullValidator.isNull(invLine.getSalesOrderLine()))) {
 								if(invLine.getIsInvoiceLine().equals("D")){
 									count++;
-									//Metodo para combo
 									String leyendas = "";
 									String unitCostForCombo= "";
 									List<TaxCodes> tcodesCombo = new ArrayList<TaxCodes>(invLine.getTaxCodes());
-									/*boolean isExist = nextNumberService.existCombo(invLine.getItemNumber(), inv.getCompany());
-									if(isExist) {
-										NextNumber nCombo = nextNumberService.getNextNumberByItem(invLine.getItemNumber(), inv.getCompany());
-										if(nCombo != null) {
-											for(TaxCodes tc: tcodesCombo) {
-											if(tc.getId() == 2) {										
-													invLine.setItemSerial(String.valueOf(nCombo.getFolio()));
-													invLine.setSerialPdf(String.valueOf(nCombo.getFolio()));
-													leyendas = AppConstants.LEY_EMB_COM;
-													for(SalesOrderLinesDTO lineCombo: so.getLines()) {
-														Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
-														InvoiceDetails dCombo = new InvoiceDetails();
-														boolean isAlreadyIn = true;
-														if(!lineCombo.getProductNumber().equals(invLine.getItemNumber())) {
-															if(line.getSourceTransactionLineIdentifier().equals(lineCombo.getSourceTransactionLineIdentifier())) {
-																ItemsDTO itemSat = soapService.getItemDataByItemIdOrgCode(lineCombo.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-																if(itemSat != null) {																	
-																	if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_EMB)) {
-																		leyendas = leyendas + " MOTOR: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + lineCombo.getLotSerials().get(0).getSerialNumberFrom() + "\r\n ";
-																	}else if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_LAN)) {
-																		leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + lineCombo.getLotSerials().get(0).getSerialNumberFrom() + "\r\n ";
-																	}
-																	for(InvoiceDetails iD: inv.getInvoiceDetails()) {
-																		if(iD.getItemNumber().equals(lineCombo.getProductNumber())
-																				&& iD.getItemSerial().equals(lineCombo.getLotSerials().get(0).getSerialNumberFrom())) {
-																			isAlreadyIn = false;
-																			break;
-																		}
-																	}
-																	if(isAlreadyIn) {
-																		dCombo.setItemNumber(lineCombo.getProductNumber());
-																		dCombo.setItemSerial(lineCombo.getLotSerials().get(0).getSerialNumberFrom());
-																		invLine.setItemSerial(invLine.getItemSerial() + ", " + dCombo.getItemSerial()); 
-																		dCombo.setQuantity(1);
-																		dCombo.setIsInvoiceLine("C");
-																		dCombo.setUomName("PZA");
-																		dCombo.setUomCode("H87");
-																		dCombo.setTransactionLineNumber(NullValidator.isNull(invLine.getTransactionLineNumber()));
-																		dCombo.setImport(itemSat.isItemDFFIsImported());
-																		if(lineCombo.getLotSerials().get(0).getSerialNumberFrom() != null) {
-																			dCombo.setEquipmentReference("E");
-																		}else{
-																			dCombo.setEquipmentReference("R");
-																		}
-																		//Seteo de variable para garantias
-																		dCombo.setWarrantyFull(false);
-																		//CONTROL VEHICULAR
-																		if(inv.isInvoice()) {
-																			//Saber si va para control vehicular
-																			dCombo.setIsVehicleControl("1");
-																			//Tipo de cambio diario
-																			CurrencyRates cRates = restService.getDailyCurrency(sdfNoTime.format(new Date()), "USD", "MXN");
-																			if(cRates != null) {
-																				float eRate = 0;
-																				if(cRates.getItems() != null ) {
-																					if(cRates.getItems().size() > 0) {
-																						eRate = cRates.getItems().get(0).getConversionRate();
-																					}else {
-																						eRate = Float.parseFloat(String.valueOf(inv.getInvoiceExchangeRate()));													
-																					}
-																				}
-																				invLine.setExchangeDailyRate(String.valueOf(eRate));
-																			}
-																			//tipo de producto código
-																			ItemCategory iCat = restService.getCategoryCode(itemSat.getItemCategory().get(0).getCategoryName());
-																			if(iCat != null) {
-																				dCombo.setProductTypeCode(String.valueOf(iCat.getItems().get(0).getDff().get(0).getTipoProducto()));
-																			}else {
-																				log.error("ERROR AL TRAER EL CODIGO DEL TIPO DE PRODUCTO PARA CONTROL VEHICULAR");
-																			}
-																			//Costo unitario
-																			String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, dCombo, so.getSalesOrderNumber());
-																			dCombo.setUnitCost(NullValidator.isNull(unitCostByItem));
-																			//Precio producto venta sin iva
-																			String priceListItem = this.getPriceListByWs(inv, dCombo);
-																			dCombo.setPriceListWTax(NullValidator.isNull(priceListItem));
-																		}else {
-																			dCombo.setIsVehicleControl("0");
-																		}	
-																		invDListNormal.add(dCombo);
-																		inv.setInvoiceDetails(invDListNormal);
-																		countCombo++;
-																	}else {
-																		countCombo++;
-																	}
-																}else {
-																	invStatus = false;
-																	msgError = msgError + ";ITEMMAST-Error al consultar los datos del IMA";
-																	log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LOS DATOS DEL ITEM MASTER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
-																	countCombo++;
-																}
-															}
-														}
-													}
-												}
-											}
-										}	
-									}else*/ 
 									if(so.getLines().size() > inv.getInvoiceDetails().size()) {//Para productos marina o productos kits sin serie
-//										if(line.getItemSubTypeCode().toUpperCase().equals("INCLUDED")){//Para combos
+//										if(!line.getItemSubTypeCode().toUpperCase().equals("INCLUDED")){//Para combos STANDARD
+										if(!line.getItemSubTypeCode().toUpperCase().equals("STANDARD")){
 											for(SalesOrderLinesDTO lineCombo: so.getLines()) {												
 												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
 												InvoiceDetails dCombo = new InvoiceDetails();
@@ -1679,7 +1789,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 																						}else {
 																							leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: NA";
 																						}
-//																						leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
+	//																						leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
 																					}
 																				}
 																			}																			
@@ -1700,6 +1810,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 																dCombo.setUomCode("H87");
 																dCombo.setTransactionLineNumber(NullValidator.isNull(invLine.getTransactionLineNumber()));
 																dCombo.setImport(itemSat.isItemDFFIsImported());
+																dCombo.setCatObjImp(NullValidator.isNull(itemSat.getItemDFFObjImp()));
 																if(lineCombo.getLotSerials() != null) {
 																	dCombo.setEquipmentReference("E");
 																	if(invLine.getItemSerial() == null) {
@@ -1760,6 +1871,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 																}else {
 																	dCombo.setIsVehicleControl("0");
 																}	
+	//																dCombo.setInvoicingLine(true);
 																invDListNormal.add(dCombo);
 																inv.setInvoiceDetails(invDListNormal);
 																countCombo++;
@@ -1775,283 +1887,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 													}
 												}
 											}
-										/*}else if(line.getSplitFromFlineIdentifier() != null && !line.getSplitFromFlineIdentifier().isEmpty() && !(line.getStatusCode().toUpperCase()).equals("WAITING")) {
-											for(SalesOrderLinesDTO lineCombo: so.getLines()) {
-												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
-												InvoiceDetails dCombo = new InvoiceDetails();
-												boolean isAlreadyIn = true;
-												if(!lineCombo.getProductNumber().equals(invLine.getItemNumber())) {
-													if(line.getSourceTransactionLineIdentifier().equals(lineCombo.getSourceTransactionLineIdentifier())) {
-														ItemsDTO itemSat = soapService.getItemDataByItemIdOrgCode(lineCombo.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-														ItemsDTO itemSatHeader = soapService.getItemDataByItemIdOrgCode(line.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-														if(itemSat != null) {	
-															for(InvoiceDetails iD: inv.getInvoiceDetails()) {
-																if(lineCombo.getLotSerials() != null) {
-																	if(iD.getItemNumber().equals(lineCombo.getProductNumber())
-																			&& iD.getItemSerial().equals(lineCombo.getLotSerials().get(0).getSerialNumberFrom())) {
-																		isAlreadyIn = false;
-																		break;
-																	}
-																}else {
-																	if(iD.getItemNumber().equals(lineCombo.getProductNumber())) {
-																		isAlreadyIn = false;
-																		break;
-																	}
-																}
-															}		
-															if(!inv.getCustomerName().contains("SECRETARIA DE MARINA")) {
-																if(itemSatHeader != null) {
-																	if(itemSatHeader.getItemCategory() != null) {																		
-																		for(CategoryDTO ic: itemSatHeader.getItemCategory()) {
-																			if(ic.getCategoryName().equals("EMBARCACION")) {
-																				for(TaxCodes tc: tcodesCombo) {
-																					if(tc.getId() == 2) {	
-																						if(!leyendas.contains(AppConstants.LEY_EMB_COM)) {
-																							leyendas = AppConstants.LEY_EMB_COM;
-																						}
-																					}
-																				}
-																				if(ic.getCategoryName().equals("EMBARCACION")) {
-																					if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_EMB)) {
-																						leyendas = leyendas + " MOTOR: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
-																					}else if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_LAN)) {
-																						leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
-																					}
-																				}
-																			}																			
-																		}
-																	}
-																}
-															}																													
-															if(isAlreadyIn) {
-																dCombo.setItemNumber(lineCombo.getProductNumber());
-																if(lineCombo.getLotSerials() == null) {
-																	dCombo.setItemSerial(null);
-																}else {
-																	dCombo.setItemSerial(NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()));	
-																}
-																dCombo.setQuantity(1);
-																dCombo.setIsInvoiceLine("C");
-																dCombo.setUomName("PZA");
-																dCombo.setUomCode("H87");
-																dCombo.setTransactionLineNumber(NullValidator.isNull(invLine.getTransactionLineNumber()));
-																dCombo.setImport(itemSat.isItemDFFIsImported());
-																if(lineCombo.getLotSerials() != null) {
-																	dCombo.setEquipmentReference("E");
-																	if(invLine.getItemSerial() == null) {
-																		invLine.setItemSerial(dCombo.getItemSerial()); 
-																	}else {
-																		invLine.setItemSerial(invLine.getItemSerial() + ", " + dCombo.getItemSerial()); 
-																	}
-																	
-																}else{
-																	dCombo.setEquipmentReference("R");
-																}
-																//Seteo de variable para garantias
-																dCombo.setWarrantyFull(false);
-																//CONTROL VEHICULAR
-																if(inv.isInvoice()) {
-																	//Saber si va para control vehicular
-																	dCombo.setIsVehicleControl("1");
-																	//Tipo de cambio diario
-																	CurrencyRates cRates = restService.getDailyCurrency(sdfNoTime.format(new Date()), "USD", "MXN");
-																	if(cRates != null) {
-																		float eRate = 0;
-																		if(cRates.getItems() != null ) {
-																			if(cRates.getItems().size() > 0) {
-																				eRate = cRates.getItems().get(0).getConversionRate();
-																			}else {
-																				eRate = Float.parseFloat(String.valueOf(inv.getInvoiceExchangeRate()));													
-																			}
-																		}
-																		invLine.setExchangeDailyRate(String.valueOf(eRate));
-																	}
-																	//tipo de producto código
-																	ItemCategory iCat = restService.getCategoryCode(itemSat.getItemCategory().get(0).getCategoryName());
-																	if(iCat != null) {
-																		dCombo.setProductTypeCode(String.valueOf(iCat.getItems().get(0).getDff().get(0).getTipoProducto()));
-																	}else {
-																		log.error("ERROR AL TRAER EL CODIGO DEL TIPO DE PRODUCTO PARA CONTROL VEHICULAR");
-																	}
-																	//Costo unitario
-																	String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, dCombo, so.getSalesOrderNumber());
-																	dCombo.setUnitCost(NullValidator.isNull(unitCostByItem));
-																	if(unitCostByItem != null) {
-																		if(unitCostForCombo.isEmpty()) {
-																			unitCostForCombo = unitCostByItem;
-																		}else {
-																			unitCostForCombo = unitCostForCombo + "," + unitCostByItem;
-																		}	
-																	}else {
-																		if(unitCostForCombo.isEmpty()) {
-																			unitCostForCombo = NullValidator.isNullUnitCost(unitCostByItem);
-																		}else {
-																			unitCostForCombo = unitCostForCombo + "," + NullValidator.isNullUnitCost(unitCostByItem);
-																		}	
-																	}
-																																
-																	//Precio producto venta sin iva
-																	String priceListItem = this.getPriceListByWs(inv, dCombo);
-																	dCombo.setPriceListWTax(NullValidator.isNull(priceListItem));
-																}else {
-																	dCombo.setIsVehicleControl("0");
-																}	
-																invDListNormal.add(dCombo);
-																inv.setInvoiceDetails(invDListNormal);
-																countCombo++;
-															}else {
-																countCombo++;
-															}
-														}else {
-															invStatus = false;
-															msgError = msgError + ";ITEMMAST-Error al consultar los datos del IMA";
-															log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LOS DATOS DEL ITEM MASTER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
-															countCombo++;
-														}
-													}
-												}
-											}
-										}*/
-										/*if(line.isExistCombo()) {//Quitar
-											for(SalesOrderLinesDTO lineCombo: so.getLines()) {
-												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
-												InvoiceDetails dCombo = new InvoiceDetails();
-												boolean isAlreadyIn = true;
-												if(!lineCombo.getProductNumber().equals(invLine.getItemNumber())) {
-													if(line.getSourceTransactionLineIdentifier().equals(lineCombo.getSourceTransactionLineIdentifier())) {
-														ItemsDTO itemSat = soapService.getItemDataByItemIdOrgCode(lineCombo.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-														ItemsDTO itemSatHeader = soapService.getItemDataByItemIdOrgCode(line.getProductIdentifier(), AppConstants.ORACLE_ITEMMASTER);
-														if(itemSat != null) {	
-															for(InvoiceDetails iD: inv.getInvoiceDetails()) {
-																if(lineCombo.getLotSerials() != null) {
-																	if(iD.getItemNumber().equals(lineCombo.getProductNumber())
-																			&& iD.getItemSerial().equals(lineCombo.getLotSerials().get(0).getSerialNumberFrom())) {
-																		isAlreadyIn = false;
-																		break;
-																	}
-																}else {
-																	if(iD.getItemNumber().equals(lineCombo.getProductNumber())) {
-																		isAlreadyIn = false;
-																		break;
-																	}
-																}
-															}		
-															if(!inv.getCustomerName().contains("SECRETARIA DE MARINA")) {
-																if(itemSatHeader != null) {
-																	if(itemSatHeader.getItemCategory() != null) {																		
-																		for(CategoryDTO ic: itemSatHeader.getItemCategory()) {
-																			if(ic.getCategoryName().equals("EMBARCACION")) {
-																				for(TaxCodes tc: tcodesCombo) {
-																					if(tc.getId() == 2) {	
-																						if(!leyendas.contains(AppConstants.LEY_EMB_COM)) {
-																							leyendas = AppConstants.LEY_EMB_COM;
-																						}
-																					}
-																				}
-																				if(ic.getCategoryName().equals("EMBARCACION")) {
-																					if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_EMB)) {
-																						leyendas = leyendas + " MOTOR: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
-																					}else if(itemSat.getItemCategory().get(0).getCategoryName().contains(AppConstants.LEY_INV_CAT_LAN)) {
-																						leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
-																					}
-																				}
-																			}																			
-																		}
-																	}
-																}
-															}																													
-															if(isAlreadyIn) {
-																dCombo.setItemNumber(lineCombo.getProductNumber());
-																if(lineCombo.getLotSerials() == null) {
-																	dCombo.setItemSerial(null);
-																}else {
-																	dCombo.setItemSerial(NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()));	
-																}
-																dCombo.setQuantity(1);
-																dCombo.setIsInvoiceLine("C");
-																dCombo.setUomName("PZA");
-																dCombo.setUomCode("H87");
-																dCombo.setTransactionLineNumber(NullValidator.isNull(invLine.getTransactionLineNumber()));
-																dCombo.setImport(itemSat.isItemDFFIsImported());
-																if(lineCombo.getLotSerials() != null) {
-																	dCombo.setEquipmentReference("E");
-																	if(invLine.getItemSerial() == null) {
-																		invLine.setItemSerial(dCombo.getItemSerial()); 
-																	}else {
-																		invLine.setItemSerial(invLine.getItemSerial() + ", " + dCombo.getItemSerial()); 
-																	}
-																	
-																}else{
-																	dCombo.setEquipmentReference("R");
-																}
-																//Seteo de variable para garantias
-																dCombo.setWarrantyFull(false);
-																//CONTROL VEHICULAR
-																if(inv.isInvoice()) {
-																	//Saber si va para control vehicular
-																	dCombo.setIsVehicleControl("1");
-																	//Tipo de cambio diario
-																	CurrencyRates cRates = restService.getDailyCurrency(sdfNoTime.format(new Date()), "USD", "MXN");
-																	if(cRates != null) {
-																		float eRate = 0;
-																		if(cRates.getItems() != null ) {
-																			if(cRates.getItems().size() > 0) {
-																				eRate = cRates.getItems().get(0).getConversionRate();
-																			}else {
-																				eRate = Float.parseFloat(String.valueOf(inv.getInvoiceExchangeRate()));													
-																			}
-																		}
-																		invLine.setExchangeDailyRate(String.valueOf(eRate));
-																	}
-																	//tipo de producto código
-																	ItemCategory iCat = restService.getCategoryCode(itemSat.getItemCategory().get(0).getCategoryName());
-																	if(iCat != null) {
-																		dCombo.setProductTypeCode(String.valueOf(iCat.getItems().get(0).getDff().get(0).getTipoProducto()));
-																	}else {
-																		log.error("ERROR AL TRAER EL CODIGO DEL TIPO DE PRODUCTO PARA CONTROL VEHICULAR");
-																	}
-																	//Costo unitario
-																	String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, dCombo, so.getSalesOrderNumber());
-																	dCombo.setUnitCost(NullValidator.isNull(unitCostByItem));
-																	if(unitCostByItem != null) {
-																		if(unitCostForCombo.isEmpty()) {
-																			unitCostForCombo = unitCostByItem;
-																		}else {
-																			unitCostForCombo = unitCostForCombo + "," + unitCostByItem;
-																		}	
-																	}else {
-																		if(unitCostForCombo.isEmpty()) {
-																			unitCostForCombo = NullValidator.isNullUnitCost(unitCostByItem);
-																		}else {
-																			unitCostForCombo = unitCostForCombo + "," + NullValidator.isNullUnitCost(unitCostByItem);
-																		}	
-																	}
-																																
-																	//Precio producto venta sin iva
-																	String priceListItem = this.getPriceListByWs(inv, dCombo);
-																	dCombo.setPriceListWTax(NullValidator.isNull(priceListItem));
-																}else {
-																	dCombo.setIsVehicleControl("0");
-																}	
-																invDListNormal.add(dCombo);
-																inv.setInvoiceDetails(invDListNormal);
-																countCombo++;
-															}else {
-																countCombo++;
-															}
-														}else {
-															invStatus = false;
-															msgError = msgError + ";ITEMMAST-Error al consultar los datos del IMA";
-															log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER LOS DATOS DEL ITEM MASTER de la linea "+ invLine.getTransactionLineNumber() + ":" + inv.getFolio());
-															countCombo++;
-														}
-													}
-												}
-											}
-										}//Quitar*/
+										}
 									}	
 									if(leyendas != null && !leyendas.isEmpty()) {
-//										invLine.setAddtionalDescription(leyendas);
 										if(inv.getLongDescription() != null && !inv.getLongDescription().isEmpty()) {
 											String leyCombos = inv.getLongDescription() + ", " + leyendas;
 											inv.setLongDescription(leyCombos);
@@ -2075,6 +1913,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 										}									
 										//Importación
 										invLine.setImport(itemSat.isItemDFFIsImported());
+										//Catalogo Objeto de Impuesto
+										invLine.setCatObjImp(NullValidator.isNull(itemSat.getItemDFFObjImp()));
 										//Colocar la descripción del artículo
 										invLine.setItemDescription(NullValidator.isNull(itemSat.getItemDescription()));	
 										//Llenar el dato del tipo de productos
@@ -2217,7 +2057,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 										}
 										//tipo de producto código
 										ItemCategory iCat = restService.getCategoryCode(singletype);
-	//									Udc searchProductTypeCode = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_IMEMSAPRDTYPE, singletype);
 										if(iCat != null) {
 											String productoType = String.valueOf(iCat.getItems().get(0).getDff().get(0).getTipoProducto());
 											productoType = productoType.substring(0, productoType.indexOf("."));
@@ -2279,6 +2118,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 										
 									}else {
 										invLine.setIsVehicleControl("0");
+										if(NullValidator.isNull(invLine.getItemSerial()).contains(",")) {
+											String[] un = NullValidator.isNull(invLine.getItemSerial()).split(",");
+											for(String u: un) {
+												if(invLine.getUnitCost() == null || invLine.getUnitCost().isEmpty()) {
+													invLine.setUnitCost("0");
+												}else {
+													invLine.setUnitCost(invLine.getUnitCost() + ",0");
+												}
+											}
+										}else {
+											invLine.setUnitCost("0");
+										}
 									}								
 									
 									//complemento detallista---------------------------------------------------------------
@@ -2317,12 +2168,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 										invLine.getRetailComplements().setSeller(NullValidator.isNull(so.getSalesPerson()));
 										
 										//complemento Destallista GTIN
-//										ItemGtinDTO gtin = soapService.getItemGTINData(invLine.getItemNumber(), AppConstants.ORACLE_ITEMMASTER, inv.getCustomerPartyNumber());
 										ItemGtinDTO gtin = soapService.getItemGTINData(invLine.getItemNumber(), AppConstants.ORACLE_ITEMMASTER, AppConstants.CROSS_REFERENCE_TYPE_LIV);
 										if(gtin != null) {
 											if((gtin.getGtin() != null && !"".contains(gtin.getGtin()))) {
 												invLine.getRetailComplements().setgTin(gtin.getGtin());
-//												invLine.getRetailComplements().setNumber(gtin.getItemDescription());
 											}else {
 												invStatus = false;
 												msgError = msgError + ";RETAILSGTIN-GTIN NULO O VACIO -" + invLine.getItemNumber();
@@ -2383,7 +2232,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 	}
 
 	@Override
-	public boolean createAdvPayNC(Invoice invoice, double paymentAmount, double exchangeRate, String currencyCode) {
+	public boolean createAdvPayNC(Invoice invoice, double paymentAmount, double exchangeRate, String currencyCode, String orderNumberCloud) {
 		Invoice newInv = new Invoice();
 		
 		try {
@@ -2394,7 +2243,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 			if(paymentAmount > 0D && exchangeRate > 0D && currencyCode != null && !currencyCode.isEmpty()) {
 				if (creditNote != null) {
 					//Para identificar la NC, si aún no se timbra la factura de orígen
-					newInv.setFromSalesOrder(invoice.getFromSalesOrder());
+//					newInv.setFromSalesOrder(invoice.getFromSalesOrder());
+					newInv.setFromSalesOrder(orderNumberCloud);
 					
 					double total = Math.round(paymentAmount*100.00)/100.00;//Redondeo a 2 decimales
 					double subtotal = Math.round((total/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
@@ -2414,6 +2264,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					newInv.setCustomerEmail(invoice.getCustomerEmail());
 					newInv.setCustomerState(invoice.getCustomerState());
 					newInv.setCustomerZip(invoice.getCustomerZip());
+					newInv.setRegimenFiscal(invoice.getRegimenFiscal());//Fac 4.0
+					newInv.setCatExportacion(invoice.getCatExportacion());//Fac 4.0
 					
 					newInv.setShipToName(NullValidator.isNull(invoice.getShipToName()));
 					newInv.setShipToaddress(NullValidator.isNull(invoice.getShipToaddress()));
@@ -2422,7 +2274,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					newInv.setShipToState(NullValidator.isNull(invoice.getShipToState()));
 					newInv.setShipToZip(NullValidator.isNull(invoice.getShipToZip()));
 					
-					newInv.setCFDIUse(creditNote.getNote());
+//					newInv.setCFDIUse(creditNote.getNote());
+					newInv.setCFDIUse(invoice.getCFDIUse());
 					newInv.setBranch(invoice.getBranch());
 					newInv.setCompany(invoice.getCompany());
 					newInv.setCreatedBy(invoice.getCreatedBy());
@@ -2469,6 +2322,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					iD.setIsVehicleControl("0");
 					//Seteo de variable para garantias
 					iD.setWarrantyFull(false);
+					iD.setCatObjImp("02");//Fac 4.0
 					
 					List<TaxCodes> tcs = new ArrayList<TaxCodes>();
 					tcs = taxCodesService.getTCList(0, 10);
@@ -2678,7 +2532,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				for(Payments lPay: listPayments) {
 					Invoice invoiceErrorPay = new Invoice();
 					invoiceErrorPay = invoiceDao.getInvoiceWithOutUuid(String.valueOf(lPay.getId()));
-					if(invoiceErrorPay != null && lPay.getUuidReference().isEmpty()) {
+					if(invoiceErrorPay != null && (lPay.getUuidReference() == null || lPay.getUuidReference().isEmpty())) {
 						if(invoiceErrorPay.getUUID() != null) {
 							lPay.setUuidReference(invoiceErrorPay.getUUID());
 							lPay.setPaymentError("");
@@ -2727,8 +2581,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 			
 			//Llenado de objeto DTO de la respuesta del reporte de pagos	
 			for(Row ro: r) {
+//				System.out.println(ro.getColumn23() + ","); //Fac 4.0
 				if(ro.getColumn29() != null) {
 					if(!ro.getColumn29().equals("0")) {
+						if(ro.getColumn40().contains("No")) {
+							continue;
+						}
 						Invoice invReports = new Invoice();
 						invReports = fullPaymentsDTO(ro);
 						if(invReports != null) {
@@ -2745,7 +2603,70 @@ public class InvoicingServiceImpl implements InvoicingService{
 								}
 							}
 						}
-					}					
+					}else{// Revisar si el pago no es una reversa
+						if(ro.getColumn41() != null && !ro.getColumn41().isEmpty()) {
+							if(ro.getColumn41().toUpperCase().contains("REV")) {
+								List<Payments> payList = new ArrayList<Payments>();
+								payList = paymentsService.getPaymentsListReceiptId(ro.getColumn22());
+								if(!payList.isEmpty()) {
+									if(payList.get(0).getPaymentStatus().equals(AppConstants.STATUS_CANCELATION_PAYMENTS)) {
+										continue;
+									}
+									//Create file
+									Branch branch = branchService.getBranchByCode("CEDIS");
+									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CANCEL_PAYMENT, branch);
+									String pathForCancel = "";
+									List<Udc> pathForCancelation = new ArrayList<Udc>();
+									pathForCancelation = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PATHS);
+									if(payList.get(0).getPaymentType().equals("CPAGO")) {//Cancelaciones de complmentos de pago
+										for(Udc u: pathForCancelation) {
+											if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_CANCEL)) {
+												pathForCancel = u.getStrValue2();
+												break;
+											}
+										}
+									}else {//Cancelaciones de facturas de anticipos
+										for(Udc u: pathForCancelation) {
+											if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_CANCEL)) {
+												pathForCancel = u.getUdcKey();
+												break;
+											}
+										}
+									}
+									
+									String fileName = "";
+									String content = "";
+									content = payList.get(0).getUUID() + AppConstantsUtil.FILES_SEPARATOR +
+											NullValidator.isNull(ro.getColumn43()) + AppConstantsUtil.FILES_SEPARATOR +//Motivo de cancelación
+											NullValidator.isNull(ro.getColumn42()) + AppConstantsUtil.FILES_SEPARATOR;//UUID de sustitución
+									//Nombrar archivo
+									fileName = NullValidator.isNull(nNumber.getSerie() + ro.getColumn22());
+									//Crear archivo en la ruta deseada
+									try {
+										File file = new File(pathForCancel + fileName + AppConstantsUtil.RUTA_FILES_EXTENSION);
+										if (!file.exists()) {
+							             	file.createNewFile();
+							             	file.setExecutable(true);
+							             	file.setReadable(true);
+							             	file.setWritable(true);             	
+							            }
+							            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+							            out.write(content);
+							            out.close();
+									}catch(Exception e) {
+										log.info("ERROR AL CANCELAR EL PAGO: " + ro.getColumn22() + e);
+									}	
+									//Update payments rows
+									for(Payments p: payList) {
+										p.setCancelationReason(NullValidator.isNull(ro.getColumn43()));
+										p.setRelationTypeUUID(NullValidator.isNull(ro.getColumn42()));
+										p.setPaymentStatus(AppConstants.STATUS_CANCELATION_PAYMENTS);
+										paymentsService.updatePayment(p);
+									}
+								}
+							}
+						}
+					}
 				}						
 			}
 			
@@ -2756,7 +2677,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 	
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "null", "unchecked" })
 	public Invoice fullPaymentsDTO (Row r) {
 		Invoice invoice = new Invoice();
 		Payments pay = new Payments();
@@ -2765,6 +2686,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 		String timeZone = "";
 		String eRate = String.valueOf(AppConstants.INVOICE_EXCHANGE_RATE);
 		String cPago = "";
+		String relSustitution = "";
+		String regimenFiscal = "";// Fac 4.0
 		try {			
 			countries = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
 			for(Udc u: countries) {
@@ -2778,7 +2701,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 			for(Udc cp: catPago) {
 				if(cp.getStrValue1().equals(AppConstants.UDC_STRVALUE1_CPAGOS)) {
 					cPago = cp.getUdcKey();
-					break;
+				}
+				if(cp.getUdcKey().equals(AppConstants.UDC_KEY_SUSTITUTION)) {
+					relSustitution = cp.getStrValue1();
 				}
 			}
 			
@@ -2791,28 +2716,97 @@ public class InvoicingServiceImpl implements InvoicingService{
 			}
 			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
-			Date date = sdf.parse(r.getColumn19());
+			Date date = sdf.parse(r.getColumn45() + "T00:00:00");
 			String dateT = formatterUTC.format(date);
 			
 			Branch branchPago = new Branch();
+			Branch brar = new Branch();
 			
 			Invoice inv = new Invoice();
 			if(r.getColumn12() != null && !r.getColumn12().isEmpty()) {
 				inv = invoiceDao.getSingleInvoiceByFolio(r.getColumn12(), AppConstants.ORDER_TYPE_FACTURA);//TransactionReference
 				if(inv == null) {
-					return null;
+					inv = invoiceDao.getSingleInvoiceByFolioLike(r.getColumn12(), AppConstants.ORDER_TYPE_FACTURA);//TransactionReference
+					if(inv == null) {
+//						return null;
+						//Buscar facturas perdidas
+						brar = branchService.getBranchByCode("CEDIS");
+						ReceivablesInvoices invLost = restService.getInvoiceData(r.getColumn12());
+						if(invLost != null) {
+							AnalyticsDTO analytics = new AnalyticsDTO();
+							analytics.setTransactionNumber(r.getColumn12());
+							Rowset rowS = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+									AppConstants.SERVICE_AR_REPORT_GET_UUID, analytics);
+							if(rowS.getRow().get(0).getColumn3() != null && !rowS.getRow().get(0).getColumn3().isEmpty()) {
+								inv = new Invoice();
+								inv.setCustomerName(NullValidator.isNull(invLost.getItems().get(0).getBillToCustomerName()));
+								inv.setFolio(NullValidator.isNull(invLost.getItems().get(0).getTransactionNumber()));
+								inv.setFromSalesOrder(NullValidator.isNull(invLost.getItems().get(0).getTransactionNumber()));
+								inv.setPaymentMethod("PPD");
+								inv.setInvoiceCurrency(NullValidator.isNull(invLost.getItems().get(0).getInvoiceCurrencyCode()));
+								inv.setSerial("MEFAC");
+								inv.setBranch(brar);
+								inv.setCustomerPartyNumber(NullValidator.isNull(invLost.getItems().get(0).getBillToCustomerNumber()));
+								inv.setCustomerEmail(NullValidator.isNull(invLost.getItems().get(0).getBillToContact()));
+								inv.setUUID(NullValidator.isNull(rowS.getRow().get(0).getColumn3().trim()));
+								inv.setInvoiceType("CI");	
+								inv.setCustomerTaxIdentifier(r.getColumn1().trim());
+								inv.setCustomerZip(r.getColumn4());
+								inv.setInvoiceDetails(null);
+								inv.setOrderSource("CARGA INICIAL");
+								inv.setOrderType(AppConstants.ORDER_TYPE_FACTURA);
+								inv.setSetName("Common Set");
+								inv.setStatus(AppConstants.STATUS_FINISHED);
+								List<Udc> udc = new ArrayList<Udc>();
+								udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
+								for(Udc u: udc) {
+									if(u.getStrValue1().equals(r.getColumn3())) {
+										inv.setCustomerCountry(u.getUdcKey());
+										break;
+									}
+								}
+								invoiceDao.saveInvoice(inv);
+							}
+						}else {
+							return null;
+						}
+					}					
 				}
 				if(NullValidator.isNull(inv.getBranch().getCode()).equals("SERVICIOS")) {
 					branchPago = branchService.getBranchByCode("CEDIS");
 					inv.setBranch(branchPago);
 				}
-				if(inv != null && r.getColumn17() != null) {
+				if(inv != null && NullValidator.isNull(r.getColumn17()) != null) {
 					if(inv.getPaymentMethod() != null) {
 						if(!inv.getPaymentMethod().equals("PUE")) {
+							if(!inv.getCustomerName().contains(r.getColumn0())) {
+								return null;
+							}
 							if(inv.getInvoiceCurrency().equals(r.getColumn16())) {//Misma moneda
+								//Pagos 2.0
+								AnalyticsDTO analytics = new AnalyticsDTO();
+								analytics.setCustomerName(r.getColumn0());
+								Rowset rowSet = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+										AppConstants.SERVICE_AR_REPORT_TAX_REGIME, analytics);
+								if(!rowSet.getRow().isEmpty()) {
+									regimenFiscal = NullValidator.isNull(rowSet.getRow().get(0).getColumn1());
+								}
+								//Pagos 2.0
 								if(r.getColumn29().equals(r.getColumn31())) {//COMPLEMENTO DE PAGO UNO A UNO
-									List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
-									Payments p = paymentsService.getPayment(r.getColumn23());//Receipt Number									
+									
+									String folioRelation = "";
+									if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+										folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+									}else {
+										folioRelation = inv.getFolio();
+									}
+									
+//									List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());getPaymentsListCustomer
+									List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
+//									List<Payments> payments = paymentsService.getPaymentsListCustomer(inv.getUUID(), r.getColumn0(), folioRelation);
+									
+									Payments p = paymentsService.getReceiptById(r.getColumn22());//Receipt Number	
+//									Payments p = paymentsService.getPayment(r.getColumn23());//Receipt Number									
 									if(payments != null && p == null) {
 										NextNumber nN = new NextNumber();
 										nN = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CPAGO, inv.getBranch());
@@ -2825,7 +2819,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 										pay.setSerial(nN.getSerie());
 										pay.setFolio(String.valueOf(nN.getFolio()));
 										pay.setSerialRel(inv.getSerial());
-										if(inv.getFolio().contains("-")) {
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 											pay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));										
 										}else {
 											pay.setFolioRel(inv.getFolio());										
@@ -2852,11 +2846,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 										pay.setPaymentNumber(String.valueOf(con));	
 										pay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 										pay.setPostalCode(r.getColumn4());
-										pay.setTransactionReference(r.getColumn12());	
+										pay.setTransactionReference(pay.getFolioRel());	
 										pay.setPaymentMethod("PPD");
 										pay.setAdvanceApplied(false);
 										pay.setPaymentStatus(AppConstants.STATUS_PENDING);
 										pay.setErrorActive(false);
+										pay.setHelpFolRel(r.getColumn12());
+										//Pagos 2.0
+										pay.setCustomerZipCode(r.getColumn4());
+										pay.setCustomerTaxRegime(regimenFiscal);
+										pay.setCatExportacion(r.getColumn44());
+										double baseFac = 0.00;
+										double ivaFac = 0.00;
+										InvoiceDetails iDetails = new InvoiceDetails();
+										TaxCodes taxCodes = new TaxCodes();
+										for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+											iDetails = idet;
+											break;
+										}
+										for(TaxCodes tcode: iDetails.getTaxCodes()) {
+											taxCodes = tcode;
+											break;
+										}
+										if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+											baseFac = Math.round((Double.parseDouble(pay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+											ivaFac = Math.round(((Double.parseDouble(pay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+											pay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+											pay.setBase(baseFac);
+											pay.setTaxAmount(ivaFac);
+										}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+											baseFac = Double.parseDouble(pay.getPaymentAmount());
+											ivaFac = 0;
+											pay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+											pay.setBase(baseFac);
+											pay.setTaxAmount(ivaFac);
+										}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+											baseFac = (((Double.parseDouble(pay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+											ivaFac = ((Double.parseDouble(pay.getPaymentAmount()) - baseFac)*100)/100;
+											pay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+											pay.setBase(baseFac);
+											pay.setTaxAmount(ivaFac);
+										}
+										//Pagos 2.0
+										if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+											pay.setRelationType(relSustitution);
+											pay.setRelationTypeUUID(r.getColumn42());
+										}
 										if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 											pay.setPaymentError(null);
 											pay.setUuidReference(inv.getUUID());
@@ -2873,16 +2908,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 											pay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
 										}
 										
-										if(inv.getPreviousBalanceAmount() == null ) {
-											pay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-											pay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(pay.getPaymentAmount())));
-											inv.setPreviousBalanceAmount(pay.getRemainingBalanceAmount());
-											inv.setRemainingBalanceAmount("0");
+										//Setear valores de la factura
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											String[] transactionNumbers = inv.getFolio().split("-");
+											float sumaTrasNumbers = 0;
+											for(String s: transactionNumbers) {
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+												sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+											}
+											pay.setPreviousBalanceAmount(df.format(sumaTrasNumbers + Float.parseFloat(pay.getPaymentAmount())));
+											pay.setRemainingBalanceAmount(df.format(sumaTrasNumbers));
 										}else {
-											pay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-											pay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(pay.getPaymentAmount())));
-											inv.setPreviousBalanceAmount(pay.getRemainingBalanceAmount());
-											inv.setRemainingBalanceAmount("0");
+											ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+											pay.setPreviousBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(pay.getPaymentAmount())));
+											pay.setRemainingBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 										}
 										
 										String bank = pay.getBeneficiaryAccount();
@@ -2903,6 +2942,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 											Set<Payments> realPay = new HashSet<Payments>(nPay);
 											inv.setPayments(realPay);
 										}										
+									}else if(p.getHelpFolRel() != null && !p.getHelpFolRel().isEmpty()) {
+										if(!p.getHelpFolRel().contains(r.getColumn12())) {											
+											p.setPreviousBalanceAmount(df.format(Float.parseFloat(p.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+											p.setPaymentAmount(df.format(Float.parseFloat(p.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+											p.setHelpFolRel(p.getHelpFolRel() + "," + r.getColumn12());
+											paymentsService.updatePayment(p);
+											return null;
+										}										
 									}else if(p != null) {
 										for(Payments perror: inv.getPayments()) {
 											if(perror.getReceiptNumber().equals(p.getReceiptNumber())) {
@@ -2920,7 +2967,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}
 									return inv;
 								}else {//Pago a varias facturas relacionadas
-									PaymentsList p = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
+//									PaymentsList p = paymentsListService.getByReceiptNumberCustomer(r.getColumn23(), inv.getCustomerName());//Receipt Number
+									PaymentsList p = paymentsListService.getByReceiptIdCustomer(r.getColumn22(), inv.getCustomerName());//Receipt Number
+//									PaymentsList p = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
 									if(p == null) {//se crea un registro 				
 										PaymentsList  pList = new PaymentsList();									
 										NextNumber nN = new NextNumber();							
@@ -2941,13 +2990,31 @@ public class InvoicingServiceImpl implements InvoicingService{
 										pList.setPaymentAmount(r.getColumn31());
 										pList.setCurrency(r.getColumn16());
 										pList.setExchangeRate(eRate);
+										pList.setReceiptId(r.getColumn22());
+										//Pagos 2.0
+										pList.setCustomerZipCode(r.getColumn4());
+										pList.setTaxRegime(regimenFiscal);
+										pList.setCatExportacion(r.getColumn44());
+										//Pagos 2.0
+										
+										if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+											pList.setRelationType(relSustitution);
+											pList.setRelationTypeUUID(r.getColumn42());
+										}
 										
 										//Payments
-										Payments bPay = new Payments();	
-										
-										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										Payments bPay = new Payments();
+										String folioRelation = "";
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+										}else {
+											folioRelation = inv.getFolio();
+										}
+//										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
 										if(!payments.isEmpty()) {//Ya hay pago previos
-											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number & UUID
+//											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number & UUID
+											Payments getPay = paymentsService.getPayByUuidRId(r.getColumn22(), inv.getUUID(), folioRelation);//Receipt Number & UUID											
 											if(getPay == null) {
 												int con = payments.size() + 1;	
 												
@@ -2955,7 +3022,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setSerial(pList.getSerial());
 												bPay.setFolio(pList.getFolio());
 												bPay.setSerialRel(inv.getSerial());
-												if(inv.getFolio().contains("-")) {
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 													bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 												}else {
 													bPay.setFolioRel(inv.getFolio());
@@ -2982,11 +3049,53 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentNumber(String.valueOf(con));	
 												bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 												bPay.setPostalCode(r.getColumn4());
-												bPay.setTransactionReference(r.getColumn12());	
+												bPay.setTransactionReference(bPay.getFolioRel());	
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
 												bPay.setErrorActive(false);
+												bPay.setHelpFolRel(r.getColumn12());
+												//Pagos 2.0
+												bPay.setCustomerZipCode(r.getColumn4());
+												bPay.setCustomerTaxRegime(regimenFiscal);
+												bPay.setCatExportacion(r.getColumn44());
+												double baseFac = 0.00;
+												double ivaFac = 0.00;
+												InvoiceDetails iDetails = new InvoiceDetails();
+												TaxCodes taxCodes = new TaxCodes();
+												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+													iDetails = idet;
+													break;
+												}
+												for(TaxCodes tcode: iDetails.getTaxCodes()) {
+													taxCodes = tcode;
+													break;
+												}
+												if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+													baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+													ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+													baseFac = Double.parseDouble(bPay.getPaymentAmount());
+													ivaFac = 0;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+													baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+													ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}
+												//Pagos 2.0
+												
+												if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+													bPay.setRelationType(relSustitution);
+													bPay.setRelationTypeUUID(r.getColumn42());
+												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3005,16 +3114,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}
 												
-												if(inv.getPreviousBalanceAmount() == null ) {
-													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+												//Setear valores de la factura
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+													String[] transactionNumbers = inv.getFolio().split("-");
+													float sumaTrasNumbers = 0;
+													for(String s: transactionNumbers) {
+														ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+														sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+													}
+													bPay.setPreviousBalanceAmount(df.format(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(df.format(sumaTrasNumbers));
 												}else {
-													bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+													bPay.setPreviousBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 												}
 												
 												String bank = bPay.getBeneficiaryAccount();
@@ -3028,14 +3141,22 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay.getHelpFolRel() != null && !getPay.getHelpFolRel().isEmpty()) {
+												if(!getPay.getHelpFolRel().contains(r.getColumn12())) {
+													getPay.setPreviousBalanceAmount(df.format(Float.parseFloat(getPay.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setPaymentAmount(df.format(Float.parseFloat(getPay.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setHelpFolRel(getPay.getHelpFolRel() + "," + r.getColumn12());
+													paymentsService.updatePayment(getPay);
+													return null;
+												}
 											}else if(getPay != null) {
 //												if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
-//													if(r.getColumn37() != null) {
-//														getPay.setPaymentError(null);
-//														getPay.setErrorActive(false);
-//														getPay.setPaymentType(r.getColumn37());
-//														getPay.setPaymentStatus(AppConstants.STATUS_PENDING);
-//														paymentsService.updatePayment(getPay);
+//												if(r.getColumn37() != null) {
+//													getPay.setPaymentError(null);
+//													getPay.setErrorActive(false);
+//													getPay.setPaymentType(r.getColumn37());
+//													getPay.setPaymentStatus(AppConstants.STATUS_PENDING);
+//													paymentsService.updatePayment(getPay);
 //													}
 //												}
 												for(Payments perror: inv.getPayments()) {
@@ -3059,7 +3180,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setSerial(pList.getSerial());
 											bPay.setFolio(pList.getFolio());
 											bPay.setSerialRel(inv.getSerial());
-											if(inv.getFolio().contains("-")) {
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 												bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 											}else {
 												bPay.setFolioRel(inv.getFolio());
@@ -3086,11 +3207,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentNumber(String.valueOf(con));	
 											bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 											bPay.setPostalCode(r.getColumn4());
-											bPay.setTransactionReference(r.getColumn12());	
+											bPay.setTransactionReference(bPay.getFolioRel());
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
 											bPay.setErrorActive(false);
+											bPay.setHelpFolRel(r.getColumn12());
+											//Pagos 2.0
+											bPay.setCustomerZipCode(r.getColumn4());
+											bPay.setCustomerTaxRegime(regimenFiscal);
+											bPay.setCatExportacion(r.getColumn44());
+											double baseFac = 0.00;
+											double ivaFac = 0.00;
+											InvoiceDetails iDetails = new InvoiceDetails();
+											TaxCodes taxCodes = new TaxCodes();
+											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+												iDetails = idet;
+												break;
+											}
+											for(TaxCodes tcode: iDetails.getTaxCodes()) {
+												taxCodes = tcode;
+												break;
+											}
+											if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+												baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+												ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+												baseFac = Double.parseDouble(bPay.getPaymentAmount());
+												ivaFac = 0;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+												baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+												ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}
+											//Pagos 2.0
+											if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+												bPay.setRelationType(relSustitution);
+												bPay.setRelationTypeUUID(r.getColumn42());
+											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3109,16 +3271,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
 											
-											if(inv.getPreviousBalanceAmount() == null ) {
-												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+											//Setear valores de la factura
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+												String[] transactionNumbers = inv.getFolio().split("-");
+												float sumaTrasNumbers = 0;
+												for(String s: transactionNumbers) {
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+													sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+												}
+												bPay.setPreviousBalanceAmount(df.format(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(df.format(sumaTrasNumbers));
 											}else {
-												bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+												bPay.setPreviousBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 											}
 											
 											String bank = bPay.getBeneficiaryAccount();
@@ -3149,10 +3315,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 										}
 										
 										//Payments
-										Payments bPay = new Payments();	
-										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										Payments bPay = new Payments();
+										String folioRelation = "";
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+										}else {
+											folioRelation = inv.getFolio();
+										}
+//										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
 										if(!payments.isEmpty()) {//Ya hay pago previos
-											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number
+//											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number
+											Payments getPay = paymentsService.getPayByUuidRId(r.getColumn22(), inv.getUUID(), folioRelation);//Receipt Number
 											if(getPay == null) {
 												int con = payments.size() + 1;	
 												
@@ -3160,7 +3334,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setSerial(p.getSerial());
 												bPay.setFolio(p.getFolio());
 												bPay.setSerialRel(inv.getSerial());
-												if(inv.getFolio().contains("-")) {
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 													bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 												}else {
 													bPay.setFolioRel(inv.getFolio());
@@ -3187,10 +3361,51 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentNumber(String.valueOf(con));	
 												bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 												bPay.setPostalCode(r.getColumn4());
-												bPay.setTransactionReference(r.getColumn12());	
+												bPay.setTransactionReference(bPay.getFolioRel());	
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+												bPay.setHelpFolRel(r.getColumn12());
+												//Pagos 2.0
+												bPay.setCustomerZipCode(r.getColumn4());
+												bPay.setCustomerTaxRegime(regimenFiscal);
+												bPay.setCatExportacion(r.getColumn44());
+												double baseFac = 0.00;
+												double ivaFac = 0.00;
+												InvoiceDetails iDetails = new InvoiceDetails();
+												TaxCodes taxCodes = new TaxCodes();
+												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+													iDetails = idet;
+													break;
+												}
+												for(TaxCodes tcode: iDetails.getTaxCodes()) {
+													taxCodes = tcode;
+													break;
+												}
+												if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+													baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+													ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+													baseFac = Double.parseDouble(bPay.getPaymentAmount());
+													ivaFac = 0;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+													baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+													ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}
+												//Pagos 2.0
+												if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+													bPay.setRelationType(relSustitution);
+													bPay.setRelationTypeUUID(r.getColumn42());
+												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3210,17 +3425,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 													p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}
 												
-												if(inv.getPreviousBalanceAmount() == null ) {
-													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+												//Setear valores de la factura
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+													String[] transactionNumbers = inv.getFolio().split("-");
+													float sumaTrasNumbers = 0;
+													for(String s: transactionNumbers) {
+														ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+														sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+													}
+													bPay.setPreviousBalanceAmount(df.format(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(df.format(sumaTrasNumbers));
 												}else {
-													bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
-												}
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+													bPay.setPreviousBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
+												}	
 												
 												String bank = bPay.getBeneficiaryAccount();
 												bank = bank.substring(bank.length() -4);
@@ -3233,6 +3452,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay != null) {											
+												if(!NullValidator.isNull(getPay.getHelpFolRel()).contains(r.getColumn12())) {
+													getPay.setPreviousBalanceAmount(df.format(Float.parseFloat(getPay.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setPaymentAmount(df.format(Float.parseFloat(getPay.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setHelpFolRel(getPay.getHelpFolRel() + "," + r.getColumn12());	
+													paymentsService.updatePayment(getPay);
+													return null;
+												}											
 											}else if(getPay != null) {
 												for(Payments perror: inv.getPayments()) {
 													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
@@ -3246,8 +3473,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 															}
 														}
 													}
-												}												
-											}							
+												}
+											}
 										}else {//No hay pagos previos
 											int con = 1;
 											
@@ -3255,7 +3482,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setSerial(p.getSerial());
 											bPay.setFolio(p.getFolio());
 											bPay.setSerialRel(inv.getSerial());
-											if(inv.getFolio().contains("-")) {
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 												bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 											}else {
 												bPay.setFolioRel(inv.getFolio());
@@ -3282,11 +3509,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentNumber(String.valueOf(con));	
 											bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 											bPay.setPostalCode(r.getColumn4());
-											bPay.setTransactionReference(r.getColumn12());	
+											bPay.setTransactionReference(bPay.getFolioRel());	
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
 											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+											bPay.setHelpFolRel(r.getColumn12());
+											//Pagos 2.0
+											bPay.setCustomerZipCode(r.getColumn4());
+											bPay.setCustomerTaxRegime(regimenFiscal);
+											bPay.setCatExportacion(r.getColumn44());
+											double baseFac = 0.00;
+											double ivaFac = 0.00;
+											InvoiceDetails iDetails = new InvoiceDetails();
+											TaxCodes taxCodes = new TaxCodes();
+											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+												iDetails = idet;
+												break;
+											}
+											for(TaxCodes tcode: iDetails.getTaxCodes()) {
+												taxCodes = tcode;
+												break;
+											}
+											if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+												baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+												ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+												baseFac = Double.parseDouble(bPay.getPaymentAmount());
+												ivaFac = 0;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+												baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+												ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}
+											//Pagos 2.0
+											if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+												bPay.setRelationType(relSustitution);
+												bPay.setRelationTypeUUID(r.getColumn42());
+											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3305,16 +3573,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 												p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
 											
-											if(inv.getPreviousBalanceAmount() == null ) {
-												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+											//Setear valores de la factura
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+												String[] transactionNumbers = inv.getFolio().split("-");
+												float sumaTrasNumbers = 0;
+												for(String s: transactionNumbers) {
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+													sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+												}
+												bPay.setPreviousBalanceAmount(df.format(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(df.format(sumaTrasNumbers));
 											}else {
-												bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+												bPay.setPreviousBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(df.format(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 											}
 											
 											String bank = bPay.getBeneficiaryAccount();
@@ -3346,6 +3618,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 									return inv;
 								}
 							}else {//Diferente moneda
+								//Pagos 2.0
+								AnalyticsDTO analytics = new AnalyticsDTO();
+								analytics.setCustomerName(r.getColumn0());
+								Rowset rowSet = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+										AppConstants.SERVICE_AR_REPORT_TAX_REGIME, analytics);
+								if(!rowSet.getRow().isEmpty()) {
+									regimenFiscal = NullValidator.isNull(rowSet.getRow().get(0).getColumn1());
+								}
+								//Pagos 2.0
 								double montoaplicado = Double.parseDouble(r.getColumn29());
 								double pago = Double.parseDouble(r.getColumn31());
 								double pagoMonedaCambio = 0.00;
@@ -3354,37 +3635,32 @@ public class InvoicingServiceImpl implements InvoicingService{
 								double cambioMoneda = 0;
 								if(r.getColumn7() != null) {
 									cambioMoneda = Math.round((Double.parseDouble(r.getColumn7()))*100.000000)/100.000000;
-//									cambioMoneda = Double.parseDouble(r.getColumn7());
 								}
 								if(moneda.equals(AppConstants.DEFAUL_CURRENCY)) {//venta en DLLS
 									if(cambioMoneda == 0) {
 										cambioMonedaDivision = Math.round((pago / montoaplicado)*100.000000)/100.000000;
 										pagoMonedaCambio = Math.round((pago / cambioMonedaDivision)*100.00)/100.00;
-//										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
 									}else {
 										cambioMonedaDivision = cambioMoneda;
 										pagoMonedaCambio = Math.round((pago / cambioMonedaDivision)*100.00)/100.00;
-//										pagoMonedaCambio = Double.parseDouble(df.format(pago / cambioMonedaDivision)); 
 									}
 									r.setColumn7(String.valueOf(cambioMonedaDivision));
 									r.setColumn31(String.valueOf(pagoMonedaCambio));
 								}else {//venta en MXN
 									if(cambioMoneda == 0) {
 										cambioMonedaDivision = Math.round((montoaplicado / pago)*100.000000)/100.000000;
-//										cambioMonedaDivision = montoaplicado/pago;
-//										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
 										pagoMonedaCambio = Math.round((pago * cambioMonedaDivision)*100.00)/100.00; 
 									}else {
 										cambioMonedaDivision = cambioMoneda;
 										pagoMonedaCambio = Math.round((pago * cambioMonedaDivision)*100.00)/100.00; 
-//										pagoMonedaCambio = Double.parseDouble(df.format(pago * cambioMonedaDivision)); 
 									}
 									r.setColumn7(String.valueOf(cambioMonedaDivision));
 									r.setColumn31(String.valueOf(pagoMonedaCambio));
 								}
 								
 								if(pagoMonedaCambio == montoaplicado) {//COMPLEMENTO DE PAGO UNO A UNO DIFERENTE MONEDA
-									PaymentsList payList = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
+//									PaymentsList payList = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt NumberMONEDA
+									PaymentsList payList = paymentsListService.getByReceiptIdCustomer(r.getColumn22(), inv.getCustomerName());//Receipt Number
 									if(payList == null) {//Creamos registros de lista de pagos 
 										NextNumber nN = new NextNumber();							
 										nN = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_CPAGO, inv.getBranch());
@@ -3401,11 +3677,29 @@ public class InvoicingServiceImpl implements InvoicingService{
 										pList.setFolio(String.valueOf(nN.getFolio()));
 										pList.setSerial(nN.getSerie());
 										pList.setStatus(AppConstants.STATUS_PAYMENT_LIST_START);
+										pList.setReceiptId(r.getColumn22());
+										//Pagos 2.0
+										pList.setCustomerZipCode(r.getColumn4());
+										pList.setTaxRegime(regimenFiscal);
+										pList.setCatExportacion(r.getColumn44());
+										//Pagos 2.0
+										if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+											pList.setRelationType(relSustitution);
+											pList.setRelationTypeUUID(r.getColumn42());
+										}
 										
 										Payments bPay = new Payments();
-										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										String folioRelation = "";
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+										}else {
+											folioRelation = inv.getFolio();
+										}
+//										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
 										if(!payments.isEmpty()) {//Ya hay pagos previos 
-											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number & UUID
+//											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number & UUID
+											Payments getPay = paymentsService.getPayByUuidRId(r.getColumn22(), inv.getUUID(), folioRelation);//Receipt Number & UUID
 											if(getPay == null) {
 												int con = payments.size() + 1;	
 												
@@ -3413,7 +3707,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setSerial(pList.getSerial());
 												bPay.setFolio(pList.getFolio());
 												bPay.setSerialRel(inv.getSerial());
-												if(inv.getFolio().contains("-")) {
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 													bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 												}else {
 													bPay.setFolioRel(inv.getFolio());
@@ -3440,11 +3734,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentNumber(String.valueOf(con));	
 												bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 												bPay.setPostalCode(r.getColumn4());
-												bPay.setTransactionReference(r.getColumn12());	
+												bPay.setTransactionReference(bPay.getFolioRel());	
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setErrorActive(false);
-												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
+												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);	
+												bPay.setHelpFolRel(r.getColumn12());
+												//Pagos 2.0
+												bPay.setCustomerZipCode(r.getColumn4());
+												bPay.setCustomerTaxRegime(regimenFiscal);
+												bPay.setCatExportacion(r.getColumn44());
+												double baseFac = 0.00;
+												double ivaFac = 0.00;
+												InvoiceDetails iDetails = new InvoiceDetails();
+												TaxCodes taxCodes = new TaxCodes();
+												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+													iDetails = idet;
+													break;
+												}
+												for(TaxCodes tcode: iDetails.getTaxCodes()) {
+													taxCodes = tcode;
+													break;
+												}
+												if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+													baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+													ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+													baseFac = Double.parseDouble(bPay.getPaymentAmount());
+													ivaFac = 0;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+													baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+													ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}
+												//Pagos 2.0
+												if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+													bPay.setRelationType(relSustitution);
+													bPay.setRelationTypeUUID(r.getColumn42());
+												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3463,17 +3798,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}	
 												
-												if(inv.getPreviousBalanceAmount() == null ) {
-													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+												//Setear valores de la factura
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+													String[] transactionNumbers = inv.getFolio().split("-");
+													float sumaTrasNumbers = 0;
+													for(String s: transactionNumbers) {
+														ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+														sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+													}
+													bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 												}else {
-													bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
-												}
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+													bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
+												}	
 												
 												String bank = bPay.getBeneficiaryAccount();
 												bank = bank.substring(bank.length() -4);
@@ -3486,6 +3825,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay.getHelpFolRel() != null && !getPay.getHelpFolRel().isEmpty()) {
+												if(!getPay.getHelpFolRel().contains(r.getColumn12())) {
+													getPay.setPreviousBalanceAmount(String.valueOf(Float.parseFloat(getPay.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setPaymentAmount(String.valueOf(Float.parseFloat(getPay.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setHelpFolRel(getPay.getHelpFolRel() + "," + r.getColumn12());	
+													paymentsService.updatePayment(getPay);
+													return null;
+												}	
 											}else if(getPay != null) {
 												for(Payments perror: inv.getPayments()) {
 													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
@@ -3508,7 +3855,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setSerial(pList.getSerial());
 											bPay.setFolio(pList.getFolio());
 											bPay.setSerialRel(inv.getSerial());
-											if(inv.getFolio().contains("-")) {
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 												bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 											}else {
 												bPay.setFolioRel(inv.getFolio());
@@ -3535,11 +3882,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentNumber(String.valueOf(con));	
 											bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 											bPay.setPostalCode(r.getColumn4());
-											bPay.setTransactionReference(r.getColumn12());	
+											bPay.setTransactionReference(bPay.getFolioRel());	
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
-											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);								
+											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);	
+											bPay.setHelpFolRel(r.getColumn12());
+											//Pagos 2.0
+											bPay.setCustomerZipCode(r.getColumn4());
+											bPay.setCustomerTaxRegime(regimenFiscal);
+											bPay.setCatExportacion(r.getColumn44());
+											double baseFac = 0.00;
+											double ivaFac = 0.00;
+											InvoiceDetails iDetails = new InvoiceDetails();
+											TaxCodes taxCodes = new TaxCodes();
+											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+												iDetails = idet;
+												break;
+											}
+											for(TaxCodes tcode: iDetails.getTaxCodes()) {
+												taxCodes = tcode;
+												break;
+											}
+											if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+												baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+												ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+												baseFac = Double.parseDouble(bPay.getPaymentAmount());
+												ivaFac = 0;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+												baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+												ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}
+											//Pagos 2.0
+											if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+												bPay.setRelationType(relSustitution);
+												bPay.setRelationTypeUUID(r.getColumn42());
+											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3558,17 +3946,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}	
 											
-											if(inv.getPreviousBalanceAmount() == null ) {
-												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+											//Setear valores de la factura
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+												String[] transactionNumbers = inv.getFolio().split("-");
+												float sumaTrasNumbers = 0;
+												for(String s: transactionNumbers) {
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+													sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+												}
+												bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 											}else {
-												bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
-											}
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+												bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
+											}	
 											
 											String bank = bPay.getBeneficiaryAccount();
 											bank = bank.substring(bank.length() -4);
@@ -3593,9 +3985,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}else {//Añadimos registros para lista de pagos diferente moneda
 										//Payments
 										Payments bPay = new Payments();	
-										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										String folioRelation = "";
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+										}else {
+											folioRelation = inv.getFolio();
+										}
+//										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
 										if(!payments.isEmpty()) {//Ya hay pago previos
-											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number
+//											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number
+											Payments getPay = paymentsService.getPayByUuidRId(r.getColumn22(), inv.getUUID(), folioRelation);//Receipt Number
 											if(getPay == null) {
 												int con = payments.size() + 1;	
 												
@@ -3603,7 +4003,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setSerial(payList.getSerial());
 												bPay.setFolio(payList.getFolio());
 												bPay.setSerialRel(inv.getSerial());
-												if(inv.getFolio().contains("-")) {
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 													bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 												}else {
 													bPay.setFolioRel(inv.getFolio());
@@ -3630,11 +4030,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentNumber(String.valueOf(con));	
 												bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 												bPay.setPostalCode(r.getColumn4());
-												bPay.setTransactionReference(r.getColumn12());	
+												bPay.setTransactionReference(bPay.getFolioRel());	
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												bPay.setErrorActive(false);									
+												bPay.setErrorActive(false);	
+												bPay.setHelpFolRel(r.getColumn12());
+												//Pagos 2.0
+												bPay.setCustomerZipCode(r.getColumn4());
+												bPay.setCustomerTaxRegime(regimenFiscal);
+												bPay.setCatExportacion(r.getColumn44());
+												double baseFac = 0.00;
+												double ivaFac = 0.00;
+												InvoiceDetails iDetails = new InvoiceDetails();
+												TaxCodes taxCodes = new TaxCodes();
+												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+													iDetails = idet;
+													break;
+												}
+												for(TaxCodes tcode: iDetails.getTaxCodes()) {
+													taxCodes = tcode;
+													break;
+												}
+												if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+													baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+													ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+													baseFac = Double.parseDouble(bPay.getPaymentAmount());
+													ivaFac = 0;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+													baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+													ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}
+												//Pagos 2.0
+												if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+													bPay.setRelationType(relSustitution);
+													bPay.setRelationTypeUUID(r.getColumn42());
+												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3653,16 +4094,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 													payList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}	
 												
-												if(inv.getPreviousBalanceAmount() == null ) {
-													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+												//Setear valores de la factura
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+													String[] transactionNumbers = inv.getFolio().split("-");
+													float sumaTrasNumbers = 0;
+													for(String s: transactionNumbers) {
+														ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+														sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+													}
+													bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 												}else {
-													bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+													bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 												}
 												
 												String bank = bPay.getBeneficiaryAccount();
@@ -3676,6 +4121,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay.getHelpFolRel() != null && !getPay.getHelpFolRel().isEmpty()) {
+												if(!getPay.getHelpFolRel().contains(r.getColumn12())) {
+													getPay.setPreviousBalanceAmount(String.valueOf(Float.parseFloat(getPay.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setPaymentAmount(String.valueOf(Float.parseFloat(getPay.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setHelpFolRel(getPay.getHelpFolRel() + "," + r.getColumn12());	
+													paymentsService.updatePayment(getPay);
+													return null;
+												}	
 											}else if(getPay != null) {
 												for(Payments perror: inv.getPayments()) {
 													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
@@ -3698,7 +4151,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setSerial(payList.getSerial());
 											bPay.setFolio(payList.getFolio());
 											bPay.setSerialRel(inv.getSerial());
-											if(inv.getFolio().contains("-")) {
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 												bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 											}else {
 												bPay.setFolioRel(inv.getFolio());
@@ -3725,11 +4178,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentNumber(String.valueOf(con));	
 											bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 											bPay.setPostalCode(r.getColumn4());
-											bPay.setTransactionReference(r.getColumn12());	
+											bPay.setTransactionReference(bPay.getFolioRel());	
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
-											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
+											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);	
+											bPay.setHelpFolRel(r.getColumn12());
+											//Pagos 2.0
+											bPay.setCustomerZipCode(r.getColumn4());
+											bPay.setCustomerTaxRegime(regimenFiscal);
+											bPay.setCatExportacion(r.getColumn44());
+											double baseFac = 0.00;
+											double ivaFac = 0.00;
+											InvoiceDetails iDetails = new InvoiceDetails();
+											TaxCodes taxCodes = new TaxCodes();
+											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+												iDetails = idet;
+												break;
+											}
+											for(TaxCodes tcode: iDetails.getTaxCodes()) {
+												taxCodes = tcode;
+												break;
+											}
+											if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+												baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+												ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+												baseFac = Double.parseDouble(bPay.getPaymentAmount());
+												ivaFac = 0;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+												baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+												ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}
+											//Pagos 2.0
+											if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+												bPay.setRelationType(relSustitution);
+												bPay.setRelationTypeUUID(r.getColumn42());
+											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3748,16 +4242,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 												payList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
 											
-											if(inv.getPreviousBalanceAmount() == null ) {
-												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+											//Setear valores de la factura
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+												String[] transactionNumbers = inv.getFolio().split("-");
+												float sumaTrasNumbers = 0;
+												for(String s: transactionNumbers) {
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+													sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+												}
+												bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 											}else {
-												bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+												bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 											}
 											
 											String bank = bPay.getBeneficiaryAccount();
@@ -3789,7 +4287,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 									
 									return inv;
 								}else {//Pago a varias facturas relacionadas diferente moneda-----------------------------------------------
-									PaymentsList p = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
+									PaymentsList p = paymentsListService.getByReceiptIdCustomer(r.getColumn22(), inv.getCustomerName());//Receipt Number
+//									PaymentsList p = paymentsListService.getByReceiptNumberCustomer(r.getColumn23(), inv.getCustomerName());//Receipt Number
+//									PaymentsList p = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
 									if(p == null) {//se crea un registro 				
 										PaymentsList  pList = new PaymentsList();									
 										NextNumber nN = new NextNumber();							
@@ -3810,13 +4310,30 @@ public class InvoicingServiceImpl implements InvoicingService{
 										pList.setPaymentAmount(String.valueOf(pago));
 										pList.setCurrency(r.getColumn16());
 										pList.setExchangeRate(eRate);
+										pList.setReceiptId(r.getColumn22());
+										//Pagos 2.0
+										pList.setCustomerZipCode(r.getColumn4());
+										pList.setTaxRegime(regimenFiscal);
+										pList.setCatExportacion(r.getColumn44());
+										//Pagos 2.0
+										if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+											pList.setRelationType(relSustitution);
+											pList.setRelationTypeUUID(r.getColumn42());
+										}
 										
 										//Payments
 										Payments bPay = new Payments();	
-										
-										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										String folioRelation = "";
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+										}else {
+											folioRelation = inv.getFolio();
+										}
+//										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
 										if(!payments.isEmpty()) {//Ya hay pago previos
-											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number & UUID
+//											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number & UUID
+											Payments getPay = paymentsService.getPayByUuidRId(r.getColumn22(), inv.getUUID(), folioRelation);//Receipt Number & UUID
 											if(getPay == null) {
 												int con = payments.size() + 1;	
 												
@@ -3824,7 +4341,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setSerial(pList.getSerial());
 												bPay.setFolio(pList.getFolio());
 												bPay.setSerialRel(inv.getSerial());
-												if(inv.getFolio().contains("-")) {
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 													bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 												}else {
 													bPay.setFolioRel(inv.getFolio());
@@ -3851,11 +4368,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentNumber(String.valueOf(con));	
 												bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 												bPay.setPostalCode(r.getColumn4());
-												bPay.setTransactionReference(r.getColumn12());	
+												bPay.setTransactionReference(bPay.getFolioRel());	
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setErrorActive(false);										
-												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
+												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);	
+												bPay.setHelpFolRel(r.getColumn12());
+												//Pagos 2.0
+												bPay.setCustomerZipCode(r.getColumn4());
+												bPay.setCustomerTaxRegime(regimenFiscal);
+												bPay.setCatExportacion(r.getColumn44());
+												double baseFac = 0.00;
+												double ivaFac = 0.00;
+												InvoiceDetails iDetails = new InvoiceDetails();
+												TaxCodes taxCodes = new TaxCodes();
+												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+													iDetails = idet;
+													break;
+												}
+												for(TaxCodes tcode: iDetails.getTaxCodes()) {
+													taxCodes = tcode;
+													break;
+												}
+												if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+													baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+													ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+													baseFac = Double.parseDouble(bPay.getPaymentAmount());
+													ivaFac = 0;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+													baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+													ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}
+												//Pagos 2.0
+												if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+													bPay.setRelationType(relSustitution);
+													bPay.setRelationTypeUUID(r.getColumn42());
+												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -3874,16 +4432,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 													bPay.setPaymentStatus(AppConstants.STATUS_ERROR_DATA_PAY);
 													pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}	
-												if(inv.getPreviousBalanceAmount() == null ) {
-													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+												
+												//Setear valores de la factura
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+													String[] transactionNumbers = inv.getFolio().split("-");
+													float sumaTrasNumbers = 0;
+													for(String s: transactionNumbers) {
+														ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+														sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+													}
+													bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 												}else {
-													bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+													bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 												}
 												
 												String bank = bPay.getBeneficiaryAccount();
@@ -3897,6 +4460,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay.getHelpFolRel() != null && !getPay.getHelpFolRel().isEmpty()) {
+												if(!getPay.getHelpFolRel().contains(r.getColumn12())) {
+													getPay.setPreviousBalanceAmount(String.valueOf(Float.parseFloat(getPay.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setPaymentAmount(String.valueOf(Float.parseFloat(getPay.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setHelpFolRel(getPay.getHelpFolRel() + "," + r.getColumn12());	
+													paymentsService.updatePayment(getPay);
+													return null;
+												}	
 											}else if(getPay != null) {
 												for(Payments perror: inv.getPayments()) {
 													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
@@ -3919,7 +4490,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setSerial(pList.getSerial());
 											bPay.setFolio(pList.getFolio());
 											bPay.setSerialRel(inv.getSerial());
-											if(inv.getFolio().contains("-")) {
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 												bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 											}else {
 												bPay.setFolioRel(inv.getFolio());
@@ -3946,11 +4517,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentNumber(String.valueOf(con));	
 											bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 											bPay.setPostalCode(r.getColumn4());
-											bPay.setTransactionReference(r.getColumn12());	
+											bPay.setTransactionReference(bPay.getFolioRel());	
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);									
 											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+											bPay.setHelpFolRel(r.getColumn12());
+											//Pagos 2.0
+											bPay.setCustomerZipCode(r.getColumn4());
+											bPay.setCustomerTaxRegime(regimenFiscal);
+											bPay.setCatExportacion(r.getColumn44());
+											double baseFac = 0.00;
+											double ivaFac = 0.00;
+											InvoiceDetails iDetails = new InvoiceDetails();
+											TaxCodes taxCodes = new TaxCodes();
+											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+												iDetails = idet;
+												break;
+											}
+											for(TaxCodes tcode: iDetails.getTaxCodes()) {
+												taxCodes = tcode;
+												break;
+											}
+											if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+												baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+												ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+												baseFac = Double.parseDouble(bPay.getPaymentAmount());
+												ivaFac = 0;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+												baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+												ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}
+											//Pagos 2.0
+											if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+												bPay.setRelationType(relSustitution);
+												bPay.setRelationTypeUUID(r.getColumn42());
+											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -3969,16 +4581,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 												pList.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
 											
-											if(inv.getPreviousBalanceAmount() == null ) {
-												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+											//Setear valores de la factura
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+												String[] transactionNumbers = inv.getFolio().split("-");
+												float sumaTrasNumbers = 0;
+												for(String s: transactionNumbers) {
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+													sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+												}
+												bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 											}else {
-												bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+												bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 											}
 											
 											String bank = bPay.getBeneficiaryAccount();
@@ -4010,9 +4626,17 @@ public class InvoicingServiceImpl implements InvoicingService{
 										
 										//Payments
 										Payments bPay = new Payments();	
-										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										String folioRelation = "";
+										if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+											folioRelation = inv.getFolio().substring(0,inv.getFolio().indexOf("-"));
+										}else {
+											folioRelation = inv.getFolio();
+										}
+//										List<Payments> payments = paymentsService.getPaymentsList(inv.getUUID());
+										List<Payments> payments = paymentsService.getPaymentsListReference(inv.getUUID(), NullValidator.isNull(r.getColumn0()), folioRelation);
 										if(!payments.isEmpty()) {//Ya hay pago previos
-											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number
+//											Payments getPay = paymentsService.getPayByUuidRNumber(r.getColumn23(), inv.getUUID());//Receipt Number
+											Payments getPay = paymentsService.getPayByUuidRId(r.getColumn22(), inv.getUUID(), folioRelation);//Receipt Number
 											if(getPay == null) {
 												int con = payments.size() + 1;	
 												
@@ -4020,7 +4644,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setSerial(p.getSerial());
 												bPay.setFolio(p.getFolio());
 												bPay.setSerialRel(inv.getSerial());
-												if(inv.getFolio().contains("-")) {
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 													bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 												}else {
 													bPay.setFolioRel(inv.getFolio());
@@ -4047,11 +4671,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 												bPay.setPaymentNumber(String.valueOf(con));	
 												bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 												bPay.setPostalCode(r.getColumn4());
-												bPay.setTransactionReference(r.getColumn12());	
+												bPay.setTransactionReference(bPay.getFolioRel());	
 												bPay.setPaymentMethod("PPD");
 												bPay.setAdvanceApplied(false);
 												bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
-												bPay.setErrorActive(false);									
+												bPay.setErrorActive(false);		
+												bPay.setHelpFolRel(r.getColumn12());
+												//Pagos 2.0
+												bPay.setCustomerZipCode(r.getColumn4());
+												bPay.setCustomerTaxRegime(regimenFiscal);
+												bPay.setCatExportacion(r.getColumn44());
+												double baseFac = 0.00;
+												double ivaFac = 0.00;
+												InvoiceDetails iDetails = new InvoiceDetails();
+												TaxCodes taxCodes = new TaxCodes();
+												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+													iDetails = idet;
+													break;
+												}
+												for(TaxCodes tcode: iDetails.getTaxCodes()) {
+													taxCodes = tcode;
+													break;
+												}
+												if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+													baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+													ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+													baseFac = Double.parseDouble(bPay.getPaymentAmount());
+													ivaFac = 0;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+													baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+													ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+													bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+													bPay.setBase(baseFac);
+													bPay.setTaxAmount(ivaFac);
+												}
+												//Pagos 2.0
+												if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+													bPay.setRelationType(relSustitution);
+													bPay.setRelationTypeUUID(r.getColumn42());
+												}
 												if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 													bPay.setPaymentError(null);
 													bPay.setUuidReference(inv.getUUID());
@@ -4070,16 +4735,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 													p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 												}	
 												
-												if(inv.getPreviousBalanceAmount() == null ) {
-													bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+												//Setear valores de la factura
+												if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+													String[] transactionNumbers = inv.getFolio().split("-");
+													float sumaTrasNumbers = 0;
+													for(String s: transactionNumbers) {
+														ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+														sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+													}
+													bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 												}else {
-													bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-													bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-													inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-													inv.setRemainingBalanceAmount("0");
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+													bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+													bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 												}
 												
 												String bank = bPay.getBeneficiaryAccount();
@@ -4093,6 +4762,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
+											}else if(getPay.getHelpFolRel() != null && !getPay.getHelpFolRel().isEmpty()) {
+												if(!getPay.getHelpFolRel().contains(r.getColumn12())) {
+													getPay.setPreviousBalanceAmount(String.valueOf(Float.parseFloat(getPay.getPreviousBalanceAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setPaymentAmount(String.valueOf(Float.parseFloat(getPay.getPaymentAmount()) + Float.parseFloat(r.getColumn29())));
+													getPay.setHelpFolRel(getPay.getHelpFolRel() + "," + r.getColumn12());	
+													paymentsService.updatePayment(getPay);
+													return null;
+												}	
 											}else if(getPay != null) {
 												for(Payments perror: inv.getPayments()) {
 													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
@@ -4107,7 +4784,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 														}
 													}
 												}
-											}							
+											}								
 										}else {//No hay pagos previos
 											int con = 1;
 											
@@ -4115,7 +4792,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setSerial(p.getSerial());
 											bPay.setFolio(p.getFolio());
 											bPay.setSerialRel(inv.getSerial());
-											if(inv.getFolio().contains("-")) {
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
 												bPay.setFolioRel(inv.getFolio().substring(0,inv.getFolio().indexOf("-")));
 											}else {
 												bPay.setFolioRel(inv.getFolio());
@@ -4142,11 +4819,52 @@ public class InvoicingServiceImpl implements InvoicingService{
 											bPay.setPaymentNumber(String.valueOf(con));	
 											bPay.setTaxIdentifier(r.getColumn1().replaceAll(" ", ""));//Utilizados para nacional o extranjero
 											bPay.setPostalCode(r.getColumn4());
-											bPay.setTransactionReference(r.getColumn12());	
+											bPay.setTransactionReference(bPay.getFolioRel());	
 											bPay.setPaymentMethod("PPD");
 											bPay.setAdvanceApplied(false);
 											bPay.setErrorActive(false);
-											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);									
+											bPay.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+											bPay.setHelpFolRel(r.getColumn12());
+											//Pagos 2.0
+											bPay.setCustomerZipCode(r.getColumn4());
+											bPay.setCustomerTaxRegime(regimenFiscal);
+											bPay.setCatExportacion(r.getColumn44());
+											double baseFac = 0.00;
+											double ivaFac = 0.00;
+											InvoiceDetails iDetails = new InvoiceDetails();
+											TaxCodes taxCodes = new TaxCodes();
+											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
+												iDetails = idet;
+												break;
+											}
+											for(TaxCodes tcode: iDetails.getTaxCodes()) {
+												taxCodes = tcode;
+												break;
+											}
+											if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_016) {
+												baseFac = Math.round((Double.parseDouble(bPay.getPaymentAmount())/AppConstants.INVOICE_TAX_CODE_116)*100.00)/100.00;
+												ivaFac = Math.round(((Double.parseDouble(bPay.getPaymentAmount())) - baseFac) * 100.00)/100.00;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_16);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_000) {
+												baseFac = Double.parseDouble(bPay.getPaymentAmount());
+												ivaFac = 0;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_0);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}else if(taxCodes.getTaxValue() == AppConstants.INVOICE_TAX_CODE_008) {
+												baseFac = (((Double.parseDouble(bPay.getPaymentAmount()))/AppConstants.INVOICE_TAX_CODE_108)*100)/100;
+												ivaFac = ((Double.parseDouble(bPay.getPaymentAmount()) - baseFac)*100)/100;
+												bPay.setTaxCode(AppConstants.COMP_PAGOS_FAC_8);
+												bPay.setBase(baseFac);
+												bPay.setTaxAmount(ivaFac);
+											}
+											//Pagos 2.0
+											if(r.getColumn42() != null && !r.getColumn42().isEmpty()) {
+												bPay.setRelationType(relSustitution);
+												bPay.setRelationTypeUUID(r.getColumn42());
+											}
 											if(inv.getUUID()!=null && !inv.getUUID().isEmpty()) {
 												bPay.setPaymentError(null);
 												bPay.setUuidReference(inv.getUUID());
@@ -4165,16 +4883,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 												p.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
 											}
 											
-											if(inv.getPreviousBalanceAmount() == null ) {
-												bPay.setPreviousBalanceAmount(String.valueOf(inv.getInvoiceTotal()));
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getRemainingBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+											//Setear valores de la factura
+											if(inv.getFolio().contains("-") && !inv.getInvoiceType().equals("CI")) {
+												String[] transactionNumbers = inv.getFolio().split("-");
+												float sumaTrasNumbers = 0;
+												for(String s: transactionNumbers) {
+													ReceivablesInvoices rInvoice = restService.getInvoiceData(s);
+													sumaTrasNumbers = sumaTrasNumbers + rInvoice.getItems().get(0).getInvoiceBalanceAmount();
+												}
+												bPay.setPreviousBalanceAmount(String.valueOf(sumaTrasNumbers + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(sumaTrasNumbers));
 											}else {
-												bPay.setPreviousBalanceAmount(inv.getPreviousBalanceAmount());
-												bPay.setRemainingBalanceAmount(df.format(Double.parseDouble(inv.getPreviousBalanceAmount()) - Double.parseDouble(bPay.getPaymentAmount())));
-												inv.setPreviousBalanceAmount(bPay.getRemainingBalanceAmount());
-												inv.setRemainingBalanceAmount("0");
+												ReceivablesInvoices rInvoice = restService.getInvoiceData(inv.getFolio());
+												bPay.setPreviousBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount() + Float.parseFloat(bPay.getPaymentAmount())));
+												bPay.setRemainingBalanceAmount(String.valueOf(rInvoice.getItems().get(0).getInvoiceBalanceAmount()));
 											}
 											
 											String bank = bPay.getBeneficiaryAccount();
@@ -4209,9 +4931,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 					}
 				}
-			}else if(r.getColumn17().equals(AppConstants.IS_ADVANCE_PAYMENT)){//Saber si es anticipo
+			}else if(r.getColumn17().equals(AppConstants.IS_ADVANCE_PAYMENT)){//Saber si es anticipo	getReceiptById
 				if(r.getColumn17().equals(AppConstants.IS_ADVANCE_PAYMENT)) {
-					Payments pSearch = paymentsService.getPayment(NullValidator.isNull(r.getColumn23())); 
+//					Payments pSearch = paymentsService.getPayment(NullValidator.isNull(r.getColumn23())); 
+					Payments pSearch = paymentsService.getReceiptById(NullValidator.isNull(r.getColumn22())); 
 					if(pSearch == null || (pSearch.getPaymentError() != null && !pSearch.getPaymentError().isEmpty())) {
 						if(r.getColumn7() != null) {//Cambio de moneda
 							eRate = r.getColumn7();
@@ -4224,6 +4947,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 						double st = Double.parseDouble(r.getColumn31())/(AppConstants.INVOICE_TAX_CODE_116);
 						subTotal = df.format(st);
 						tax = df.format(Double.parseDouble(r.getColumn31()) - Double.parseDouble(subTotal));
+						
+						//Busqueda del regimen fiscal Fac 4.0
+						AnalyticsDTO analytics = new AnalyticsDTO();
+						analytics.setCustomerName(r.getColumn0());
+						Rowset rowSet = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+								AppConstants.SERVICE_AR_REPORT_TAX_REGIME, analytics);
+						if(!rowSet.getRow().isEmpty()) {
+							regimenFiscal = NullValidator.isNull(rowSet.getRow().get(0).getColumn1());
+						}
 						
 						if(NullValidator.isNull(r.getColumn38()).equals("SUCURSAL MEXICO")) {
 							r.setColumn38("CEDIS");
@@ -4249,6 +4981,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 							invoice.setFolio(String.valueOf(nN.getFolio()));
 							invoice.setSerial(nN.getSerie());
 							invoice.setErrorActive(false);
+							invoice.setCatExportacion(r.getColumn44());// Fac 4.0
+							invoice.setRegimenFiscal(regimenFiscal);// Fac 4.0
 							if(r.getColumn37() != null && !r.getColumn37().isEmpty()) {
 								invoice.setPaymentType(r.getColumn37());
 							}else {
@@ -4262,7 +4996,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 							invoice.setInvoiceTaxAmount(Double.parseDouble(tax));
 							invoice.setCustomerEmail(NullValidator.isNull(r.getColumn35()));//-------------se tomará del reporte
 							invoice.setRemainingBalanceAmount(String.valueOf(Double.parseDouble(subTotal) + Double.parseDouble(tax)));
-							invoice.setCFDIUse(udcI.getNote());
+//							invoice.setCFDIUse(udcI.getNote());// Quitar
+							invoice.setCFDIUse(NullValidator.isNull(r.getColumn46()));//FAC 4.0
 							invoice.setProductType("ANTICIPO");
 							invoice.setBranch(newBra);
 							invoice.setPreviousBalanceAmount("0");
@@ -4325,6 +5060,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							iD.setIsInvoiceLine("D");
 							//Seteo de variable para garantias
 							iD.setWarrantyFull(false);
+							iD.setCatObjImp("02");//Fac 4.0
 							
 							List<InvoiceDetails> idList = new ArrayList<InvoiceDetails>();
 							idList.add(iD);
@@ -4396,8 +5132,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							Udc udcI = udcService.searchBySystemAndKey(AppConstants.PAYMENTS_ADVPAY, AppConstants.INVOICE_SAT_TYPE_I);
 							//Montos de pagos
 							String subTotal = "0";
-							String tax = "0";
-							
+							String tax = "0";							
 
 							double st = Double.parseDouble(r.getColumn31())/(AppConstants.INVOICE_TAX_CODE_116);
 							subTotal = df.format(st);
@@ -4583,6 +5318,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			//Llenado de las lineas
 			for(Invoice inv: pendingList) {
 				Set<InvoiceDetails> invDList = new HashSet<InvoiceDetails>();
+				Set<InvoiceDetails> invDList2 = new HashSet<InvoiceDetails>();
 				String productTypes = "";
 				for(Invoice invDetail: invList) {
 					if(inv.getFromSalesOrder().equals(invDetail.getFromSalesOrder())) {	
@@ -4598,8 +5334,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 						invDList.addAll(invDetail.getInvoiceDetails());						
 					}
 				}
+				int n = 1;
+				for(InvoiceDetails id: invDList) {
+					id.setTransactionLineNumber(String.valueOf(n));
+					invDList2.add(id);
+					n = n + 1;
+				}
 				inv.setProductType(productTypes);
-				inv.setInvoiceDetails(invDList);
+//				inv.setInvoiceDetails(invDList);
+				inv.setInvoiceDetails(invDList2);
 				Invoice isExisting = invoiceDao.getInvoiceByOtFolio(AppConstants.ORDER_TYPE_TRANS, inv.getFromSalesOrder(), inv.getCustomerName());
 				if(isExisting == null) {
 					NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_TRANS, inv.getBranch());
@@ -4669,12 +5412,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 				inv.setCFDIUse(traslados.getStrValue2());
 				//Datos de la sucursal de envío
 				inv.setCustomerPartyNumber(NullValidator.isNull(branchRec.getInvOrganizationId()));
-				inv.setCustomerName(branchRec.getName());
+				inv.setCustomerName(branchRec.getCompany().getBusinessUnitName());//Fac 4.0
+//				inv.setCustomerName(branchRec.getName());//Fac 4.0
 				inv.setCustomerAddress1(branchRec.getAddress());
 				inv.setCustomerCity(branchRec.getCity());
 				inv.setCustomerCountry(branchRec.getCountry());
 				inv.setCustomerState(branchRec.getState());
-				inv.setCustomerZip(branchRec.getZip());
+				inv.setCustomerZip(branchRec.getCompany().getZip());//Fac 4.0
+//				inv.setCustomerZip(branchRec.getZip());//Fac 4.0
 				inv.setCustomerTaxIdentifier(branchRec.getCompany().getTaxIdentifier());
 				inv.setOrderSource("");
 				inv.setStatus(AppConstants.STATUS_PENDING);
@@ -4682,9 +5427,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 				inv.setSetName("");
 				inv.setFromSalesOrder(NullValidator.isNull(r.getColumn3()));
 				inv.setAdvanceAplied(false);
+				inv.setCatExportacion("01");//Fact 4.0
+				inv.setRegimenFiscal(branchRec.getTaxRegime());//Fact 4.0
 				
 				invD.setRetailComplements(null);
 				invD.setTaxCodes(null);
+				invD.setCatObjImp("01");//Fact 4.0
 				
 				invD.setItemDescription(NullValidator.isNull(r.getColumn0()));
 				invD.setItemNumber(NullValidator.isNull(r.getColumn1()));
@@ -4721,6 +5469,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Clave Producto Servicio
 					if(itemSat.getItemDFFClavProdServ() != null && !"".contains(itemSat.getItemDFFClavProdServ())) {
 						invD.setUnitProdServ(itemSat.getItemDFFClavProdServ());
+						invD.setCatObjImp(itemSat.getItemDFFObjImp());
 					}else {
 						msgError = msgError + ";PRODSERVSAT-No existe la Clave ProdServ SAT -" + invD.getItemNumber() + " en ItemMaster";
 						inv.setStatus(AppConstants.STATUS_ERROR_DATA_TRANSFER);
@@ -4748,8 +5497,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 				//referencia de equipo
 				if(invD.getItemSerial() != null && !invD.getItemSerial().isEmpty()) {
 					invD.setEquipmentReference("E");
+					invD.setItemDescription(invD.getItemDescription() + " " + invD.getItemNumber());
 				}else {
 					invD.setEquipmentReference("R");
+					invD.setSerialPdf(invD.getItemNumber());
 				}
 				//tipo de producto código
 				ItemCategory iCat = restService.getCategoryCode(productsType);
@@ -4858,26 +5609,65 @@ public class InvoicingServiceImpl implements InvoicingService{
 					if(NullValidator.isNull(plist.getPaymentAmount()).length() == 0) {
 						continue;
 					}
+					AnalyticsDTO analytics = new AnalyticsDTO();
+					analytics.setReceiptNumber(plist.getReceiptNumber());
+					Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+							AppConstants.SERVICE_AR_RECEIPTS_REPORTS_HELP, analytics);
+					if(!r.getRow().isEmpty()) {
+						List<String> transactionReference = new ArrayList<String>();
+						for(Row ro: r.getRow()) {
+							if(NullValidator.isNull(plist.getReceiptId()).equals(NullValidator.isNull(ro.getColumn4())) && 
+									NullValidator.isNull(plist.getReceiptNumber()).equals(NullValidator.isNull(ro.getColumn5()))) {
+								if(!transactionReference.toString().contains(ro.getColumn1())) {
+									Invoice invoice = invoiceDao.getSingleInvoiceByFolioLike(ro.getColumn1(), AppConstants.ORDER_TYPE_FACTURA);
+									if(invoice != null) {
+										if(NullValidator.isNull(invoice.getPaymentMethod()).equals("PUE")) {
+											double sum = 0;
+											if(ro.getColumn2().equals(AppConstants.DEFAUL_CURRENCY)) {
+												sum = (Double.parseDouble(ro.getColumn8())*(100.00))/(100.00);
+											}else {
+												if(ro.getColumn8() != null && !ro.getColumn8().isEmpty()) {
+													sum = Double.parseDouble(NullValidator.isNull(ro.getColumn8()))*(100.00)/(100.00);
+												}else {
+													sum = Double.parseDouble(NullValidator.isNull(ro.getColumn9()))*(100.00)/(100.00);
+												}												
+												plist.setExchangeRate(ro.getColumn3());
+											}												
+											plist.setPaymentAmount(String.valueOf(Float.parseFloat(plist.getPaymentAmount()) - sum));
+											paymentsListService.updatePaymentsList(plist);												
+										}
+										if(!plist.getCurrency().equals(AppConstants.DEFAUL_CURRENCY)) {
+											plist.setExchangeRate(ro.getColumn3());
+										}
+										transactionReference.add(ro.getColumn1());
+									}
+								}
+							}
+						}
+					}
 					List<Payments> pListVer = new ArrayList<Payments>(plist.getPayments());
 					double total = 0.00;
-					double totalList = Double.parseDouble(NullValidator.isNull(plist.getPaymentAmount()));
+					double totalList = (Double.parseDouble(NullValidator.isNull(plist.getPaymentAmount())))*1.001;
 					for(Payments pa: pListVer) {
-						if(plist.getCurrency().equals(pa.getCurrency())) {
-							String val = df.format(Double.parseDouble(pa.getPaymentAmount()));
-							total = total + Math.floor(Double.parseDouble(val));
-						}else if(NullValidator.isNull(pa.getCurrency()).equals(AppConstants.DEFAUL_CURRENCY)) {//Pago en dlls
-							String pago = df.format(Double.parseDouble(pa.getPaymentAmount()) / Double.parseDouble(plist.getExchangeRate()));
-							total = total + Double.parseDouble(df.format(Double.parseDouble(pago)));
-							pa.setExchangeRate(plist.getExchangeRate());
-						}else {//Pago en MXN
-							String pagoConversion = df.format(Double.parseDouble(pa.getPaymentAmount()) * (Double.parseDouble(plist.getExchangeRate())));
-							float pago = Float.parseFloat(pagoConversion);
-							total = total + Math.floor(pago);
-							String eRate = dfM.format(1 / (Double.parseDouble(plist.getExchangeRate())+0.05));
-							pa.setExchangeRate(eRate);
+						if(pa.getPaymentAmount() != null && !pa.getPaymentAmount().isEmpty()) {
+							if(plist.getCurrency().equals(pa.getCurrency())) {
+								String val = String.valueOf(Math.round(Double.parseDouble(pa.getPaymentAmount())*100.00)/100.00);
+								total = total + Math.floor(Double.parseDouble(val));
+							}else if(NullValidator.isNull(pa.getCurrency()).equals(AppConstants.DEFAUL_CURRENCY)) {//Pago en dlls
+								String pago = String.valueOf(Math.round((Double.parseDouble(pa.getPaymentAmount()) / Double.parseDouble(plist.getExchangeRate()))*100.00)/100.00);
+								total = total + (Math.round(Double.parseDouble(pago)*100.00)/100.00);
+								pa.setExchangeRate(plist.getExchangeRate());
+							}else {//Pago en MXN
+								String pagoConversion = String.valueOf(Double.parseDouble(pa.getPaymentAmount()) * (Double.parseDouble(plist.getExchangeRate())));
+								float pago = Float.parseFloat(pagoConversion);
+								total = total + Math.floor(pago);
+//								String eRate = dfM.format((1 / (Double.parseDouble(plist.getExchangeRate()))+0.000001));
+								String eRate = dfM.format((1 / Math.round(Double.parseDouble(plist.getExchangeRate())*100.000000)/100.000000));
+								pa.setExchangeRate(eRate);
+							}
+							pa.setPreviousBalanceAmount(String.valueOf(((Double.parseDouble(pa.getRemainingBalanceAmount()))*(100.00)/(100.00)) + ((Double.parseDouble(pa.getPaymentAmount())*(100.00)/(100.00)))));
+							paymentsService.updatePayment(pa);
 						}
-						paymentsService.updatePayment(pa);
-						
 					}
 					double totalVerification =(totalList/100)*98;
 					if(total <= totalList && total >= totalVerification) {
@@ -5424,9 +6214,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}else {
 								invDetails.setExchangeRate(Double.parseDouble(df.format(Double.parseDouble(inv.getExchangeRate()))));
 							}
+							System.out.println(inv.getTransactionNumber() + "-" + inv.getTransactionLineUnitSellingPrice());
+							if(inv.getTransactionLineUnitSellingPrice() == null || inv.getTransactionLineUnitSellingPrice().isEmpty()) {
+								continue;
+							}
 							if(NullValidator.isNull(Double.parseDouble(inv.getTransactionLineUnitSellingPrice())) > 0) {
 								invDetails.setUnitPrice(NullValidator.isNull(Double.parseDouble(df.format(Double.parseDouble(inv.getTransactionLineUnitSellingPrice())))));
 								invDetails.setLineType(AppConstants.REPORT_LINE_TYPE_NOR);
+							}else {
+								continue;
 							}
 							
 							invDetails.setTransactionLineNumber(inv.getTransactionLineNumber());
@@ -5513,4 +6309,159 @@ public class InvoicingServiceImpl implements InvoicingService{
 			log.error("ERROR AL RECUPERAR FACTURAS DE CANCELACIONES");
 		}
 	}
+	
+	public void cancelationAndCreditMemo (){		
+		List<String> otList = new ArrayList<String>();
+		otList.add(AppConstants.ORDER_TYPE_CANCELATION);
+		
+		List<String> sList = new ArrayList<String>();
+		sList.add(AppConstants.STATUS_CANCELATION_NC);
+		
+		List<Invoice> invoiceList = invoiceDao.getInvoiceListByStatusCode(sList, otList);//Búsqueda de las NC para verificar en que proceso entra
+		if(invoiceList != null && !invoiceList.isEmpty()) {
+			List<Udc> pathForCancelation = new ArrayList<Udc>();//Udc's para dejar los txt de cancelaciones, para facturas y para complementos de pago
+			String pathForCancel = "";
+			String fileName = "";
+			String content = "";
+			pathForCancelation = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PATHS);
+			for(Udc u: pathForCancelation) {
+				if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_CANCEL)) {
+					pathForCancel = u.getUdcKey();
+					break;
+				}
+			}
+			for(Invoice inv: invoiceList) {
+				if(inv.getStatus().equals(AppConstants.STATUS_CANCEL_CLOSE)) {
+					continue;
+				}
+				if(inv.getCancelationReason().equals("01")) {
+					inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
+					invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
+					continue;
+				}
+				if(inv.getOrderSource().equals("Manual IMEMSA")) {
+					content = NullValidator.isNull(inv.getUUIDReference()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(inv.getCancelationReason()) + AppConstantsUtil.FILES_SEPARATOR +
+							NullValidator.isNull(inv.getSustitutionUuid()) + AppConstantsUtil.FILES_SEPARATOR;
+					//Crear archivo en la ruta deseada
+					try {
+						File file = new File(pathForCancel + (inv.getSerial() + inv.getFolio()) + AppConstantsUtil.RUTA_FILES_EXTENSION);
+						if (!file.exists()) {
+			             	file.createNewFile();
+			             	file.setExecutable(true);
+			             	file.setReadable(true);
+			             	file.setWritable(true);             	
+			            }
+			            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+			            out.write(content);
+			            out.close();
+					}catch(Exception e) {
+						log.info("ERROR AL CANCELAR FACTURA: " + inv.getFolio() + e);
+						continue;
+					}
+					inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
+					invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
+				}else {
+					Invoice invRel = invoiceDao.getSingleInvoiceByFolioLike(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+					if(invRel != null) {					
+						content = invRel.getUUID();
+						//Nombrar archivo
+						content = NullValidator.isNull(invRel.getUUID()) + AppConstantsUtil.FILES_SEPARATOR +
+								NullValidator.isNull(inv.getCancelationReason()) + AppConstantsUtil.FILES_SEPARATOR +
+								NullValidator.isNull(inv.getSustitutionUuid()) + AppConstantsUtil.FILES_SEPARATOR;
+						//Crear archivo en la ruta deseada
+						try {
+							File file = new File(pathForCancel + (inv.getSerial() + inv.getFolio()) + AppConstantsUtil.RUTA_FILES_EXTENSION);
+							if (!file.exists()) {
+				             	file.createNewFile();
+				             	file.setExecutable(true);
+				             	file.setReadable(true);
+				             	file.setWritable(true);             	
+				            }
+				            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+				            out.write(content);
+				            out.close();
+						}catch(Exception e) {
+							log.info("ERROR AL CANCELAR FACTURA: " + inv.getFolio() + e);
+							continue;
+						}
+						inv.setUUIDReference(invRel.getUUID());
+						inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
+						invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
+					}
+				}								
+			}
+		}
+		//Fin del método cancelation
+	}
+
+	@Override
+	public boolean debitMemoProcess(List<Row> r) {
+//		List<InvoicesByReportsDTO> invoiceReport = new ArrayList<InvoicesByReportsDTO>();
+		try {
+			if(r != null && !r.isEmpty()) {
+				for(Row row: r) {
+					if(row.getColumn9().contains("No")) {
+						continue;
+					}
+					
+					Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(NullValidator.isNull(row.getColumn6()), AppConstants.ORDER_TYPE_DEBIT_MEMO);
+					if(searchExistingInvoice == null) {
+						Invoice invAux = new Invoice();
+						
+						Company com = companyService.getCompanyByLegalEntity(NullValidator.isNull(row.getColumn11()));
+						invAux.setCompany(com);
+						
+						Branch branch = new Branch();
+						NextNumber nNumber = new NextNumber();
+						if(invAux.getCompany().getName().equals("EQUIPO MARINO") || invAux.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+							branch = branchService.getBranchByCode("CEDIS");
+							nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_DEBIT_MEMO, branch);
+						}else if(invAux.getCompany().getName().equals("FABRICA DE LANCHAS")){
+							branch = branchService.getBranchByCode("PLR");
+							nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_DEBIT_MEMO, branch);
+						}else if(invAux.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
+							branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
+							nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_DEBIT_MEMO, branch);
+						}
+						
+						invAux.setUUIDReference(NullValidator.isNull(row.getColumn1()));
+						invAux.setCancelationReason(NullValidator.isNull(row.getColumn2()));
+						invAux.setSustitutionUuid(NullValidator.isNull(row.getColumn3()));
+						invAux.setOrderType(NullValidator.isNull(AppConstants.ORDER_TYPE_DEBIT_MEMO));
+						invAux.setInvoiceType(AppConstants.ORDER_TYPE_DEBIT_MEMO);
+						invAux.setFolio(NullValidator.isNull(row.getColumn6()));
+						invAux.setOrderSource(NullValidator.isNull(row.getColumn7()));
+						invAux.setCustomerName(NullValidator.isNull(row.getColumn10()));
+						invAux.setSerial(nNumber.getSerie());
+						invAux.setStatus(AppConstants.STATUS_CANCELATION_NC);
+						invAux.setSetName("");
+						
+						invAux.setCustomerAddress1("");
+						invAux.setCustomerAddress2("");
+						invAux.setCustomerCity("");
+						invAux.setCustomerClass("");
+						invAux.setCustomerCountry("");
+						invAux.setCustomerEmail("");
+						invAux.setCustomerPartyNumber("");
+						invAux.setCustomerState("");
+						invAux.setCustomerTaxIdentifier("");
+						invAux.setCustomerZip("");
+						invAux.setInvoiceDetails(null);
+						invAux.setInvoiceTotal(0.00);
+						invAux.setInvoiceSubTotal(0.00);
+						invAux.setInvoiceTaxAmount(0.00);
+						
+						invoiceDao.saveInvoice(invAux);
+					}
+				}				
+			}
+			
+			return true;
+		}catch(Exception e) {
+			log.error("ERROR NOTA DE DEBITO: " + e);
+		}
+		return false;
+	}
+	
 }

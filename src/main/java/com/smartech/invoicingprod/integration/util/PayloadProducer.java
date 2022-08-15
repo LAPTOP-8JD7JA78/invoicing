@@ -218,17 +218,43 @@ public class PayloadProducer {
 				"	\"Receivables - Transactions Real Time\".\"- Bill-to Customer Details\".\"Bill-to Customer Email Address\" s_53,\n\r" +
 				"	\"Receivables - Transactions Real Time\".\"Bill-to Customer Account\".\"Bill-to Customer Account Class Code\" s_54,\n\r" +
 				"   \"Receivables - Transactions Real Time\".\"- Line Amounts\".\"Line Amount\" s_55,\r\n" +
-//				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_\" s_56,\r\n" +
-				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CODIGO_SAT_\" s_57,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_\" s_56,\r\n" +
+//				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CODIGO_SAT_\" s_57,\r\n" + //Quitar futuro
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_REGIMEN_FISCAL_\" s_57," + // Fac 4.0
 				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_FORMA_DE_PAGO_\" s_58,\r\n" + 
 				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_METODO_DE_PAGO_\" s_59,\r\n" + 
 				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_USO_CFDI_\" s_60,\r\n" +
-				"	\"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_DSCRPTN_TL_CTF_\" s_61,\r\n"+
-				"	\"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_DSCRPTN_T_L_LN_\" s_62\r\n" +
+//				"	\"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_DSCRPTN_TL_CTF_\" s_61,\r\n"+ //Quitar futuro //Fac 4.0
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_DSCRPTN_TL_CTF_\" s_61,\r\n" + //RA_CUSTOMER_TRX_CAT_EXPORTACION_
+//				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CAT_EXPORTACION_\" s_61," + // Fac 4.0
+				"	\"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_DSCRPTN_T_L_LN_\" s_62,\r\n" +
+				"	\"Receivables - Transactions Real Time\".\"- Reference Information\".\"RA_CUST_TRX_TYPES_TIMBRAR_\" s_63," +//Campo para saber si se timbra
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Class Code\" s_64\r\n," +//Clase de la transacción (INV, CM)
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Class\" s_65,\n\r" +
+				"   \"Receivables - Transactions Real Time\".\"- Line Information\".\"Memo Line Description\" s_66,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Line Information\".\"Memo Line Name\" s_67,\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_CODIGO_SAT_\" s_68,\r\n" +//Clave prodSer a nivel linea
+				"	CASE WHEN \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Source Name\" ='Distributed Order Orchestration' THEN 'Y' ELSE CASE WHEN \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Source Name\" ='Manual IMEMSA' and \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Class Code\" in ('INV','CM', 'ONACC') AND \"Receivables - Transactions Real Time\".\"- Transaction Distribution Details\".\"Accounted\" in ('Yes','Sí') THEN 'Y' ELSE 'N' END END s_69,\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_1_\" s_70,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_2_\" s_71,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_3_\" s_72,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_4_\" s_73,\r\n" +
+				"	\"Receivables - Transactions Real Time\".\"- Line Information\".\"Sales Order Line\" s_74,\r\n" +
+				"	\"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_MOTIVO_DE_CANCELACION_\" s_75,\r\n" +
+				"	\"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_RELACION_ANTICIPO_\" s_76,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_SUSTITUCION_CFDI_\" s_77,\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_DSCRPTN_T_L_LN_2_\" s_78,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_DSCRPTN_T_L_LN_3_\" s_79,\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Line Information\".\"RA_CUSTOMER_TRX_LINES_CAT_OBJ_IMP_\" s_80,\r\n" + //Fac 4.0
+				"	\"Receivables - Transactions Real Time\".\"- Freight Details\".\"Ship To Location Province\" s_81,\r\n" + //Fac 4.0
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Identifying Address\".\"Bill-to Customer Province\" s_82\r\n" + //Fac 4.0 
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
-				"WHERE\r\n" + //("- Reference Information"."Last Update Date" > timestamp '2021-05-17 05:00:00')
-//				"((\"- Reference Information\".\"Creation Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))\r\n" +
-				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))\r\n" + 
+				"WHERE\r\n" +
+//				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL) AND (CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Distributed Order Orchestration' \r\n" + 
+//				"THEN 'Y'  \r\n" + 
+//				"ELSE CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Manual IMEMSA' and \"- General Information\".\"Transaction Class Code\" in ('INV','CM') AND \"- General Information\".\"RA_CUSTOMER_TRX_TIMBRAR_\" = 'Y' THEN 'Y' ELSE 'N' END \r\n" + 
+//				"END = 'Y'))" +
+				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))" + /*AND (CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Distributed Order Orchestration'  THEN 'Y'   ELSE CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Manual IMEMSA' and \"- General Information\".\"Transaction Class Code\" in ('INV','CM')" +/* AND \"- Transaction Distribution Details\".\"Accounted\" in ('Yes', 'Sí') THEN 'Y' ELSE 'N' END  END))" +*/
 				"ORDER BY 1, 14 ASC NULLS LAST, 11 ASC NULLS LAST, 26 ASC NULLS LAST, 28 ASC NULLS LAST, 24 ASC NULLS LAST, 12 ASC NULLS LAST, 13 ASC NULLS LAST, 15 ASC NULLS LAST, 19 ASC NULLS LAST, 18 ASC NULLS LAST, 22 ASC NULLS LAST, 17 ASC NULLS LAST, 30 ASC NULLS LAST, 16 ASC NULLS LAST, 9 ASC NULLS LAST, 7 ASC NULLS LAST, 6 ASC NULLS LAST, 5 ASC NULLS LAST, 4 ASC NULLS LAST, 3 ASC NULLS LAST, 2 ASC NULLS LAST, 31 ASC NULLS LAST, 23 ASC NULLS LAST, 21 ASC NULLS LAST, 20 ASC NULLS LAST, 8 ASC NULLS LAST, 27 ASC NULLS LAST, 10 ASC NULLS LAST" +
 				"         </v7:sql>\r\n" + 
 				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
@@ -243,6 +269,7 @@ public class PayloadProducer {
 				"      </v7:executeSQLQuery>\r\n" + 
 				"   </soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>";
+		System.out.print(SOAPRequest);
 		return SOAPRequest;
 	}
 	
@@ -430,13 +457,20 @@ public class PayloadProducer {
 				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Details\".\"Paying Customer Number\" s_37,\r\n" +
 				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_FORMA_DE_PAGO_\" s_38,\r\n" + 
 				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_SUCURSAL_\" s_39,\r\n" +
-				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"JG_AR_CASH_RECEIPTS_DGTLTXRCPTSNGNTRNT_\" s_40\r\n" +
-//				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_IVA_0_\" s_41,\r\n" + 
-//				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_IVA_16_\" s_42\r\n" +
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"JG_AR_CASH_RECEIPTS_DGTLTXRCPTSNGNTRNT_\" s_40,\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Accounted\" s_41,\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt State Code\" s_42,\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_SUSTITUCION_CFDI_\" s_43,\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_MOTIVO_DE_CANCELACION_\" s_44,\r\n" +
+//				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_MOTIVO_DE_CANCELACION_\" s_45,\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_CAT_EXPORTACION_\" s_45,\r\n" +//Fac 4.0
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Deposit Date\" s_46,\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_UUID_7_\" s_47\r\n" +//USO CFDI
+//				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_USO_CFDI_\" s_47\r\n" + // Fac 4.0 
 				"FROM \"Receivables - Standard Receipts Application Details Real Time\"\r\n" + 
 				"WHERE\r\n" + 
-//				"(\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "')\r\n" +
-				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "') AND (\"Standard Receipt Application Details\".\"Accounted\" IN ('Sí', 'Yes')))" +
+				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "'))" +/* AND (\"Standard Receipt Application Details\".\"Accounted\" IN ('Sí', 'Yes')))" +*/
+//				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '2021-01-01 00:00:00') AND (\"Standard Receipt Details\".\"Receipt Number\" IN ('PAGO01-231', 'PAGO01-304', 'PAGO01-308', 'PAGO01-343', 'PAGO01-344', 'PAGO01-362', 'PAGO01-370', 'PAGO01-371', 'PAGO01-381', 'PAGO01-534', 'PAGO01-935', 'PAGO01-939', 'REFBNTC00284734', 'TAP2109283', 'TAP2111294', 'VAL2109224')))" +
 				"Order by s_20 asc\r\n" +
 				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
 				"         </v7:sql>\r\n" + 
@@ -596,10 +630,14 @@ public class PayloadProducer {
 				"   \"Costing - Cost Accounting Real Time\".\"Subinventory\".\"Sub Inventory Name\" s_13,\r\n" + 
 				"   \"Costing - Cost Accounting Real Time\".\"Transfer Inventory Organization\".\"Transfer Organization Name\" s_14,\r\n" + 
 				"   DESCRIPTOR_IDOF(\"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit of Measure\") s_15,\r\n" +
-				"	\"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit Cost\" s_16\r\n"+
+				"	\"Costing - Cost Accounting Real Time\".\"Cost Accounting Distributions Details\".\"Unit Cost\" s_16,\r\n"+
+				"	\"Costing - Cost Accounting Real Time\".\"Cost Element\".\"Cost Element Code\" s_17,\r\n" +
+				"	\"Costing - Cost Accounting Real Time\".\"Cost Transaction Details\".\"Inventory Transaction Id\" s_18\r\n" +
 				"FROM \"Costing - Cost Accounting Real Time\"\r\n" + 
 				"WHERE\r\n" + 
-				"((\"Cost Transaction Details\".\"Transaction Date\" > timestamp '2021-02-12 20:10:27') AND (\"Cost Transaction Type\".\"Base Transaction Type Name\" IN ('Envio en transito', 'Envío entre organizaciones de orden de transferencia', 'Transferencia directa entre organizaciones', 'Intransit Shipment', 'Transfer Order Interorganization Shipment')) AND (\"Cost Organization Book\".\"Cost Book Code\" = 'SECUNDARIO'))" +
+//				"((\"Cost Transaction Details\".\"Transaction Date\" > timestamp '" + date + "') AND (\"Cost Transaction Type\".\"Base Transaction Type Name\" IN ('Envio en transito', 'Envío entre organizaciones de orden de transferencia', 'Transferencia directa entre organizaciones', 'Intransit Shipment', 'Transfer Order Interorganization Shipment')) AND (\"Cost Organization Book\".\"Cost Book Code\" = 'PRIMARIO') AND (\"Cost Element\".\"Cost Element Code\" = 'Material Directo'))" +
+				"((\"Cost Transaction Details\".\"Transaction Date\" > timestamp '" + date + "') AND (\"Cost Transaction Type\".\"Base Transaction Type Name\" IN ('Envio en transito', 'Envío entre organizaciones de orden de transferencia', 'Transferencia directa entre organizaciones', 'Intransit Shipment', 'Transfer Order Interorganization Shipment', 'Direct Organization Transfer')) AND (\"Cost Organization Book\".\"Cost Book Code\" = 'PRIMARIO') AND (\"Cost Element\".\"Cost Element Code\" = 'Material Directo'))\r\n" +
+//				"((\"Cost Transaction Details\".\"Transaction Date\" > timestamp '" + date + "') AND (\"Cost Transaction Type\".\"Base Transaction Type Name\" IN ('Envio en transito', 'Envío entre organizaciones de orden de transferencia', 'Transferencia directa entre organizaciones', 'Intransit Shipment', 'Transfer Order Interorganization Shipment', 'Direct Organization Transfer')) AND (\"Cost Organization Book\".\"Cost Book Code\" = 'PRIMARIO'))" +
 				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
 				"         </v7:sql>\r\n" + 
 				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
@@ -910,5 +948,181 @@ public class PayloadProducer {
 				"   </soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>";
 		return SOAPRequest;
+	}
+	
+	public static String getReportHelpPayments(String sessionId, String receiptNumber) {
+		String request = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"SELECT\r\n" + 
+				"   0 s_0,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Applied Transaction Number\" s_1,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Document Currency\" s_2,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Exchange Rate\" s_3,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt ID\" s_4,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Number\" s_5,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt State\" s_6,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Reversal Reason Code\" s_7,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Applied From Accounted Amount\" s_8,\r\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Applied From Entered Amount\" s_9\r\n" + 
+				"FROM \"Receivables - Miscellaneous Receipts Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"((\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Applied To Entered Amount\" > 0) AND (\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Number\" = '" + receiptNumber + "') AND (\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Applied Transaction Number\" IS NOT NULL))\r\n" + 
+				"ORDER BY 1, 6 ASC NULLS LAST, 5 ASC NULLS LAST, 2 ASC NULLS LAST, 4 ASC NULLS LAST, 3 ASC NULLS LAST, 8 ASC NULLS LAST, 7 ASC NULLS LAST\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"</v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";		
+		return request;
+	}
+	
+	public static String debitMemoRequest (String sessionId, String date) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"SELECT\r\n" + 
+				"   0 s_0,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_CFDI_RELACIONADO_\" s_1,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_MOTIVO_DE_CANCELACION_\" s_2,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_SUSTITUCION_CFDI_\" s_3,\r\n" + 
+				"   DESCRIPTOR_IDOF(\"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Class\") s_4,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Class\" s_5,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Number\" s_6,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Source Name\" s_7,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Reference Information\".\"Last Update Date\" s_8,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- Transaction Distribution Details\".\"Accounted\" s_9,\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Details\".\"Bill-to Customer Name\" s_10,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"Business Unit\".\"Default Legal Entity Name\" s_11\r\n" +
+				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- General Information\".\"Transaction Class Code\" = 'DM'))\r\n" + 
+				"ORDER BY 1, 5 ASC NULLS LAST, 6 ASC NULLS LAST, 7 ASC NULLS LAST, 8 ASC NULLS LAST, 4 ASC NULLS LAST, 3 ASC NULLS LAST, 2 ASC NULLS LAST, 9 ASC NULLS LAST, 10 ASC NULLS LAST\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		return soapRequest;
+	}
+	
+	public static String searchNumRegIdTrib (String sessionId, String customerName) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"         SELECT\r\n" + 
+				"   0 s_0,\r\n" + 
+				"   \"Receivables - Customer Real Time\".\"Customer Information\".\"Customer Name\" s_1,\r\n" + 
+				"   \"Receivables - Customer Tax Profile Real Time\".\"Tax Controls and Defaults\".\"Registration Number\" s_2\r\n" + 
+				"FROM \"Receivables - Customer Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"(\"Customer Information\".\"Customer Name\" IN ('" + customerName + "'))\r\n" + 
+				"ORDER BY 1, 2 ASC NULLS LAST, 3 ASC NULLS LAST\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return soapRequest;
+	}
+	
+	public static String searchTaxRegime (String sessionId, String customerName) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"         SELECT\r\n" + 
+				"   0 s_0,\r\n" + 
+				"   \"Receivables - Customer Real Time\".\"Customer Account Details\".\"HZ_CUST_ACCOUNTS_REGIMEN_FISCAL_\" s_1,\r\n" + 
+				"   \"Receivables - Customer Real Time\".\"Customer Information\".\"Customer Name\" s_2\r\n" + 
+				"FROM \"Receivables - Customer Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"(\"Customer Information\".\"Customer Name\" = '" + customerName + "')\r\n" + 
+				"ORDER BY 3 ASC NULLS LAST, 2 ASC NULLS LAST\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"         </v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return soapRequest;
+	}
+	
+	public static String searchUUID (String sessionId, String transactionNumber) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v7=\"urn://oracle.bi.webservices/v7\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <v7:executeSQLQuery>\r\n" + 
+				"         <v7:sql>\r\n" + 
+				"SELECT\r\n" + 
+				"   0 s_0,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"JE_RA_CUSTOMER_TRX_CFDCBBINVOICENUMBER_\" s_1,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"JE_RA_CUSTOMER_TRX_CFDCBBSERIALNUMBER_\" s_2,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"JE_RA_CUSTOMER_TRX_CFDIUNIQUEIDENTIFIER_\" s_3,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"Transaction Number\" s_4\r\n" + 
+				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
+				"WHERE\r\n" + 
+				"(\"- General Information\".\"Transaction Number\" = '" + transactionNumber + "')\r\n" + 
+				"ORDER BY 5 ASC NULLS LAST, 4 ASC NULLS LAST, 3 ASC NULLS LAST, 2 ASC NULLS LAST\r\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
+				"</v7:sql>\r\n" + 
+				"         <v7:outputFormat>XML</v7:outputFormat>\r\n" + 
+				"         <v7:executionOptions>\r\n" + 
+				"            <v7:async></v7:async>\r\n" + 
+				"            <v7:maxRowsPerPage></v7:maxRowsPerPage>\r\n" + 
+				"            <v7:refresh></v7:refresh>\r\n" + 
+				"            <v7:presentationInfo></v7:presentationInfo>\r\n" + 
+				"            <v7:type></v7:type>\r\n" + 
+				"         </v7:executionOptions>\r\n" + 
+				"         <v7:sessionID>" + sessionId + "</v7:sessionID>\r\n" + 
+				"      </v7:executeSQLQuery>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return soapRequest;
 	}
 }

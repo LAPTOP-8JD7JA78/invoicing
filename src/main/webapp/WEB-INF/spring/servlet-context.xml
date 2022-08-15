@@ -56,7 +56,7 @@
 
 	<bean id="propertyConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
-		p:location="/WEB-INF/properties/jdbc.properties" />
+		p:location="/WEB-INF/properties/jdbcCloud.properties" />
 
 	<bean id="contentNegotiationManager"
 		class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
@@ -65,7 +65,7 @@
 		<property name="mediaTypes">
 			<value>
 				json=application/json
-				xml=application/xml
+				xml=application/xml2
 				html=text/html
 			</value>
 		</property>
