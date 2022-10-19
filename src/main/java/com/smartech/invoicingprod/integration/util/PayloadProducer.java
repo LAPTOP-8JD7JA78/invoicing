@@ -269,7 +269,7 @@ public class PayloadProducer {
 				"      </v7:executeSQLQuery>\r\n" + 
 				"   </soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>";
-		System.out.print(SOAPRequest);
+//		System.out.print(SOAPRequest);
 		return SOAPRequest;
 	}
 	

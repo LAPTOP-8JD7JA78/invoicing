@@ -6,12 +6,12 @@ public class AppConstants {
 	public static final String ORACLE_PASS = "Mexico$2020";
 	
 //	Ambientes de test
-	public static final String ORACLE_URL = "https://fa-epog-test-saasfaprod1.fa.ocs.oraclecloud.com";
-	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/auth/data";
+//	public static final String ORACLE_URL = "https://fa-epog-test-saasfaprod1.fa.ocs.oraclecloud.com";
+//	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/auth/data";
 
 //	Ambientes de producción
-//	public static final String ORACLE_URL = "https://fa-epog-saasfaprod1.fa.ocs.oraclecloud.com";
-//	public static final String DIST_PORTAL_URL = "https://integracionprod-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_de_Distribuidores/live/resources/auth/data";
+	public static final String ORACLE_URL = "https://fa-epog-saasfaprod1.fa.ocs.oraclecloud.com";
+	public static final String DIST_PORTAL_URL = "https://integracionprod-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_de_Distribuidores/live/resources/auth/data";
 	
 	//Ambientes de prueba
 //	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/design/Portal_test_Security/1.0.16/resources/data";

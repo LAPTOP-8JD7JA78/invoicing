@@ -356,7 +356,7 @@ public class SchedulerService {
 		log.info("\'recolectListPayments\': is finished********");
 	}
 	
-//	@Scheduled(fixedDelay = 240000, initialDelay = 60000)
+	@Scheduled(fixedDelay = 240000, initialDelay = 60000)
 	public void DebitMemoSchedule() throws ParseException {
 		log.info("\'DebitMemoSchedule\' is started*******");	
 		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		

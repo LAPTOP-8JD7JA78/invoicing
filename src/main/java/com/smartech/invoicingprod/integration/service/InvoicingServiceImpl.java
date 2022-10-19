@@ -192,9 +192,19 @@ public class InvoicingServiceImpl implements InvoicingService{
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
 			List<Invoice> invList = new ArrayList<Invoice>();
 			for(Row ro: r) {
-//				if(ro.getColumn9().equals("85100")) {
-//					System.out.print(true);
-//				}
+				System.out.println(ro.getColumn9());
+				if(ro.getColumn63().equals(AppConstants.INVOICING_INVOICE)) {
+					if(ro.getColumn9().equals("470008")) {
+						System.out.println(true);
+					}
+					AnalyticsDTO analytics = new AnalyticsDTO();
+					analytics.setTransactionNumber(ro.getColumn9());
+					Rowset rowS = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+							AppConstants.SERVICE_AR_REPORT_GET_UUID, analytics);
+					if(rowS.getRow().get(0).getColumn3() != null && !rowS.getRow().get(0).getColumn3().isEmpty()) {
+						continue;
+					}
+				}
 				if(NullValidator.isNull(ro.getColumn68()).equals("N")) {
 					continue;
 				}
@@ -942,16 +952,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 										invDetails.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
 										invDetails.setItemDescription(in.getItemDescriptionDetailsForService());
 										invDetails.setCatObjImp(in.getCatObjImp());// Fac 4.0
-										/*if(in.getItemDescriptionDetailsForService() == null){
-											if(in.getItemDescription() != null && !in.getItemDescription().isEmpty()) {
-												invDetails.setItemDescription(in.getItemDescription());
-											}else {
-												continue;
-												//invDetails.setItemDescription("Venta de activo fijo");
-											}
-										}else {//Descripción para servicios
-											invDetails.setItemDescription(NullValidator.isNull(in.getItemDescriptionDetailsForService()));
-										}*/
 									}
 									invDetails.setTransactionLineNumber(in.getTransactionLineNumber());
 									if(i.isInvoice()) {
@@ -990,6 +990,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									//COLOCAR QUE LA LÍNEA ES TRANSACCIONABLE
 									invDetails.setIsInvoiceLine("D");
 									invDetails.setWarrantyFull(false);
+									
 									List<TaxCodes> tclConsult = taxCodesService.getTCList(0, 10);
 									Set<TaxCodes> tcl = new HashSet<TaxCodes>(tclConsult);
 									for(TaxCodes tc: tcl) {
@@ -1684,15 +1685,15 @@ public class InvoicingServiceImpl implements InvoicingService{
 					}
 					//SI ES NC
 					if(!inv.isInvoice()) {
-//						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-						Invoice invRef = invoiceDao.getSingleInvoiceByFolioLike(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+						Invoice invRef = invoiceDao.getSingleInvoiceByFolio(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
+//						Invoice invRef = invoiceDao.getSingleInvoiceByFolioLike(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
 						if(invRef != null && (invRef.getUUID() != null && !"".contains(invRef.getUUID()))) {
 							inv.setUUIDReference(invRef.getUUID());
 							//Mapeo de tipo de relación con tipo de orden IME-DEVESTANDAR
 							Udc returnDev = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_RTYPE, AppConstants.UDC_KEY_ORDER_TYPE_RETURN);
 							if(inv.getSalesOrderType() != null && !inv.getSalesOrderType().isEmpty()) {
 								if(inv.getSalesOrderType().equals(returnDev.getStrValue1())) {
-									inv.getInvoiceRelationType().equals(returnDev.getStrValue2());
+									inv.setInvoiceRelationType(returnDev.getStrValue2());
 								}
 							}
 							if(invRef.isExtCom()) {
@@ -1728,7 +1729,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 							}else {
 								transactionLineId = line.getDocumentReference().get(0).getDocumentLineIdentifier();
 							}
-//							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && Double.parseDouble(line.getOrderedQuantity()) == invLine.getQuantity()
 							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && quan2 == invLine.getQuantity() 
 									&& (line.getOrderedUOMCode().contains(invLine.getUomName()) || line.getOrderedUOM().toUpperCase().contains(invLine.getUomName().toUpperCase())) 
 											&& "CLOSED".contains(line.getStatusCode()) && transactionLineId.equals(NullValidator.isNull(invLine.getSalesOrderLine()))) {
@@ -1738,7 +1738,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 									String unitCostForCombo= "";
 									List<TaxCodes> tcodesCombo = new ArrayList<TaxCodes>(invLine.getTaxCodes());
 									if(so.getLines().size() > inv.getInvoiceDetails().size()) {//Para productos marina o productos kits sin serie
-//										if(!line.getItemSubTypeCode().toUpperCase().equals("INCLUDED")){//Para combos STANDARD
 										if(!line.getItemSubTypeCode().toUpperCase().equals("STANDARD")){
 											for(SalesOrderLinesDTO lineCombo: so.getLines()) {												
 												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>(inv.getInvoiceDetails());
@@ -1789,7 +1788,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 																						}else {
 																							leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: NA";
 																						}
-	//																						leyendas = leyendas + " LANCHA: MODELO: " + lineCombo.getProductNumber() + " SERIE: " + NullValidator.isNull(lineCombo.getLotSerials().get(0).getSerialNumberFrom()) + "\r\n ";
 																					}
 																				}
 																			}																			
@@ -1871,7 +1869,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 																}else {
 																	dCombo.setIsVehicleControl("0");
 																}	
-	//																dCombo.setInvoicingLine(true);
 																invDListNormal.add(dCombo);
 																inv.setInvoiceDetails(invDListNormal);
 																countCombo++;
@@ -2104,7 +2101,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 											}
 											invLine.setUnitCost(NullValidator.isNullUnitCost(unitCostByItem));
 										}else {
-//											String unitCostByItem = this.getUnitCostByWsForSalesOrders(inv, invLine);
 											invLine.setUnitCost(unitCostForCombo);
 										}										
 										//Precio producto venta sin iva
@@ -2728,47 +2724,60 @@ public class InvoicingServiceImpl implements InvoicingService{
 				if(inv == null) {
 					inv = invoiceDao.getSingleInvoiceByFolioLike(r.getColumn12(), AppConstants.ORDER_TYPE_FACTURA);//TransactionReference
 					if(inv == null) {
-//						return null;
-						//Buscar facturas perdidas
-						brar = branchService.getBranchByCode("CEDIS");
-						ReceivablesInvoices invLost = restService.getInvoiceData(r.getColumn12());
-						if(invLost != null) {
-							AnalyticsDTO analytics = new AnalyticsDTO();
-							analytics.setTransactionNumber(r.getColumn12());
-							Rowset rowS = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
-									AppConstants.SERVICE_AR_REPORT_GET_UUID, analytics);
-							if(rowS.getRow().get(0).getColumn3() != null && !rowS.getRow().get(0).getColumn3().isEmpty()) {
-								inv = new Invoice();
-								inv.setCustomerName(NullValidator.isNull(invLost.getItems().get(0).getBillToCustomerName()));
-								inv.setFolio(NullValidator.isNull(invLost.getItems().get(0).getTransactionNumber()));
-								inv.setFromSalesOrder(NullValidator.isNull(invLost.getItems().get(0).getTransactionNumber()));
-								inv.setPaymentMethod("PPD");
-								inv.setInvoiceCurrency(NullValidator.isNull(invLost.getItems().get(0).getInvoiceCurrencyCode()));
-								inv.setSerial("MEFAC");
-								inv.setBranch(brar);
-								inv.setCustomerPartyNumber(NullValidator.isNull(invLost.getItems().get(0).getBillToCustomerNumber()));
-								inv.setCustomerEmail(NullValidator.isNull(invLost.getItems().get(0).getBillToContact()));
-								inv.setUUID(NullValidator.isNull(rowS.getRow().get(0).getColumn3().trim()));
-								inv.setInvoiceType("CI");	
-								inv.setCustomerTaxIdentifier(r.getColumn1().trim());
-								inv.setCustomerZip(r.getColumn4());
-								inv.setInvoiceDetails(null);
-								inv.setOrderSource("CARGA INICIAL");
-								inv.setOrderType(AppConstants.ORDER_TYPE_FACTURA);
-								inv.setSetName("Common Set");
-								inv.setStatus(AppConstants.STATUS_FINISHED);
-								List<Udc> udc = new ArrayList<Udc>();
-								udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
-								for(Udc u: udc) {
-									if(u.getStrValue1().equals(r.getColumn3())) {
-										inv.setCustomerCountry(u.getUdcKey());
-										break;
+						inv = invoiceDao.getSingleInvoiceByFolioLike(r.getColumn12(), "CARGA INICIAL");//TransactionReference
+						if(inv == null){
+							inv = invoiceDao.getSingleInvoiceByFolioLike(r.getColumn12(), "CI");//TransactionReference
+							if(inv == null){
+								//Buscar facturas perdidas
+								brar = branchService.getBranchByCode("CEDIS");
+								ReceivablesInvoices invLost = restService.getInvoiceData(r.getColumn12());
+								if(invLost != null) {
+									AnalyticsDTO analytics = new AnalyticsDTO();
+									analytics.setTransactionNumber(r.getColumn12());
+									Rowset rowS = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+											AppConstants.SERVICE_AR_REPORT_GET_UUID, analytics);
+									if(rowS.getRow().get(0).getColumn3() != null && !rowS.getRow().get(0).getColumn3().isEmpty()) {
+										inv = new Invoice();
+										inv.setCustomerName(NullValidator.isNull(invLost.getItems().get(0).getBillToCustomerName()));
+										inv.setFolio(NullValidator.isNull(invLost.getItems().get(0).getTransactionNumber()));
+										inv.setFromSalesOrder(NullValidator.isNull(invLost.getItems().get(0).getTransactionNumber()));
+										inv.setPaymentMethod("PPD");
+										inv.setInvoiceCurrency(NullValidator.isNull(invLost.getItems().get(0).getInvoiceCurrencyCode()));
+										inv.setSerial("MEFAC");
+										inv.setBranch(brar);
+										inv.setCustomerPartyNumber(NullValidator.isNull(invLost.getItems().get(0).getBillToCustomerNumber()));
+										inv.setCustomerEmail(NullValidator.isNull(invLost.getItems().get(0).getBillToContact()));
+										inv.setUUID(NullValidator.isNull(rowS.getRow().get(0).getColumn3().trim()));
+										inv.setInvoiceType("CI");	
+										inv.setCustomerTaxIdentifier(r.getColumn1().trim());
+										inv.setCustomerZip(r.getColumn4());
+										//---
+										Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+										InvoiceDetails invDetails = new InvoiceDetails();
+										Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+										tcList.add(taxCodesService.getTCById(2));	
+										invDetails.setTaxCodes(tcList);
+										invDListNormal.add(invDetails);
+//										inv.setInvoiceDetails(null);
+										//---								
+										inv.setOrderSource("CARGA INICIAL");
+										inv.setOrderType(AppConstants.ORDER_TYPE_FACTURA);
+										inv.setSetName("Common Set");
+										inv.setStatus(AppConstants.STATUS_FINISHED);
+										List<Udc> udc = new ArrayList<Udc>();
+										udc = udcService.searchBySystem(AppConstants.UDC_SYSTEM_COUNTRY);
+										for(Udc u: udc) {
+											if(u.getStrValue1().equals(r.getColumn3())) {
+												inv.setCustomerCountry(u.getUdcKey());
+												break;
+											}
+										}
+										invoiceDao.saveInvoice(inv);
 									}
+								}else {
+									return null;
 								}
-								invoiceDao.saveInvoice(inv);
 							}
-						}else {
-							return null;
 						}
 					}					
 				}
@@ -2860,6 +2869,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 										double ivaFac = 0.00;
 										InvoiceDetails iDetails = new InvoiceDetails();
 										TaxCodes taxCodes = new TaxCodes();
+										//Cambiar y verificar cargas iniciales
+										if(inv.getInvoiceDetails() == null) {
+//											return null;
+											Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+											InvoiceDetails invDetails = new InvoiceDetails();
+											Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+											tcList.add(taxCodesService.getTCById(2));	
+											invDetails.setTaxCodes(tcList);
+											invDListNormal.add(invDetails);
+											inv.setInvoiceDetails(invDListNormal);
+										}
+										//Cambiar y verificar cargas iniciales
 										for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 											iDetails = idet;
 											break;
@@ -3063,6 +3084,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 												double ivaFac = 0.00;
 												InvoiceDetails iDetails = new InvoiceDetails();
 												TaxCodes taxCodes = new TaxCodes();
+												//Cambiar y verificar cargas iniciales
+												if(inv.getInvoiceDetails() == null) {
+//													return null;
+													Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+													InvoiceDetails invDetails = new InvoiceDetails();
+													Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+													tcList.add(taxCodesService.getTCById(2));	
+													invDetails.setTaxCodes(tcList);
+													invDListNormal.add(invDetails);
+													inv.setInvoiceDetails(invDListNormal);
+												}
+												//Cambiar y verificar cargas iniciales
 												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 													iDetails = idet;
 													break;
@@ -3150,15 +3183,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 													return null;
 												}
 											}else if(getPay != null) {
-//												if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
-//												if(r.getColumn37() != null) {
-//													getPay.setPaymentError(null);
-//													getPay.setErrorActive(false);
-//													getPay.setPaymentType(r.getColumn37());
-//													getPay.setPaymentStatus(AppConstants.STATUS_PENDING);
-//													paymentsService.updatePayment(getPay);
-//													}
-//												}
 												for(Payments perror: inv.getPayments()) {
 													if(perror.getReceiptNumber().equals(getPay.getReceiptNumber())) {
 														if(getPay.getPaymentStatus().equals(AppConstants.STATUS_ERROR_DATA_PAY)) {
@@ -3221,6 +3245,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 											double ivaFac = 0.00;
 											InvoiceDetails iDetails = new InvoiceDetails();
 											TaxCodes taxCodes = new TaxCodes();
+											//Cambiar y verificar cargas iniciales
+											if(inv.getInvoiceDetails() == null) {
+//												return null;
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+												InvoiceDetails invDetails = new InvoiceDetails();
+												Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+												tcList.add(taxCodesService.getTCById(2));	
+												invDetails.setTaxCodes(tcList);
+												invDListNormal.add(invDetails);
+												inv.setInvoiceDetails(invDListNormal);
+											}
+											//Cambiar y verificar cargas iniciales
 											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 												iDetails = idet;
 												break;
@@ -3374,6 +3410,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 												double ivaFac = 0.00;
 												InvoiceDetails iDetails = new InvoiceDetails();
 												TaxCodes taxCodes = new TaxCodes();
+												//Cambiar y verificar cargas iniciales
+												if(inv.getInvoiceDetails() == null) {
+//													return null;
+													Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+													InvoiceDetails invDetails = new InvoiceDetails();
+													Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+													tcList.add(taxCodesService.getTCById(2));	
+													invDetails.setTaxCodes(tcList);
+													invDListNormal.add(invDetails);
+													inv.setInvoiceDetails(invDListNormal);
+												}
+												//Cambiar y verificar cargas iniciales
 												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 													iDetails = idet;
 													break;
@@ -3523,6 +3571,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 											double ivaFac = 0.00;
 											InvoiceDetails iDetails = new InvoiceDetails();
 											TaxCodes taxCodes = new TaxCodes();
+											//Cambiar y verificar cargas iniciales
+											if(inv.getInvoiceDetails() == null) {
+//												return null;
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+												InvoiceDetails invDetails = new InvoiceDetails();
+												Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+												tcList.add(taxCodesService.getTCById(2));	
+												invDetails.setTaxCodes(tcList);
+												invDListNormal.add(invDetails);
+												inv.setInvoiceDetails(invDListNormal);
+											}
+											//Cambiar y verificar cargas iniciales
 											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 												iDetails = idet;
 												break;
@@ -3748,6 +3808,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 												double ivaFac = 0.00;
 												InvoiceDetails iDetails = new InvoiceDetails();
 												TaxCodes taxCodes = new TaxCodes();
+												//Cambiar y verificar cargas iniciales
+												if(inv.getInvoiceDetails() == null) {
+//													return null;
+													Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+													InvoiceDetails invDetails = new InvoiceDetails();
+													Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+													tcList.add(taxCodesService.getTCById(2));	
+													invDetails.setTaxCodes(tcList);
+													invDListNormal.add(invDetails);
+													inv.setInvoiceDetails(invDListNormal);
+												}
+												//Cambiar y verificar cargas iniciales
 												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 													iDetails = idet;
 													break;
@@ -3896,6 +3968,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 											double ivaFac = 0.00;
 											InvoiceDetails iDetails = new InvoiceDetails();
 											TaxCodes taxCodes = new TaxCodes();
+											//Cambiar y verificar cargas iniciales
+											if(inv.getInvoiceDetails() == null) {
+//												return null;
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+												InvoiceDetails invDetails = new InvoiceDetails();
+												Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+												tcList.add(taxCodesService.getTCById(2));	
+												invDetails.setTaxCodes(tcList);
+												invDListNormal.add(invDetails);
+												inv.setInvoiceDetails(invDListNormal);
+											}
+											//Cambiar y verificar cargas iniciales
 											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 												iDetails = idet;
 												break;
@@ -4044,6 +4128,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 												double ivaFac = 0.00;
 												InvoiceDetails iDetails = new InvoiceDetails();
 												TaxCodes taxCodes = new TaxCodes();
+												//Cambiar y verificar cargas iniciales
+												if(inv.getInvoiceDetails() == null) {
+//													return null;
+													Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+													InvoiceDetails invDetails = new InvoiceDetails();
+													Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+													tcList.add(taxCodesService.getTCById(2));	
+													invDetails.setTaxCodes(tcList);
+													invDListNormal.add(invDetails);
+													inv.setInvoiceDetails(invDListNormal);
+												}
+												//Cambiar y verificar cargas iniciales
 												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 													iDetails = idet;
 													break;
@@ -4192,6 +4288,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 											double ivaFac = 0.00;
 											InvoiceDetails iDetails = new InvoiceDetails();
 											TaxCodes taxCodes = new TaxCodes();
+											//Cambiar y verificar cargas iniciales
+											if(inv.getInvoiceDetails() == null) {
+//												return null;
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+												InvoiceDetails invDetails = new InvoiceDetails();
+												Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+												tcList.add(taxCodesService.getTCById(2));	
+												invDetails.setTaxCodes(tcList);
+												invDListNormal.add(invDetails);
+												inv.setInvoiceDetails(invDListNormal);
+											}
+											//Cambiar y verificar cargas iniciales
 											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 												iDetails = idet;
 												break;
@@ -4382,6 +4490,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 												double ivaFac = 0.00;
 												InvoiceDetails iDetails = new InvoiceDetails();
 												TaxCodes taxCodes = new TaxCodes();
+												//Cambiar y verificar cargas iniciales
+												if(inv.getInvoiceDetails() == null) {
+//													return null;
+													Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+													InvoiceDetails invDetails = new InvoiceDetails();
+													Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+													tcList.add(taxCodesService.getTCById(2));	
+													invDetails.setTaxCodes(tcList);
+													invDListNormal.add(invDetails);
+													inv.setInvoiceDetails(invDListNormal);
+												}
+												//Cambiar y verificar cargas iniciales
 												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 													iDetails = idet;
 													break;
@@ -4531,6 +4651,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 											double ivaFac = 0.00;
 											InvoiceDetails iDetails = new InvoiceDetails();
 											TaxCodes taxCodes = new TaxCodes();
+											//Cambiar y verificar cargas iniciales
+											if(inv.getInvoiceDetails() == null) {
+//												return null;
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+												InvoiceDetails invDetails = new InvoiceDetails();
+												Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+												tcList.add(taxCodesService.getTCById(2));	
+												invDetails.setTaxCodes(tcList);
+												invDListNormal.add(invDetails);
+												inv.setInvoiceDetails(invDListNormal);
+											}
+											//Cambiar y verificar cargas iniciales
 											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 												iDetails = idet;
 												break;
@@ -4685,6 +4817,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 												double ivaFac = 0.00;
 												InvoiceDetails iDetails = new InvoiceDetails();
 												TaxCodes taxCodes = new TaxCodes();
+												//Cambiar y verificar cargas iniciales
+												if(inv.getInvoiceDetails() == null) {
+//													return null;
+													Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+													InvoiceDetails invDetails = new InvoiceDetails();
+													Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+													tcList.add(taxCodesService.getTCById(2));	
+													invDetails.setTaxCodes(tcList);
+													invDListNormal.add(invDetails);
+													inv.setInvoiceDetails(invDListNormal);
+												}
+												//Cambiar y verificar cargas iniciales
 												for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 													iDetails = idet;
 													break;
@@ -4833,6 +4977,18 @@ public class InvoicingServiceImpl implements InvoicingService{
 											double ivaFac = 0.00;
 											InvoiceDetails iDetails = new InvoiceDetails();
 											TaxCodes taxCodes = new TaxCodes();
+											//Cambiar y verificar cargas iniciales
+											if(inv.getInvoiceDetails() == null) {
+//												return null;
+												Set<InvoiceDetails> invDListNormal = new HashSet<InvoiceDetails>();
+												InvoiceDetails invDetails = new InvoiceDetails();
+												Set<TaxCodes> tcList = new HashSet<TaxCodes>();
+												tcList.add(taxCodesService.getTCById(2));	
+												invDetails.setTaxCodes(tcList);
+												invDListNormal.add(invDetails);
+												inv.setInvoiceDetails(invDListNormal);
+											}
+											//Cambiar y verificar cargas iniciales
 											for(InvoiceDetails idet: inv.getInvoiceDetails()) {
 												iDetails = idet;
 												break;
@@ -5431,8 +5587,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				inv.setRegimenFiscal(branchRec.getTaxRegime());//Fact 4.0
 				
 				invD.setRetailComplements(null);
-				invD.setTaxCodes(null);
-				invD.setCatObjImp("01");//Fact 4.0
+				invD.setTaxCodes(null);				
 				
 				invD.setItemDescription(NullValidator.isNull(r.getColumn0()));
 				invD.setItemNumber(NullValidator.isNull(r.getColumn1()));
@@ -5469,7 +5624,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 					//Clave Producto Servicio
 					if(itemSat.getItemDFFClavProdServ() != null && !"".contains(itemSat.getItemDFFClavProdServ())) {
 						invD.setUnitProdServ(itemSat.getItemDFFClavProdServ());
-						invD.setCatObjImp(itemSat.getItemDFFObjImp());
+//						invD.setCatObjImp(itemSat.getItemDFFObjImp());
+						invD.setCatObjImp("01");//Fact 4.0
 					}else {
 						msgError = msgError + ";PRODSERVSAT-No existe la Clave ProdServ SAT -" + invD.getItemNumber() + " en ItemMaster";
 						inv.setStatus(AppConstants.STATUS_ERROR_DATA_TRANSFER);
@@ -5674,10 +5830,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 						plist.setStatus(AppConstants.STATUS_PENDING);
 						paymentsListService.updatePaymentsList(plist);
 					}
-//					if(total == totalList) {
-//						plist.setStatus(AppConstants.STATUS_PENDING);
-//						paymentsListService.updatePaymentsList(plist);
-//					}
 				}
 			}
 		}catch(Exception e) {
