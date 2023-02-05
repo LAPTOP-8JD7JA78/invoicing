@@ -237,7 +237,7 @@ public class SchedulerService {
 			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_PAYMENTS);
 			if(da != null) {
 				Date dateSearch = da.getDateValue();
-				String search = sdf.format(dateSearch);
+				String search = sdfTime.format(dateSearch);
 				analytics.setAr_Report_date(search);
 				Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 						AppConstants.SERVICE_AR_REPORT_PAYMENTS, analytics);
@@ -332,19 +332,7 @@ public class SchedulerService {
 		log.info("\'createTransfer\': is finished********");
 	}
 	
-//	@Scheduled(fixedDelay = 3600000, initialDelay = 60000)
-	public void sendAllErrors() {
-		log.info("\'sendAllErrors\' is started*******");
-		try {
-			invoicingService.sendAllErrors();
-		}catch(Exception e) {
-			e.printStackTrace();
-			log.error("ERROR DURANTE EL PROCESO DE \'sendAllErrors\'-----------------------------", e);
-		}
-		log.info("\'sendAllErrors\': is finished********");
-	}
-	
-	@Scheduled(fixedDelay = 300000, initialDelay = 15000)//45000
+	@Scheduled(fixedDelay = 300000, initialDelay = 150000)//45000
 	public void recolectListPayments() {
 		log.info("\'recolectListPayments\' is started*******");
 		try {
@@ -403,6 +391,18 @@ public class SchedulerService {
 			log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
 		}
 		log.info("\'DebitMemoSchedule\' is finished*******");
+	}
+	
+//	@Scheduled(fixedDelay = 3600000, initialDelay = 60000)
+	public void sendAllErrors() {
+		log.info("\'sendAllErrors\' is started*******");
+		try {
+			invoicingService.sendAllErrors();
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("ERROR DURANTE EL PROCESO DE \'sendAllErrors\'-----------------------------", e);
+		}
+		log.info("\'sendAllErrors\': is finished********");
 	}
 	
 //	@Scheduled(fixedDelay = 10000, initialDelay = 10000)

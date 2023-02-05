@@ -463,4 +463,37 @@ public class RESTServiceImpl implements RESTService {
 			return null;
 		}
 	}
+
+	@Override
+	public CurrencyRates getDailyCurrencyExportacion(String date, String fromCurrency, String toCurrency) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("finder", "CurrencyRatesFinder;fromCurrency=" + fromCurrency + ",toCurrency=" + toCurrency + ",startDate=" + date + ",endDate=" + date + ",userConversionType=Fix _Exportacion"));
+			params.add(new ParamsRestDTO("onlyData", true));
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					AppConstants.URL_REST_CURRENCYRATES, HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_CURRENCY_RATES);
+			
+			int statusCode;
+			CurrencyRates responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (CurrencyRates) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
 }

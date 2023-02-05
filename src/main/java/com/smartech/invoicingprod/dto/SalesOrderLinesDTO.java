@@ -26,6 +26,7 @@ public class SalesOrderLinesDTO {
 	private String itemSubTypeCode;
 	private String returnReason;
 	private String shippingInstruction;
+	private String fulfillLineIdentifier;
 	
 	public String getSourceTransactionLineNumber() {
 		return sourceTransactionLineNumber;
@@ -164,6 +165,12 @@ public class SalesOrderLinesDTO {
 	}
 	public void setShippingInstruction(String shippingInstruction) {
 		this.shippingInstruction = shippingInstruction;
+	}
+	public String getFulfillLineIdentifier() {
+		return fulfillLineIdentifier;
+	}
+	public void setFulfillLineIdentifier(String fulfillLineIdentifier) {
+		this.fulfillLineIdentifier = fulfillLineIdentifier;
 	}
 	
 }

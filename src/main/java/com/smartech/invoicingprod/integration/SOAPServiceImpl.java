@@ -517,7 +517,8 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));
 											soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
 											soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));
-											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());
+											soLine.setFulfillLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FulfillLineIdentifier").toString()));
+											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());//
 											if(value.equals("INCLUDED")) {
 												soLine.setExistCombo(true);
 											}else {
@@ -630,7 +631,8 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
 										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));	
 										soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
-										soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));									
+										soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));
+										soLine.setFulfillLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FulfillLineIdentifier").toString()));									
 										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 										if(value.equals("INCLUDED")) {
 											soLine.setExistCombo(true);
@@ -800,7 +802,8 @@ public class SOAPServiceImpl implements SOAPService {
 											soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
 											soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));
 											soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
-											soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));											
+											soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));	
+											soLine.setFulfillLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FulfillLineIdentifier").toString()));										
 											String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 											if(value.equals("INCLUDED")) {
 												soLine.setExistCombo(true);
@@ -913,7 +916,8 @@ public class SOAPServiceImpl implements SOAPService {
 										soLine.setSplitFromFlineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:SplitFromFlineIdentifier").toString()));
 										soLine.setItemSubTypeCode(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString()));	
 										soLine.setReturnReason(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ReturnReason").toString()));
-										soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));									
+										soLine.setShippingInstruction(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ShippingInstructions").toString()));	
+										soLine.setFulfillLineIdentifier(NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:FulfillLineIdentifier").toString()));								
 										String value = NullValidator.isNull(oeLine.getAsJsonObject().get("ns0:ItemSubTypeCode").toString());											
 										if(value.equals("INCLUDED")) {
 											soLine.setExistCombo(true);

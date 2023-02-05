@@ -130,7 +130,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
 	DecimalFormat df = new DecimalFormat("#0.00");
-	DecimalFormat dfM = new DecimalFormat("#.000000");
+	DecimalFormat df4 = new DecimalFormat("#0.0000");
+	DecimalFormat dfM = new DecimalFormat("#0.000000");
 	
 	@Override
 	public boolean createStampInvoice(List<Row> r, String errors) {		
@@ -139,15 +140,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 		String shipCountry = "";
 		String timeZone = "";
 		String pTerms = "";
-//		List<String> facturas = new ArrayList<String>();
-//		List<String> notasCredito = new ArrayList<String>();
-//		List<String> noIva = new ArrayList<String>();
-//		List<String> anticipos = new ArrayList<String>();
-//		List<String> fiextAsset = new ArrayList<String>();
-//		List<String> service1 = new ArrayList<String>();
-//		List<String> serviceSeamex = new ArrayList<String>();
-//		List<String> othersProducts = new ArrayList<String>();
-//		List<String> cancelList = new ArrayList<String>();
 		try {
 			//Fechas
 			List<Udc> tZone = udcService.searchBySystem(AppConstants.UDC_SYSTEM_TIMEZONE);
@@ -156,33 +148,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 					timeZone = u.getUdcKey();
 				}
 			}
-			/*List<Udc> invcnni = udcService.searchBySystem(AppConstants.UDC_SYSTEM_REPINVOICE);
-			if(invcnni != null) {
-				for(Udc u: invcnni) {
-					if(u.getUdcKey().equals(AppConstants.ORDER_TYPE_FACTURA)) {
-						facturas.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.ORDER_TYPE_NC)) {
-						notasCredito.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_NOIVA)) {
-						noIva.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_ANTICIPOS)) {
-						anticipos.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_FIXED_ASSET)) {
-						fiextAsset.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_SERVICE1)) {
-						service1.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_SERVICE_SEAMEX)) {
-						serviceSeamex.add(u.getStrValue1());
-					}else if(u.getUdcKey().equals(AppConstants.UDC_KEY_OTHERS_PRODUCTS)) {
-						othersProducts.add(u.getStrValue1());
-					}
-					else if(u.getUdcKey().equals(AppConstants.UDC_KEY_CANCELATION_TRANSACTION_TYPE)) {
-						cancelList.add(u.getStrValue1());
-					}
-				}
-			}else {
-				return false;
-			}*/
 			
 			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 			sdfNoTime.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -192,19 +157,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 			List<InvoicesByReportsDTO> invlist = new ArrayList<InvoicesByReportsDTO>();	
 			List<Invoice> invList = new ArrayList<Invoice>();
 			for(Row ro: r) {
-				System.out.println(ro.getColumn9());
-				if(ro.getColumn63().equals(AppConstants.INVOICING_INVOICE)) {
-					if(ro.getColumn9().equals("470008")) {
-						System.out.println(true);
-					}
-					AnalyticsDTO analytics = new AnalyticsDTO();
-					analytics.setTransactionNumber(ro.getColumn9());
-					Rowset rowS = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
-							AppConstants.SERVICE_AR_REPORT_GET_UUID, analytics);
-					if(rowS.getRow().get(0).getColumn3() != null && !rowS.getRow().get(0).getColumn3().isEmpty()) {
-						continue;
-					}
-				}
 				if(NullValidator.isNull(ro.getColumn68()).equals("N")) {
 					continue;
 				}
@@ -329,340 +281,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 							
 							//Añadir el regimen fiscal
 							invoice.setRegimenFiscal(inv.getRegimenFiscal());// Fac 4.0
-							
-							/*if(facturas.toString().contains(inv.getTransactionTypeName())) {
-								invoice.setInvoice(true);
-								invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-								invoice.setFromSalesOrder(inv.getPreviousSalesOrder());
-							}else if(notasCredito.toString().contains(inv.getTransactionTypeName())) {
-								invoice.setInvoice(false);
-								invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
-								invoice.setInvoiceType(AppConstants.ORDER_TYPE_NC);
-								invoice.setFromSalesOrder(inv.getPreviousSalesOrder());	
-								invoice.setInvoiceRelationType(noteCredite.getStrValue1());						
-							}else if(noIva.toString().contains(inv.getTransactionTypeName())) {
-								invoice.setErrorMsg("ERROR EN EL TIPO DE LINEA, NO EXISTE, EL ERROR SURGE POR QUE EL ARTÍCULO: " + inv.getItemName() + "DE LA ORDEN: "
-										+ inv.getPreviousSalesOrder() + " NO TIENE IMPUESTO RELACIONADO");
-								ErrorLog seaE = errorLogService.searchError(invoice.getErrorMsg(), inv.getPreviousSalesOrder());
-								if(seaE == null) {
-									ErrorLog eLog = new ErrorLog();
-									eLog.setErrorMsg(invoice.getErrorMsg());
-									eLog.setCreationDate(sdf.format(new Date()));
-									eLog.setUpdateDate(sdf.format(new Date()));
-									eLog.setNew(true);
-									eLog.setOrderNumber(inv.getPreviousSalesOrder());
-									eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-									errorLogService.saveError(eLog);
-									continue;
-								}else {
-									if(seaE.getErrorMsg().equals(invoice.getErrorMsg())) {
-										seaE.setNew(false);
-										seaE.setUpdateDate(sdf.format(new Date()));
-										errorLogService.updateError(seaE);
-									}else {
-										seaE.setErrorMsg(invoice.getErrorMsg());
-										seaE.setNew(true);
-										seaE.setUpdateDate(sdf.format(new Date()));
-										errorLogService.updateError(seaE);
-									}
-									continue;
-								}
-							}else if(fiextAsset.toString().contains(inv.getTransactionTypeName())) {							
-								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-								if(seaExisCNAdv == null) {
-									log.info("AQUI EMPIEZA LA FACTURA PARA ACTIVOS FIJOS" + inv.getTransactionNumber());
-									Branch branch = branchService.getBranchByCode("CEDIS");
-									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-									invoice.setInvoice(true);
-									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-									invoice.setBranch(branch);
-									invoice.setSerial(nNumber.getSerie());
-									invoice.setStatus(AppConstants.STATUS_PENDING);
-									invoice.setFromSalesOrder(inv.getTransactionNumber());
-									inv.setItemDescription(inv.getItemDescriptionFA());
-									if(inv.getFausoCFDI() != null && !inv.getFausoCFDI().isEmpty()) {
-										invoice.setCFDIUse(inv.getFausoCFDI());	
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentMethod() != null && !inv.getFaPaymentMethod().isEmpty()) {
-										invoice.setPaymentMethod(inv.getFaPaymentMethod());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentForm() != null && !inv.getFaPaymentForm().isEmpty()) {
-										invoice.setPaymentType(inv.getFaPaymentForm());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-								}else {
-									continue;
-								}
-							}else if(service1.toString().contains(inv.getTransactionTypeName())) {							
-								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-								if(seaExisCNAdv == null) {
-									log.info("AQUI EMPIEZA LA FACTURA PARA SERVICIOS1" + inv.getTransactionNumber());
-									Branch branch = branchService.getBranchByCode("SERVICIOS");
-									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-									invoice.setInvoice(true);	
-									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-									invoice.setBranch(branch);	
-									if(nNumber != null){
-										invoice.setSerial(nNumber.getSerie());
-									}else {
-										invoice.setSerial("MEFAC");
-									}
-									
-									invoice.setStatus(AppConstants.STATUS_PENDING);
-									invoice.setFromSalesOrder(inv.getTransactionNumber());
-									if(inv.getFausoCFDI() != null && !inv.getFausoCFDI().isEmpty()) {
-										invoice.setCFDIUse(inv.getFausoCFDI());	
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentMethod() != null && !inv.getFaPaymentMethod().isEmpty()) {
-										invoice.setPaymentMethod(inv.getFaPaymentMethod());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentForm() != null && !inv.getFaPaymentForm().isEmpty()) {
-										invoice.setPaymentType(inv.getFaPaymentForm());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-								}else {
-									continue;
-								}
-							}else if(serviceSeamex.toString().contains(inv.getTransactionTypeName())) {							
-								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-								if(seaExisCNAdv == null) {
-									log.info("AQUI EMPIEZA LA FACTURA PARA SERVICIOS SEAMEX" + inv.getTransactionNumber());
-									Branch branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
-									NextNumber nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-//									NextNumber nNumber = nextNumberService.getNumberById(Integer.parseInt(String.valueOf(branch.getId())));
-									invoice.setSerial(nNumber.getSerie());
-									invoice.setInvoice(true);		
-									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-									invoice.setBranch(branch);
-									invoice.setStatus(AppConstants.STATUS_PENDING);
-									invoice.setFromSalesOrder(inv.getTransactionNumber());
-									if(inv.getFausoCFDI() != null && !inv.getFausoCFDI().isEmpty()) {
-										invoice.setCFDIUse(inv.getFausoCFDI());	
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentMethod() != null && !inv.getFaPaymentMethod().isEmpty()) {
-										invoice.setPaymentMethod(inv.getFaPaymentMethod());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentForm() != null && !inv.getFaPaymentForm().isEmpty()) {
-										invoice.setPaymentType(inv.getFaPaymentForm());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-								}else {
-									continue;
-								}
-							}else if(othersProducts.toString().contains(inv.getTransactionTypeName())) {							
-								Invoice seaExisCNAdv = invoiceDao.getSingleInvoiceByFolioAndType(inv.getTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-								if(seaExisCNAdv == null) {
-									log.info("AQUI EMPIEZA LA FACTURA PARA OTROS PRODCUTOS " + inv.getTransactionNumber());
-									Branch branch = new Branch();
-									NextNumber nNumber = new NextNumber();
-									if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
-										branch = branchService.getBranchByCode("SERVICIOS");
-										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-									}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
-										branch = branchService.getBranchByCode("PLR");
-										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-									}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
-										branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
-										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
-									}
-									invoice.setSerial(nNumber.getSerie());
-									invoice.setInvoice(true);
-									invoice.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-									invoice.setBranch(branch);
-									invoice.setStatus(AppConstants.STATUS_PENDING);
-									invoice.setFromSalesOrder(inv.getTransactionNumber());
-									if(inv.getFausoCFDI() != null && !inv.getFausoCFDI().isEmpty()) {
-										invoice.setCFDIUse(inv.getFausoCFDI());	
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentMethod() != null && !inv.getFaPaymentMethod().isEmpty()) {
-										invoice.setPaymentMethod(inv.getFaPaymentMethod());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-									if(inv.getFaPaymentForm() != null && !inv.getFaPaymentForm().isEmpty()) {
-										invoice.setPaymentType(inv.getFaPaymentForm());
-									}else {
-										ErrorLog seaE = errorLogService.searchError("FALTAN DATOS PARA EL TIMBRE", inv.getTransactionNumber());
-										if(seaE == null) {
-											ErrorLog eLog = new ErrorLog();
-											eLog.setErrorMsg("FALTAN DATOS PARA EL TIMBRE");
-											eLog.setCreationDate(sdf.format(new Date()));
-											eLog.setUpdateDate(sdf.format(new Date()));
-											eLog.setNew(true);
-											eLog.setOrderNumber(inv.getTransactionNumber());
-											eLog.setInvoiceType(AppConstants.ORDER_TYPE_FACTURA);
-											errorLogService.saveError(eLog);
-											continue;
-										}else {
-											continue;
-										}
-									}
-								}else {
-									continue;
-								}
-							}else {
-								continue;
-							}*/
 
 							Udc noteCredite = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_RTYPE, AppConstants.INVOICE_SAT_TYPE_E);
 							//Datos
@@ -747,10 +365,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 									
 								}else if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_CREDITMEMO) || inv.getTransactionClassCode().equals(AppConstants.INVOICING_ONACC)){//Facturas tipo egreso
 									String orderType = "";
-//									if(cancelList.toString().contains(inv.getTransactionTypeName())) {
 									if(!NullValidator.isNull(inv.getTransactionTimbrarFlexfield()).equals("SI")) {//Cancelaciones
 										orderType = AppConstants.ORDER_TYPE_CANCELATION;
-//										invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
 										invoice.setInvoiceType(orderType);
 										invoice.setCancelationReason(inv.getCancelationReason());
 										invoice.setSustitutionUuid(inv.getUuidSustitution());
@@ -778,9 +394,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invoice.setFromSalesOrder(inv.getTransactionNumber());
 									if(inv.getPreviousTransactionNumber() != null && !inv.getPreviousTransactionNumber().isEmpty()) {
 										invoice.setInvoiceReferenceTransactionNumber(inv.getPreviousTransactionNumber());
-//										Invoice invSearchUuid = invoiceDao.getSingleInvoiceByFolioLike(inv.getPreviousTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-//										invoice.setUUIDReference(invSearchUuid.getUUID());
-//										invoice.setCustomerEmail(NullValidator.isNull(invSearchUuid.getCustomerEmail()));
 									}									
 									invoice.setInvoiceRelationType(noteCredite.getStrValue1());
 									//Aqui va la lectura y concatenación de los UUID para notas de credito
@@ -816,12 +429,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invoice.setFromSalesOrder(inv.getPreviousSalesOrder());
 								}else if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_CREDITMEMO)){//Facturas tipo egreso
 									String orderType = "";
-//									if(cancelList.toString().contains(inv.getTransactionTypeName())) {//Cancelaciones
 									if(!NullValidator.isNull(inv.getTransactionTimbrarFlexfield()).equals("SI")) {//Cancelaciones
 										Branch branch = new Branch();
 										NextNumber nNumber = new NextNumber();
 										orderType = AppConstants.ORDER_TYPE_CANCELATION;
-//										invoice.setInvoiceType(AppConstants.ORDER_TYPE_CANCEL);
 										invoice.setInvoiceType(orderType);
 										invoice.setStatus(AppConstants.STATUS_CANCELATION_BY_ORDER_NC);
 										if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
@@ -850,7 +461,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 							if(inv.getExchangeRate().isEmpty()) {
 								invoice.setInvoiceExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
 							}else {
-								invoice.setInvoiceExchangeRate(Double.parseDouble(df.format(Double.parseDouble(inv.getExchangeRate()))));
+								invoice.setInvoiceExchangeRate(Double.parseDouble(df4.format(Double.parseDouble(inv.getExchangeRate()))));
 							}
 							
 							invoice.setOrderSource(inv.getTransactionSource());
@@ -897,7 +508,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 						Invoice searchExistingInvoice = invoiceDao.getSingleInvoiceByFolio(in.getTransactionNumber(), invType);
 						if(searchExistingInvoice == null) {
 							if(i.getInvoiceType() != null) {							
-								//if(i.getFolio().equals(in.getTransactionNumber()) || NullValidator.isNull(i.getFromSalesOrder()).equals((in.getPreviousSalesOrder()))) {
 								if(i.getFolio().equals(in.getTransactionNumber())) {
 									if(!i.getFolio().contains(in.getTransactionNumber())){
 										i.setFolio(i.getFolio() + "-" + in.getTransactionNumber());
@@ -909,7 +519,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invDetails.setItemNumber(in.getItemName());
 									invDetails.setItemDescription(in.getItemDescription());
 									invDetails.setCurrency(in.getCurrency());
-									invDetails.setUomName(in.getUomCode());
+									invDetails.setUomName(NullValidator.isNull(in.getUomCode()));
+//									invDetails.setUomName(NullValidator.isNull("SER"));//Quitar
 									invDetails.setSalesOrderLine(NullValidator.isNull(in.getSalesOrderLineNumber()));
 									if(in.getExchangeRate().isEmpty()) {
 										invDetails.setExchangeRate(AppConstants.INVOICE_EXCHANGE_RATE);
@@ -947,6 +558,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 									if(i.getStatus().equals(AppConstants.STATUS_PENDING)) {
 										invDetails.setUnitProdServ(NullValidator.isNull(in.getTransactionLineCodigoSATManual()));
 										Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, in.getUomCode());
+//										Udc satUOM = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_UOMSAT, "SER");
 										invDetails.setUomName(satUOM.getStrValue2().toUpperCase());
 										invDetails.setUomCode(satUOM.getStrValue1());
 										invDetails.setItemUomCustoms(String.valueOf(satUOM.getIntValue()));
@@ -1154,15 +766,12 @@ public class InvoicingServiceImpl implements InvoicingService{
 				invoice.setShipToState(NullValidator.isNull(r.getColumn80()));
 			}
 			//Datos para activos Fijos O otras transacciones
-//			invoice.setFaCodigoSat(NullValidator.isNull(r.getColumn56()));
 			invoice.setRegimenFiscal(NullValidator.isNull(r.getColumn56()));//Fact 4.0
 			invoice.setFaPaymentForm(NullValidator.isNull(r.getColumn57()));
 			invoice.setFaPaymentMethod(NullValidator.isNull(r.getColumn58()));
 			invoice.setFausoCFDI(NullValidator.isNull(r.getColumn59()));
-//			invoice.setItemDescriptionFA(NullValidator.isNull(r.getColumn60()));
 			invoice.setCatExportacion(NullValidator.isNull(r.getColumn60()));//Fact 4.0
 			invoice.setItemDescriptionDetailsForService(NullValidator.isNull(r.getColumn61()) + NullValidator.isNull(r.getColumn77()) + NullValidator.isNull(r.getColumn78()));
-//			invoice.setUuidInitialCharge(NullValidator.isNull(r.getColumn61()).replaceAll("\\s",""));
 			invoice.setTransactionClassCode(NullValidator.isNull(r.getColumn63()));
 			invoice.setTransactionTimbrarFlexfield(NullValidator.isNull(r.getColumn62()));
 			invoice.setTransactionFacElecCampoCalculado(NullValidator.isNull(r.getColumn68()));
@@ -1171,8 +780,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setCfdiRelacionado2(NullValidator.isNull(r.getColumn70()));
 			invoice.setCfdiRelacionado3(NullValidator.isNull(r.getColumn71()));
 			invoice.setCfdiRelacionado4(NullValidator.isNull(r.getColumn72()));
-//			invoice.setCfdiRelacionado5(NullValidator.isNull(r.getColumn73()));
-			invoice.setSalesOrderLineNumber(NullValidator.isNull(r.getColumn73()));
+//			invoice.setSalesOrderLineNumber(NullValidator.isNull(r.getColumn73()));//----------------------------------------------------------
+			invoice.setSalesOrderLineNumber(NullValidator.isNull(r.getColumn83()));
 			invoice.setCancelationReason(NullValidator.isNull(r.getColumn74()));
 			invoice.setAdvancePayments(NullValidator.isNull(r.getColumn75()));
 			invoice.setUuidSustitution(NullValidator.isNull(r.getColumn76()));
@@ -1344,6 +953,19 @@ public class InvoicingServiceImpl implements InvoicingService{
 							invStatus = false;
 							msgError = msgError + ";NUMREGIDTRIB, Error al intentar obetener el dato";
 							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL OBTENER EL DATO DE NUMREGIDTRIB");
+						}
+						//Buscar tipo de cambio fix en el sistema
+						CurrencyRates cRates = restService.getDailyCurrencyExportacion(sdfNoTime.format(new Date()), "USD", "MXN");
+						if(cRates != null) {
+							double eRate = 0;
+							if(cRates.getItems() != null ) {
+								if(cRates.getItems().size() > 0) {
+									eRate = Double.parseDouble(df4.format(cRates.getItems().get(0).getConversionRate()));
+								}else {
+									eRate = Double.parseDouble(String.valueOf(inv.getInvoiceExchangeRate()));													
+								}
+							}
+							inv.setInvoiceExchangeRate(eRate);
 						}
 					}else {
 						inv.setExtCom(false);
@@ -1722,12 +1344,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 					for(InvoiceDetails invLine: inv.getInvoiceDetails()) {//300000070203994 --300000070191406
 						for(SalesOrderLinesDTO line: so.getLines()) {		
 							double quan = Double.parseDouble(line.getOrderedQuantity());
-							double quan2 = Double.parseDouble(df.format(quan));
+							double quan2 = Double.parseDouble(df.format(quan));	
 							String transactionLineId = "";
 							if(inv.isInvoice()) {
-								transactionLineId = line.getSourceTransactionLineIdentifier();
+//								transactionLineId = line.getSourceTransactionLineIdentifier();
+								transactionLineId = line.getFulfillLineIdentifier();
 							}else {
 								transactionLineId = line.getDocumentReference().get(0).getDocumentLineIdentifier();
+								transactionLineId = line.getFulfillLineIdentifier();
 							}
 							if(!line.isUsedTheLine() && line.getProductNumber().equals(invLine.getItemNumber()) && quan2 == invLine.getQuantity() 
 									&& (line.getOrderedUOMCode().contains(invLine.getUomName()) || line.getOrderedUOM().toUpperCase().contains(invLine.getUomName().toUpperCase())) 
@@ -2239,7 +1863,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 			if(paymentAmount > 0D && exchangeRate > 0D && currencyCode != null && !currencyCode.isEmpty()) {
 				if (creditNote != null) {
 					//Para identificar la NC, si aún no se timbra la factura de orígen
-//					newInv.setFromSalesOrder(invoice.getFromSalesOrder());
 					newInv.setFromSalesOrder(orderNumberCloud);
 					
 					double total = Math.round(paymentAmount*100.00)/100.00;//Redondeo a 2 decimales
@@ -2270,7 +1893,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 					newInv.setShipToState(NullValidator.isNull(invoice.getShipToState()));
 					newInv.setShipToZip(NullValidator.isNull(invoice.getShipToZip()));
 					
-//					newInv.setCFDIUse(creditNote.getNote());
 					newInv.setCFDIUse(invoice.getCFDIUse());
 					newInv.setBranch(invoice.getBranch());
 					newInv.setCompany(invoice.getCompany());
@@ -2673,7 +2295,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}
 	}
 	
-	@SuppressWarnings({ "unused", "null", "unchecked" })
+	@SuppressWarnings({ "unused" })
 	public Invoice fullPaymentsDTO (Row r) {
 		Invoice invoice = new Invoice();
 		Payments pay = new Payments();
@@ -2710,10 +2332,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 					break;
 				}
 			}
-			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
+//			sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+//			formatterUTC.setTimeZone(TimeZone.getTimeZone(timeZone));
 			Date date = sdf.parse(r.getColumn45() + "T00:00:00");
-			String dateT = formatterUTC.format(date);
+			String dateT = sdf.format(date);	
 			
 			Branch branchPago = new Branch();
 			Branch brar = new Branch();
@@ -4396,8 +4018,6 @@ public class InvoicingServiceImpl implements InvoicingService{
 									return inv;
 								}else {//Pago a varias facturas relacionadas diferente moneda-----------------------------------------------
 									PaymentsList p = paymentsListService.getByReceiptIdCustomer(r.getColumn22(), inv.getCustomerName());//Receipt Number
-//									PaymentsList p = paymentsListService.getByReceiptNumberCustomer(r.getColumn23(), inv.getCustomerName());//Receipt Number
-//									PaymentsList p = paymentsListService.getByReceiptNumber(r.getColumn23());//Receipt Number
 									if(p == null) {//se crea un registro 				
 										PaymentsList  pList = new PaymentsList();									
 										NextNumber nN = new NextNumber();							
@@ -5818,7 +5438,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 								float pago = Float.parseFloat(pagoConversion);
 								total = total + Math.floor(pago);
 //								String eRate = dfM.format((1 / (Double.parseDouble(plist.getExchangeRate()))+0.000001));
-								String eRate = dfM.format((1 / Math.round(Double.parseDouble(plist.getExchangeRate())*100.000000)/100.000000));
+								double parase = (1/(Math.round(Double.parseDouble(plist.getExchangeRate())*100.000000)/100.000000)) + 0.000001;
+								String eRate = dfM.format(parase);
 								pa.setExchangeRate(eRate);
 							}
 							pa.setPreviousBalanceAmount(String.valueOf(((Double.parseDouble(pa.getRemainingBalanceAmount()))*(100.00)/(100.00)) + ((Double.parseDouble(pa.getPaymentAmount())*(100.00)/(100.00)))));

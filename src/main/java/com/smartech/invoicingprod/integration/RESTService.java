@@ -28,4 +28,5 @@ public interface RESTService {
 	public InventoryItemSerialNumbers getInventoryItemSerialModel(String orgCode, String itemNumber, String SerialNumber);
 	public ItemCosts getItemCostWitoutSerialNumber(String itemNumber);
 	public ReceivablesInvoices getInvoiceData(String transactionNumber);
+	public CurrencyRates getDailyCurrencyExportacion(String date, String fromCurrency, String toCurrency);
 }
