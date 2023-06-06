@@ -152,7 +152,7 @@ public class SchedulerService {
 		log.info("\'getDataForNewOrders\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay = 180002, initialDelay = 60000)//20000
+	@Scheduled(fixedDelay = 180002, initialDelay = 60000)
 	public void getPendingData() {
 		log.info("\'getPendingData\' is started*******");
 		//Facturas, notas de credito, transferencias, anticipos
@@ -234,6 +234,7 @@ public class SchedulerService {
 		try {
 			String nextSearch = sdf.format(new Date());
 			AnalyticsDTO analytics = new AnalyticsDTO();
+
 			Udc da = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_SCHEDULER, AppConstants.UDC_STRVALUE1_PAYMENTS);
 			if(da != null) {
 				Date dateSearch = da.getDateValue();
@@ -283,6 +284,7 @@ public class SchedulerService {
 	}
 	
 	@Scheduled(fixedDelay = 600000, initialDelay = 40000)
+//	@Scheduled(fixedDelay = 600000, initialDelay = 4000)
 	public void createTransfer() {
 		log.info("\'createTransfer\' is started*******");
 		String nextSearch = sdf.format(new Date());

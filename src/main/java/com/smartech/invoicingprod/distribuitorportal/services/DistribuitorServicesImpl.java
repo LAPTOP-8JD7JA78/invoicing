@@ -55,7 +55,18 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 				List<InvoiceDetails> invDetails2 = invoiceDetailsDao.searchBySerialNumber(itemSerial);
 				if(invDetails2 != null && invDetails2.size() > 0) {
 					List<InvoiceDetails> invDetails = new ArrayList<InvoiceDetails>();
-					invDetails.add(invDetails2.get(0));
+					for(InvoiceDetails invDetal: invDetails2) {
+						Invoice invDetalle = invoiceDao.getInvoiceIdFromInvoiceDetails(invDetal.getId());
+						String[] serialsNumberInvoice1 = invDetal.getItemSerial().split(",");
+						
+						for(String s: serialsNumberInvoice1) {
+							if((customerName.equals(invDetalle.getCustomerName()) && s.equals(itemSerial)) || (customerName.equals(invDetalle.getBranch().getName()) && s.equals(itemSerial))) {
+								invDetails.add(invDetal);
+								break;
+							}
+						}
+					}
+//					invDetails.add(invDetails2.get(0));
 					List<WarrantyDataLinesDTO> arrayLines = new ArrayList<WarrantyDataLinesDTO>();
 					for(InvoiceDetails iD: invDetails) {
 						if(!iD.isWarrantyFull()) {

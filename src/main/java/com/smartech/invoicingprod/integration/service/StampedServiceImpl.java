@@ -7,6 +7,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -483,7 +489,10 @@ public class StampedServiceImpl implements StampedService{
 
 		        	//Datos del complemento detallista 
 		        	if(idet.getRetailComplements() != null) {
-		        		String refDate = df.format(idet.getRetailComplements().getReferenceDate());
+		        		if(idet.getRetailComplements().getReferenceDate() == null) {
+		        			idet.getRetailComplements().setReferenceDate(new Date());
+		        		}
+		        		String refDate = df.format(NullValidator.isNull(idet.getRetailComplements().getReferenceDate()));
 			        	detail = detail +								
 			        	NullValidator.isNull(idet.getRetailComplements().getDocumentStatus()) + AppConstantsUtil.FILES_SEPARATOR +
 			        	NullValidator.isNull(idet.getRetailComplements().getTransactionType()) + AppConstantsUtil.FILES_SEPARATOR +
@@ -675,11 +684,11 @@ public class StampedServiceImpl implements StampedService{
 			
 			if(impH[3] != null) {
 				impH[2] = numberFormat.format(NullValidator.isNullD(impH[2]));
-				impH[3] = numberFormat.format(NullValidator.isNullD(impH[2]));
+				impH[3] = numberFormat.format(NullValidator.isNullD(impH[3]));
 			}
 			
 			if(impH2[3] != null) {
-				impH2[3] = numberFormat.format(NullValidator.isNullD(impH2[2]));
+				impH2[3] = numberFormat.format(NullValidator.isNullD(impH2[3]));
 			}
 			
 		}catch(Exception e) {
@@ -745,7 +754,404 @@ public class StampedServiceImpl implements StampedService{
 		String fileName = "";
 		String contentFile = "";
 		String c = "";
+		boolean proceso = this.procesoAlejandro();
+		return proceso;
+//		return this.procesoFernando();
+		/*
 		try{
+			//Proceso Alejandro
+			List<Invoice> updateInvAle = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_UPDUUID, "");
+			List<Payments> updatePayAle = paymentsService.getPaymentsStatus(AppConstants.STATUS_UPDUUID);
+			List<Invoice> updateNCAle = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING_UUID_NC, AppConstants.ORDER_TYPE_NC);
+			List<Invoice> lastestInvAle = new ArrayList<Invoice>();
+			List<String> arrAle = new ArrayList<String>();
+			for(Invoice i: updateInvAle) {
+				if(!arrAle.contains(i.getFolio())) {
+					lastestInvAle.add(i);
+					arrAle.add(i.getFolio());
+				}
+			}
+			for(Invoice invD: lastestInvAle) {
+				Invoice inv = new Invoice();
+				inv = invD;
+				log.info(inv.getId() + " " + inv.getFolio());
+				String fName = inv.getSerial() + inv.getFolio() + ".txt";
+				String uuid = null;
+				//Obtener UUID
+				uuid = this.getUuidAlejandro(fName, inv.getCustomerTaxIdentifier());
+				//Obtener UUID
+				String advPay = "";
+				List<Udc> udcPay = udcService.searchBySystem(AppConstants.UDC_SYSTEM_RTYPE);
+				for(Udc u: udcPay) {
+					if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_ADVANCE_PAYMENTS)) {
+						advPay = u.getUdcKey();
+						break;
+					}
+				}
+				if(uuid != null && !uuid.isEmpty()) {
+					uuid = uuid.replaceAll("\"", "");
+					String option =  inv.getInvoiceType();
+					switch(option) {
+						case AppConstants.ORDER_TYPE_FACTURA:
+							log.warn(uuid + " " + inv.getFolio());
+							if(inv.getInvoiceRelationType() == null || inv.getInvoiceRelationType().equals("04")){
+								log.warn(uuid + " " + inv.getFolio());
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+								invoiceDao.updateInvoice(inv);
+								
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+							}else if(inv.getInvoiceRelationType().equals(advPay)){
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+								//this.createAdvPayNC(inv);
+								invoiceDao.updateInvoice(inv);
+								
+								//Actualiza NC generadas a partir de anticipos
+								for(Invoice nc : updateNCAle) {
+									if(inv.getFromSalesOrder().equals(nc.getFromSalesOrder()) && nc.getUUIDReference() == null) {
+										nc.setUUIDReference(uuid);
+										nc.setStatus(AppConstants.STATUS_PENDING);
+										invoiceDao.updateInvoice(nc);
+									}
+								}
+								
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+							}
+							break;
+						case AppConstants.ORDER_TYPE_NC:
+							inv.setUUID(uuid);
+							inv.setErrorMsg(null);
+							if(NullValidator.isNull(inv.getInvoiceRelationType()).equals("07")){
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+							}else{
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+							}
+							invoiceDao.updateInvoice(inv);
+							//Enviar a Portal de Distribuidores
+							createDistPortalInvoice(inv);
+							break;
+						case AppConstants.ORDER_TYPE_ADV:
+							List<Payments> advpay = new ArrayList<Payments>(inv.getPayments());
+							if(advPay != null && !advpay.isEmpty()) {
+								for(Payments pay: advpay) {
+									pay.setUUID(uuid);
+									pay.setPaymentError(null);
+									pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
+									paymentsService.updatePayment(pay);
+								}
+							}
+							inv.setUUID(uuid);
+							inv.setErrorMsg(null);
+							inv.setStatus(AppConstants.STATUS_FINISHED);
+							invoiceDao.updateInvoice(inv);
+							//Enviar a Portal de Distribuidores
+							createDistPortalInvoice(inv);
+							break;
+						case AppConstants.ORDER_TYPE_TRANS:
+							inv.setUUID(uuid);
+							inv.setErrorMsg(null);
+							inv.setStatus(AppConstants.STATUS_FINISHED);
+							invoiceDao.updateInvoice(inv);
+							break;								
+					}
+				}
+			}
+			for(Payments payS: updatePayAle) {
+				Payments pay = new Payments();
+				pay = payS;
+				String fName = pay.getSerial() + pay.getFolio() + ".txt";
+				log.warn(fName + " " + filePathPay );
+				String uuid = null;
+				uuid = this.getUuidAlejandro(fName, payS.getTaxIdentifier());
+				if(uuid != null && !uuid.isEmpty()) {
+					uuid = uuid.replaceAll("\"", "");
+					pay.setUUID(uuid);
+					pay.setPaymentError(null);
+					pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
+					paymentsService.updatePayment(pay);
+					
+					PaymentsList pl = paymentsListService.getByReceiptNumber(pay.getReceiptNumber());
+					if(pl == null) {
+						//Enviar a Portal de Distribuidores
+						if(AppConstants.PAYMENTS_CPAGO.equals(pay.getPaymentType())) {
+							createDistPortalPayment(pay, pl, true);
+						}							
+					}
+				}
+			}
+			List<String> sentPaymentsAle = new ArrayList<String>();
+			List<PaymentsList> pllistAle = new ArrayList<PaymentsList>();
+			pllistAle = paymentsListService.getAllPayList(AppConstants.STATUS_UPDUUID);
+			
+			for(PaymentsList pl: pllistAle) {
+				for(Payments p: pl.getPayments()) {
+					if(p.getUUID()!= null && !p.getUUID().isEmpty()) {
+						pl.setUuid(p.getUUID());
+						pl.setStatus(AppConstants.STATUS_FINISHED);
+						paymentsListService.updatePaymentsList(pl);
+						
+						//Enviar a Portal de Distribuidores
+						if(!sentPaymentsAle.contains(pl.getFolio())) {					
+							Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+							if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+								createDistPortalPayment(firstPayment, pl, false);
+								sentPaymentsAle.add(pl.getFolio());
+							}
+						}
+						break;
+					}
+				}
+			}
+			//Proceso Tellez
+			//Ruta donde estan guardados los archivos timbrados
+			List<Udc> success = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
+			for(Udc u: success) {
+				if(u.getStrValue1().equals(AppConstantsUtil.FILE_RESPONSE)) {
+					filePathResponse = u.getUdcKey();
+					filePathPay = u.getStrValue2();
+				}
+			}
+			
+			List<Invoice> updateInv = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_UPDUUID, "");
+			List<Payments> updatePay = paymentsService.getPaymentsStatus(AppConstants.STATUS_UPDUUID);
+			List<Invoice> updateNC = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING_UUID_NC, AppConstants.ORDER_TYPE_NC);
+			List<Invoice> lastestInv = new ArrayList<Invoice>();
+			List<String> arr = new ArrayList<String>();
+			for(Invoice i: updateInv) {
+				if(!arr.contains(i.getFolio())) {
+					lastestInv.add(i);
+					arr.add(i.getFolio());
+				}
+			}
+			for(Invoice invD: lastestInv) {
+				Invoice inv = new Invoice();
+				inv = invD;
+				log.error(inv.getId() + " " + inv.getFolio());
+				String fName = inv.getSerial() + inv.getFolio();
+				File file = new File(filePathResponse + fName + ".XML");
+				String uuid = null;
+				try {
+					Reader fileReader = new FileReader(file);
+					BufferedReader bufReader = new BufferedReader(fileReader); 
+					StringBuilder sb = new StringBuilder(); 
+					String line = bufReader.readLine(); 
+					while( line != null){ 
+						sb.append(line).append("\n"); 
+						line = bufReader.readLine(); 
+					}
+					String data = "";
+					data = sb.toString();
+					
+					JSONObject xmlJSONObj = new JSONObject();
+					xmlJSONObj = XML.toJSONObject(data, true);
+					JsonElement jelement = new JsonParser().parse(xmlJSONObj.toString());
+					JsonObject jobject = jelement.getAsJsonObject();
+					JsonElement soapEnvelope = jobject.get("cfdi:Comprobante").getAsJsonObject().get("cfdi:Complemento");
+					JsonElement bdy = soapEnvelope.getAsJsonObject().get("tfd:TimbreFiscalDigital");
+					if(bdy != null) {
+						if(bdy instanceof JsonArray) {
+							JsonArray jsonarray = bdy.getAsJsonArray();
+							for (int i = 0; i < jsonarray.size(); i++) {
+								JsonElement op = jsonarray.get(i).getAsJsonObject();
+								uuid = String.valueOf(op.getAsJsonObject().get("UUID"));
+							}
+						}else {							
+							uuid = String.valueOf(bdy.getAsJsonObject().get("UUID"));	
+						}
+					}
+					String advPay = "";
+					List<Udc> udcPay = udcService.searchBySystem(AppConstants.UDC_SYSTEM_RTYPE);
+					for(Udc u: udcPay) {
+						if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_ADVANCE_PAYMENTS)) {
+							advPay = u.getUdcKey();
+							break;
+						}
+					}	
+					if(uuid != null && !uuid.isEmpty()) {
+						uuid = uuid.replaceAll("\"", "");
+						String option =  inv.getInvoiceType();
+						switch(option) {
+							case AppConstants.ORDER_TYPE_FACTURA:
+								log.warn(uuid + " " + inv.getFolio());
+								if(inv.getInvoiceRelationType() == null || inv.getInvoiceRelationType().equals("04")){
+									log.warn(uuid + " " + inv.getFolio());
+									inv.setUUID(uuid);
+									inv.setErrorMsg(null);
+									inv.setStatus(AppConstants.STATUS_INVOICED);
+									invoiceDao.updateInvoice(inv);
+									
+									//Enviar a Portal de Distribuidores
+									createDistPortalInvoice(inv);
+								}else if(inv.getInvoiceRelationType().equals(advPay)){
+									inv.setUUID(uuid);
+									inv.setErrorMsg(null);
+									inv.setStatus(AppConstants.STATUS_INVOICED);
+									//this.createAdvPayNC(inv);
+									invoiceDao.updateInvoice(inv);
+									
+									//Actualiza NC generadas a partir de anticipos
+									for(Invoice nc : updateNC) {
+										if(inv.getFromSalesOrder().equals(nc.getFromSalesOrder()) && nc.getUUIDReference() == null) {
+											nc.setUUIDReference(uuid);
+											nc.setStatus(AppConstants.STATUS_PENDING);
+											invoiceDao.updateInvoice(nc);
+										}
+									}
+									
+									//Enviar a Portal de Distribuidores
+									createDistPortalInvoice(inv);
+								}
+								break;
+							case AppConstants.ORDER_TYPE_NC:
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								if(NullValidator.isNull(inv.getInvoiceRelationType()).equals("07")){
+									inv.setStatus(AppConstants.STATUS_INVOICED);
+								}else{
+									inv.setStatus(AppConstants.STATUS_INVOICED);
+								}
+								invoiceDao.updateInvoice(inv);
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+								break;
+							case AppConstants.ORDER_TYPE_ADV:
+								List<Payments> advpay = new ArrayList<Payments>(inv.getPayments());
+								if(advPay != null && !advpay.isEmpty()) {
+									for(Payments pay: advpay) {
+										pay.setUUID(uuid);
+										pay.setPaymentError(null);
+										pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
+										paymentsService.updatePayment(pay);
+									}
+								}
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_FINISHED);
+								invoiceDao.updateInvoice(inv);
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+								break;
+							case AppConstants.ORDER_TYPE_TRANS:
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_FINISHED);
+								invoiceDao.updateInvoice(inv);
+								break;								
+						}
+					}
+				}catch(Exception e) {
+					log.info("NO SE AH ENCONTRADO NADA " + inv.getFolio() + e);
+				}
+			}
+			
+			for(Payments payS: updatePay) {
+				Payments pay = new Payments();
+				pay = payS;
+				String fName = "P_" + pay.getSerial() + pay.getFolio();
+				File file = new File(filePathPay + fName + ".XML");
+				log.warn(fName + " " + filePathPay );
+				String uuid = null;
+				try {
+					Reader fileReader = new FileReader(file);
+					BufferedReader bufReader = new BufferedReader(fileReader); 
+					StringBuilder sb = new StringBuilder(); 
+					String line = bufReader.readLine(); 
+					while( line != null){ 
+						sb.append(line).append("\n"); 
+						line = bufReader.readLine(); 
+					}
+					String data = sb.toString();
+//					JSONObject xmlJSONObj = XML.toJSONObject(data, true);
+					JSONObject xmlJSONObj = XML.toJSONObject(data);
+					JsonElement jelement = new JsonParser().parse(xmlJSONObj.toString());
+					JsonObject jobject = jelement.getAsJsonObject();
+					JsonElement soapEnvelope = jobject.get("cfdi:Comprobante").getAsJsonObject().get("cfdi:Complemento");
+					JsonElement bdy = soapEnvelope.getAsJsonObject().get("tfd:TimbreFiscalDigital");
+					if(bdy != null) {
+						if(bdy instanceof JsonArray) {
+							JsonArray jsonarray = bdy.getAsJsonArray();
+							for (int i = 0; i < jsonarray.size(); i++) {
+								JsonElement op = jsonarray.get(i).getAsJsonObject();
+								uuid = String.valueOf(op.getAsJsonObject().get("UUID"));
+							}
+						}else {							
+							uuid = String.valueOf(bdy.getAsJsonObject().get("UUID"));	
+						}
+					}
+					
+					if(uuid != null && !uuid.isEmpty()) {
+						uuid = uuid.replaceAll("\"", "");
+						pay.setUUID(uuid);
+						pay.setPaymentError(null);
+						pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
+						paymentsService.updatePayment(pay);
+						
+						PaymentsList pl = paymentsListService.getByReceiptNumber(pay.getReceiptNumber());
+						if(pl == null) {
+							//Enviar a Portal de Distribuidores
+							if(AppConstants.PAYMENTS_CPAGO.equals(pay.getPaymentType())) {
+								createDistPortalPayment(pay, pl, true);
+							}							
+						}
+					}					
+				}catch(Exception e) {
+					log.info("NO SE A ENCONTRADO NADA" + e);
+				}
+			}
+			
+			List<String> sentPayments = new ArrayList<String>();
+			List<PaymentsList> pllist = new ArrayList<PaymentsList>();
+			pllist = paymentsListService.getAllPayList(AppConstants.STATUS_UPDUUID);
+			
+			for(PaymentsList pl: pllist) {
+				for(Payments p: pl.getPayments()) {
+					if(p.getUUID()!= null && !p.getUUID().isEmpty()) {
+						pl.setUuid(p.getUUID());
+						pl.setStatus(AppConstants.STATUS_FINISHED);
+						paymentsListService.updatePaymentsList(pl);
+						
+						//Enviar a Portal de Distribuidores
+						if(!sentPayments.contains(pl.getFolio())) {					
+							Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+							if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+								createDistPortalPayment(firstPayment, pl, false);
+								sentPayments.add(pl.getFolio());
+							}
+						}
+						break;
+					}
+				}
+				
+//				//Enviar a Portal de Distribuidores
+//				if(!sentPayments.contains(pl.getFolio())) {					
+//					Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+//					if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+//						createDistPortalPayment(firstPayment, pl, false);
+//						sentPayments.add(pl.getFolio());
+//					}
+//				}
+			}
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}*/
+	}
+	
+	@SuppressWarnings("resource")
+	public boolean procesoFernando() {
+		String filePathResponse = "";
+		String filePathPay = "";
+		String fileName = "";
+		String contentFile = "";
+		String c = "";
+		try{
+			//Proceso Tellez
 			//Ruta donde estan guardados los archivos timbrados
 			List<Udc> success = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
 			for(Udc u: success) {
@@ -981,6 +1387,163 @@ public class StampedServiceImpl implements StampedService{
 		}
 	}
 	
+	public boolean procesoAlejandro() {
+		try{
+			//Proceso Alejandro
+			List<Invoice> updateInvAle = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_UPDUUID, "");
+			List<Payments> updatePayAle = paymentsService.getPaymentsStatus(AppConstants.STATUS_UPDUUID);
+			List<Invoice> updateNCAle = invoiceDao.getInvoiceListByStatusCode(AppConstants.STATUS_PENDING_UUID_NC, AppConstants.ORDER_TYPE_NC);
+			List<Invoice> lastestInvAle = new ArrayList<Invoice>();
+			List<String> arrAle = new ArrayList<String>();
+			for(Invoice i: updateInvAle) {
+				if(!arrAle.contains(i.getFolio())) {
+					lastestInvAle.add(i);
+					arrAle.add(i.getFolio());
+				}
+			}
+			for(Invoice invD: lastestInvAle) {
+				Invoice inv = new Invoice();
+				inv = invD;
+				log.info(inv.getId() + " " + inv.getFolio());
+				String fName = inv.getSerial() + inv.getFolio() + ".txt";
+				String uuid = null;
+				//Obtener UUID
+				uuid = this.getUuidAlejandro(fName, inv.getCustomerTaxIdentifier());
+				//Obtener UUID
+				String advPay = "";
+				List<Udc> udcPay = udcService.searchBySystem(AppConstants.UDC_SYSTEM_RTYPE);
+				for(Udc u: udcPay) {
+					if(u.getStrValue1().equals(AppConstants.UDC_STRVALUE1_ADVANCE_PAYMENTS)) {
+						advPay = u.getUdcKey();
+						break;
+					}
+				}
+				if(uuid != null && !uuid.isEmpty()) {
+					uuid = uuid.replaceAll("\"", "");
+					String option =  inv.getInvoiceType();
+					switch(option) {
+						case AppConstants.ORDER_TYPE_FACTURA:
+							log.warn(uuid + " " + inv.getFolio());
+							if(inv.getInvoiceRelationType() == null || inv.getInvoiceRelationType().equals("04")){
+								log.warn(uuid + " " + inv.getFolio());
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+								invoiceDao.updateInvoice(inv);
+								
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+							}else if(inv.getInvoiceRelationType().equals(advPay)){
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+								//this.createAdvPayNC(inv);
+								invoiceDao.updateInvoice(inv);
+								
+								//Actualiza NC generadas a partir de anticipos
+								for(Invoice nc : updateNCAle) {
+									if(inv.getFromSalesOrder().equals(nc.getFromSalesOrder()) && nc.getUUIDReference() == null) {
+										nc.setUUIDReference(uuid);
+										nc.setStatus(AppConstants.STATUS_PENDING);
+										invoiceDao.updateInvoice(nc);
+									}
+								}
+								
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+							}
+							break;
+						case AppConstants.ORDER_TYPE_NC:
+							inv.setUUID(uuid);
+							inv.setErrorMsg(null);
+							if(NullValidator.isNull(inv.getInvoiceRelationType()).equals("07")){
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+							}else{
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+							}
+							invoiceDao.updateInvoice(inv);
+							//Enviar a Portal de Distribuidores
+							createDistPortalInvoice(inv);
+							break;
+						case AppConstants.ORDER_TYPE_ADV:
+							List<Payments> advpay = new ArrayList<Payments>(inv.getPayments());
+							if(advPay != null && !advpay.isEmpty()) {
+								for(Payments pay: advpay) {
+									pay.setUUID(uuid);
+									pay.setPaymentError(null);
+									pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
+									paymentsService.updatePayment(pay);
+								}
+							}
+							inv.setUUID(uuid);
+							inv.setErrorMsg(null);
+							inv.setStatus(AppConstants.STATUS_FINISHED);
+							invoiceDao.updateInvoice(inv);
+							//Enviar a Portal de Distribuidores
+							createDistPortalInvoice(inv);
+							break;
+						case AppConstants.ORDER_TYPE_TRANS:
+							inv.setUUID(uuid);
+							inv.setErrorMsg(null);
+							inv.setStatus(AppConstants.STATUS_FINISHED);
+							invoiceDao.updateInvoice(inv);
+							break;								
+					}
+				}
+			}
+			for(Payments payS: updatePayAle) {
+				Payments pay = new Payments();
+				pay = payS;
+				String fName = pay.getSerial() + pay.getFolio() + ".txt";
+				//log.warn(fName + " " + filePathPay );
+				String uuid = null;
+				uuid = this.getUuidAlejandro(fName, payS.getTaxIdentifier());
+				if(uuid != null && !uuid.isEmpty()) {
+					uuid = uuid.replaceAll("\"", "");
+					pay.setUUID(uuid);
+					pay.setPaymentError(null);
+					pay.setPaymentStatus(AppConstants.STATUS_INVOICED);
+					paymentsService.updatePayment(pay);
+					
+					PaymentsList pl = paymentsListService.getByReceiptNumber(pay.getReceiptNumber());
+					if(pl == null) {
+						//Enviar a Portal de Distribuidores
+						if(AppConstants.PAYMENTS_CPAGO.equals(pay.getPaymentType())) {
+							createDistPortalPayment(pay, pl, true);
+						}							
+					}
+				}
+			}
+			List<String> sentPaymentsAle = new ArrayList<String>();
+			List<PaymentsList> pllistAle = new ArrayList<PaymentsList>();
+			pllistAle = paymentsListService.getAllPayList(AppConstants.STATUS_UPDUUID);
+			
+			for(PaymentsList pl: pllistAle) {
+				for(Payments p: pl.getPayments()) {
+					if(p.getUUID()!= null && !p.getUUID().isEmpty()) {
+						pl.setUuid(p.getUUID());
+						pl.setStatus(AppConstants.STATUS_FINISHED);
+						paymentsListService.updatePaymentsList(pl);
+						
+						//Enviar a Portal de Distribuidores
+						if(!sentPaymentsAle.contains(pl.getFolio())) {					
+							Payments firstPayment = (Payments)pl.getPayments().toArray()[0];
+							if(AppConstants.PAYMENTS_CPAGO.equals(firstPayment.getPaymentType())) {						
+								createDistPortalPayment(firstPayment, pl, false);
+								sentPaymentsAle.add(pl.getFolio());
+							}
+						}
+						break;
+					}
+				}
+			}
+			return true;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	@SuppressWarnings("unused")
 	@Override
 	public boolean createDistPortalInvoice(Invoice inv) {
@@ -1145,7 +1708,9 @@ public class StampedServiceImpl implements StampedService{
 		String baseTotal = "0";
 		String ivaTotal = "0";
 		String tasa = "";
+		String catExport = i.getCatExportacion();
 		try {
+			i = reviewData(i);
 			//Obtener ruta para dejar los archivos
 			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
 			for(Udc ud: u) {
@@ -1173,13 +1738,18 @@ public class StampedServiceImpl implements StampedService{
 				country = i.getCountry();
 				rfcExt = i.getTaxIdentifier();
 			}
-			valorBase = Math.round((Math.round(Double.parseDouble(i.getPaymentAmount())*100.00)/100.00) * (Math.round(Double.parseDouble(i.getExchangeRate())*100.00)/100.00)*100.00)/100.00;
+			if(i.getCatExportacion() == null) {
+				catExport = "01";
+			}
+//			float erateBase = Math.round(Double.parseDouble(i.getExchangeRate())*100.00);
+//			valorBase = Math.round((Math.round(Double.parseDouble(i.getPaymentAmount())*100.00)/100.00) * (Math.round(Double.parseDouble(i.getExchangeRate())*100.00)/100.00)*100.00)/100.00;
+			valorBase = Math.round((Math.round(Double.parseDouble(i.getPaymentAmount())*100.00)/100.00) * (Double.parseDouble(i.getExchangeRate()))*100.00)/100.00;
 			if(i.getTaxCode().equals(AppConstants.COMP_PAGOS_FAC_16)) {
 //				pagos16Base = String.valueOf(Math.round((valorBase/1.16)*100.00)/100.00);
 //				pagos16Iva = String.valueOf(Math.round((valorBase - (Double.parseDouble(pagos16Base)))*100.00)/100.00);
 //				double balue = Math.round((i.getBase() * (Math.round(Double.parseDouble(i.getExchangeRate())*100.00)/100.00)*100.00))/100.00;
-				pagos16Base = String.valueOf(Math.round((i.getBase() * (Math.round(Double.parseDouble(i.getExchangeRate())*100.00)/100.00)*100.00))/100.00);
-				pagos16Iva = String.valueOf(Math.round((i.getTaxAmount() * (Math.round(Double.parseDouble(i.getExchangeRate())*100.00)/100.00)*100.00))/100.00); 
+				pagos16Base = String.valueOf(Math.round((i.getBase() * (Double.parseDouble(i.getExchangeRate()))*100.00))/100.00);
+				pagos16Iva = String.valueOf(Math.round((i.getTaxAmount() * (Double.parseDouble(i.getExchangeRate()))*100.00))/100.00); 
 				baseTotal = String.valueOf((Math.round(i.getBase()*100.00))/100.00);
 				ivaTotal = String.valueOf(Math.round(i.getTaxAmount()*100.00)/100.00);
 				tasa = "0.160000";
@@ -1215,7 +1785,8 @@ public class StampedServiceImpl implements StampedService{
 					rfcExt + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
 					i.getPartyNumber() + AppConstantsUtil.FILES_SEPARATOR +
 					i.getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +	
-					i.getCatExportacion()  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Exportacion
+					catExport + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Exportacion
+//					i.getCatExportacion()  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Exportacion
 					i.getCustomerTaxRegime()  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Regimen Fiscal
 					i.getCustomerZipCode() + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Domicilio Fiscal
 					"0"  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 TotalRetencionesIVA Importe MXN
@@ -1303,6 +1874,18 @@ public class StampedServiceImpl implements StampedService{
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public Payments reviewData(Payments Pay) {
+		Double remaining = Double.parseDouble(Pay.getRemainingBalanceAmount());
+		Double amount = Double.parseDouble(Pay.getPaymentAmount());
+		if(remaining <= 0) {
+			Pay.setRemainingBalanceAmount("0.0");
+			Pay.setPreviousBalanceAmount(Pay.getPaymentAmount());			
+		}else if (remaining > 0) {
+			Pay.setPreviousBalanceAmount(String.valueOf(remaining + amount));
+		}
+		return Pay;
 	}
 	
 	public boolean createAdvPayNC(Invoice invoice) {
@@ -1537,6 +2120,7 @@ public class StampedServiceImpl implements StampedService{
 		String baseTotal08 = "";	String ivaTotal08 = "";			String tasa08 = "";			String baseTotal00 = "";
 		String ivaTotal00 = "";		String tasa00 = "";				String baseTotal = "";		String ivaTotal = "";
 		String tasa = "";			boolean changeCurrency = false;	String currency = "";		String excRate = "";
+		String catExport = "";
 		try {
 			//Obtener ruta para dejar los archivos
 			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
@@ -1548,6 +2132,11 @@ public class StampedServiceImpl implements StampedService{
 			}
 						
 			for(PaymentsList plist: pl) {
+				if(plist.getCatExportacion() == null) {
+					catExport = "01";
+				}else {
+					catExport = plist.getCatExportacion();
+				}
 				if(plist.getCustomerCountry().equals(AppConstantsUtil.COUNTRY_DEFAULT)) {
 					country = plist.getCustomerCountry();
 					rfc = "";
@@ -1576,6 +2165,7 @@ public class StampedServiceImpl implements StampedService{
 					}
 				}
 				for(Payments bp: plist.getPayments()) {
+					bp = reviewData(bp);
 					if(!changeCurrency) {//FACTURAS EN MISMA MONEDA
 						if(plist.getCurrency().equals(AppConstants.DEFAUL_CURRENCY)) {//PAGO CABECERO EN MXN; VALORES DE IMPUESTOS DEL PAGO EN MXN
 							switch(bp.getCurrency()){//MONEDA DE LAS FACTURAS
@@ -1604,17 +2194,23 @@ public class StampedServiceImpl implements StampedService{
 								default://MONEDA EXTRANJERA
 									switch(bp.getTaxCode()) {//Revisado
 										case AppConstants.COMP_PAGOS_FAC_16:
-											baseTotal16 = String.valueOf(Double.parseDouble(baseTotal16) + this.createAmountWithDecimal((bp.getBase() * Double.parseDouble(bp.getExchangeRate())), 6));
-											ivaTotal16 = String.valueOf(Double.parseDouble(ivaTotal16) + this.createAmountWithDecimal((bp.getTaxAmount() * Double.parseDouble(bp.getExchangeRate())), 6));	
+//											baseTotal16 = String.valueOf(Double.parseDouble(baseTotal16) + (bp.getBase() * Double.parseDouble(bp.getExchangeRate())));
+											baseTotal16 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal16),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
+											int valorConteo = baseTotal16.substring(baseTotal16.indexOf(".")).length();
+											baseTotal16 = (valorConteo >= 7) ? baseTotal16.substring(0, baseTotal16.indexOf(".") + 7) : baseTotal16.substring(0, baseTotal16.indexOf(".") + valorConteo);
+											ivaTotal16 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal16),6) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));
+											int valorConteoIva = ivaTotal16.substring(ivaTotal16.indexOf(".")).length();
+											//ivaTotal16 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal16),6) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));
+											ivaTotal16 = (valorConteoIva >= 7) ? ivaTotal16.substring(0, ivaTotal16.indexOf(".") + 7) : ivaTotal16.substring(0, ivaTotal16.indexOf(".") + valorConteoIva);
 											tasa16 = "0.160000";
 											break;
 										case AppConstants.COMP_PAGOS_FAC_8:
-											baseTotal08 = String.valueOf(Double.parseDouble(baseTotal08) + this.createAmountWithDecimal((bp.getBase() * Double.parseDouble(bp.getExchangeRate())), 6));
-											ivaTotal08 = String.valueOf(Double.parseDouble(ivaTotal08) + this.createAmountWithDecimal((bp.getTaxAmount() * Double.parseDouble(bp.getExchangeRate())), 6));							
+											baseTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal08),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
+											ivaTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal08),6) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));							
 											tasa08 = "0.080000";
 											break;
 										case AppConstants.COMP_PAGOS_FAC_0:
-											baseTotal00 = String.valueOf(Double.parseDouble(baseTotal00) + this.createAmountWithDecimal((bp.getBase() * Double.parseDouble(bp.getExchangeRate())), 6));
+											baseTotal00 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal00),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
 											ivaTotal00 = "0";
 											tasa00 = "0.000000";
 											break;
@@ -1629,17 +2225,17 @@ public class StampedServiceImpl implements StampedService{
 								case AppConstants.DEFAUL_CURRENCY://MONEDA MXN
 									switch(bp.getTaxCode()) {//Revisado
 										case AppConstants.COMP_PAGOS_FAC_16:
-											baseTotal16 = String.valueOf(Double.parseDouble(baseTotal16) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
-											ivaTotal16 = String.valueOf(Double.parseDouble(ivaTotal16) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));	
+											baseTotal16 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal16),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
+											ivaTotal16 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal16),6) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));	
 											tasa16 = "0.160000";
 											break;
 										case AppConstants.COMP_PAGOS_FAC_8:
-											baseTotal08 = String.valueOf(Double.parseDouble(baseTotal08) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
-											ivaTotal08 = String.valueOf(Double.parseDouble(ivaTotal08) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));							
+											baseTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal08),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
+											ivaTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal08),6) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));							
 											tasa08 = "0.080000";
 											break;
 										case AppConstants.COMP_PAGOS_FAC_0:
-											baseTotal00 = String.valueOf(Double.parseDouble(baseTotal00) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
+											baseTotal00 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal00),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
 											ivaTotal00 = "0";
 											tasa00 = "0.000000";
 											break;
@@ -1652,12 +2248,16 @@ public class StampedServiceImpl implements StampedService{
 									switch(bp.getTaxCode()) {
 										case AppConstants.COMP_PAGOS_FAC_16:
 											if(plist.getCurrency().equals(bp.getCurrency())) {
-												baseTotal16 = (baseTotal16.isEmpty()) ? String.valueOf(((Math.round(bp.getBase()*100.00))/100.00)) : String.valueOf(Double.parseDouble(baseTotal16) + ((Math.round(bp.getBase()*100.00))/100.00));
-												ivaTotal16 = (ivaTotal16.isEmpty()) ? String.valueOf(Math.round(bp.getTaxAmount()*100.00)/100.00): String.valueOf(Math.round((Double.parseDouble(ivaTotal16) + bp.getTaxAmount())*100.00)/100.00);	
+												baseTotal16 = (baseTotal16.isEmpty()) ? String.valueOf(this.createAmountWithDecimal(bp.getBase(), 6)) : String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal16) + bp.getBase(),6));
+//												baseTotal16 = (baseTotal16.isEmpty()) ? String.valueOf(this.createAmountWithDecimal(bp.getBase(), 6)) : String.valueOf(Double.parseDouble(baseTotal16) + ((Math.round(bp.getBase()*100.00))/100.00));
+												ivaTotal16 = (ivaTotal16.isEmpty()) ? String.valueOf(this.createAmountWithDecimal(bp.getTaxAmount(),6)): String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal16) + bp.getTaxAmount(),6));
+//												ivaTotal16 = (ivaTotal16.isEmpty()) ? String.valueOf(Math.round(bp.getTaxAmount()*100.00)/100.00): String.valueOf(Math.round((Double.parseDouble(ivaTotal16) + bp.getTaxAmount())*100.00)/100.00);
 												tasa16 = "0.160000";
 											}else {
-												baseTotal16 = (baseTotal16.isEmpty()) ? String.valueOf(((Math.round(bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000)) : String.valueOf(Double.parseDouble(baseTotal16) + ((Math.round(bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000));
-												ivaTotal16 = (ivaTotal16.isEmpty()) ? String.valueOf(Math.round(bp.getTaxAmount() * Double.parseDouble(bp.getExchangeRate())*100.000000)/100.000000): String.valueOf(Double.parseDouble(ivaTotal16) + Math.round(bp.getTaxAmount()* Double.parseDouble(bp.getExchangeRate())*100.000000)/100.000000);	
+												baseTotal16 = (baseTotal16.isEmpty()) ? String.valueOf(this.createAmountWithDecimal(bp.getBase() * Double.parseDouble(bp.getExchangeRate()),6)) : String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal16) + (bp.getBase() * Double.parseDouble(bp.getExchangeRate())),6));
+//												baseTotal16 = (baseTotal16.isEmpty()) ? String.valueOf(((Math.round(bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000)) : String.valueOf(Double.parseDouble(baseTotal16) + ((Math.round(bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000));
+												ivaTotal16 = (ivaTotal16.isEmpty()) ? String.valueOf(this.createAmountWithDecimal(bp.getTaxAmount() * Double.parseDouble(bp.getExchangeRate()),6)): String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal16) + (bp.getTaxAmount()* Double.parseDouble(bp.getExchangeRate())),6));
+//												ivaTotal16 = (ivaTotal16.isEmpty()) ? String.valueOf(Math.round(bp.getTaxAmount() * Double.parseDouble(bp.getExchangeRate())*100.000000)/100.000000): String.valueOf(Double.parseDouble(ivaTotal16) + Math.round(bp.getTaxAmount()* Double.parseDouble(bp.getExchangeRate())*100.000000)/100.000000);
 												tasa16 = "0.160000";
 											}
 											break;
@@ -1674,11 +2274,13 @@ public class StampedServiceImpl implements StampedService{
 											break;
 										case AppConstants.COMP_PAGOS_FAC_0:
 											if(plist.getCurrency().equals(bp.getCurrency())) {
-												baseTotal00 = (baseTotal00.isEmpty()) ? String.valueOf(Math.round(bp.getBase()*100.00)/100.00) : String.valueOf(Math.round((Double.parseDouble(baseTotal00) + bp.getBase())*100.00)/100.00);
+												baseTotal00 = (baseTotal00.isEmpty()) ? String.valueOf(this.createAmountWithDecimal(bp.getBase(),6)) : String.valueOf(this.createAmountWithDecimal((Double.parseDouble(baseTotal00) + bp.getBase()), 6));
+//												baseTotal00 = (baseTotal00.isEmpty()) ? String.valueOf(Math.round(bp.getBase()*100.00)/100.00) : String.valueOf(Math.round((Double.parseDouble(baseTotal00) + bp.getBase())*100.00)/100.00);
 												ivaTotal00 = "0";
 												tasa00 = "0.000000";
 											}else {
-												baseTotal00 = (baseTotal00.isEmpty()) ? String.valueOf(((Math.round(bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000)) : String.valueOf(Math.round(Double.parseDouble(baseTotal00) + (bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000);
+												baseTotal00 = (baseTotal00.isEmpty()) ? String.valueOf(this.createAmountWithDecimal((bp.getBase() * Double.parseDouble(bp.getExchangeRate())),6)) : String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal00) + (bp.getBase() * Double.parseDouble(bp.getExchangeRate())),6));
+//												baseTotal00 = (baseTotal00.isEmpty()) ? String.valueOf(((Math.round(bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000)) : String.valueOf(Math.round(Double.parseDouble(baseTotal00) + (bp.getBase() * Double.parseDouble(bp.getExchangeRate())*100.000000))/100.000000);
 												ivaTotal00 = "0";
 												tasa00 = "0.000000";
 											}
@@ -1803,7 +2405,7 @@ public class StampedServiceImpl implements StampedService{
 						rfc + AppConstantsUtil.FILES_SEPARATOR +//RFC Extranjero
 						pay.get(0).getPartyNumber() + AppConstantsUtil.FILES_SEPARATOR +
 						pay.get(0).getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +	
-						plist.getCatExportacion()  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Exportacion
+						catExport  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Exportacion
 						plist.getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Regimen Fiscal
 						plist.getCustomerZipCode() + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Domicilio Fiscal
 						"0"  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 TotalRetencionesIVA Importe MXN
@@ -1927,7 +2529,7 @@ public class StampedServiceImpl implements StampedService{
 	public double createAmountWithDecimal(double value, int decimalpoint) {
 		// Using the pow() method
         value = value * Math.pow(10, decimalpoint);
-        value = Math.floor(value);
+        value = Math.round(value);
         value = value / Math.pow(10, decimalpoint);
 //      System.out.println(value);  
         return value;
@@ -1943,6 +2545,66 @@ public class StampedServiceImpl implements StampedService{
 		}
 		
 		return value;
+	}
+	
+	public String getUuidAlejandro (String fileName, String customerRfc) {
+		String uuid = "";
+		Connection cn = null;
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//			DriverManager.registerDriver(new com.microsoft.sqlserver.jdbc.SQLServerDriver());
+			String url = "jdbc:sqlserver://base-de-datos:1433;databaseName=SCADB;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
+			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");
+			if(cn != null) {
+				System.out.println("Conectado");
+				String query = "Declare @Archivo varchar (100) = '" + fileName + "'\n" + 
+						"select RutaArchivo, RutaPDF , RutaXML, UUID, emisor.Rfc RFCE, emisor.Nombre NombreE, receptor.Rfc RFCR, receptor.Nombre NombreR  \n" + 
+						"from FACT_ComprobanteTXT Txt\n" + 
+						"inner join FACT_Factura Archivos\n" + 
+						"on\n" + 
+						"	txt.ClaveComprobante = Archivos.ClaveComprobante \n" + 
+						"inner join TimbreFiscalDigital timbre\n" + 
+						"on\n" + 
+						"	txt.ClaveComprobante = timbre.ClaveComprobante \n" + 
+						"inner join ComprobanteEmisor emisor\n" + 
+						"on\n" + 
+						"	txt.ClaveComprobante = emisor.ClaveComprobante \n" + 
+						"inner join ComprobanteReceptor receptor\n" + 
+						"on\n" + 
+						"	txt.ClaveComprobante = receptor.ClaveComprobante \n" + 
+						"where RutaArchivo like '%' + @Archivo and txt.EstatusEntidad = 6";
+				PreparedStatement pstmt = cn.prepareStatement(query);
+				ResultSet rs = pstmt.executeQuery();
+				while (rs.next()) {
+					String rutaArchivo = rs.getString(1);
+					String rutaPdf = rs.getString(2);
+					String rutaXml = rs.getString(3);
+					String uuidRs = rs.getString(4);
+					String rfcEmisor = rs.getString(5);
+					String nombreEmisor = rs.getString(6);
+					String rfcReceptor = rs.getString(7);
+					String nombreReceptor = rs.getString(8);
+					System.out.println("Revisar valor");
+					if(customerRfc.equals(rfcReceptor) && uuidRs != null && !uuidRs.isEmpty()) {
+						return uuidRs;
+					}
+				}
+				rs.close();
+				System.out.print(rs);
+			}
+			return null;
+		}catch(Exception e) {
+			System.out.println(e);
+		}finally {
+            try {
+                if (cn != null && !cn.isClosed()) {
+                    cn.close();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+		return null;
 	}
 
 	@Override

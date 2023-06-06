@@ -122,6 +122,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 						break;
 					case AppConstants.SERVICE_AR_REPORT_GET_UUID:
 						request = PayloadProducer.searchUUID(sessionId, dto.getTransactionNumber());
+						break;//
+					case AppConstants.SERVICE_AR_RECEIPTS_REPORTS_VALIDATION:
+						request = PayloadProducer.receiptValidation(sessionId, dto.getReceiptId());
 						break;
 				}
 	

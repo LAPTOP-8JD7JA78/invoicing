@@ -23,6 +23,7 @@ import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByIt
 import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
+import com.smartech.invoicingprod.integration.json.standardReceipts.StandardReceipts;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
 import com.smartech.invoicingprod.integration.service.HTTPRequestService;
 import com.smartech.invoicingprod.integration.util.AppConstants;
@@ -472,7 +473,7 @@ public class RESTServiceImpl implements RESTService {
 			headers.add(new HeadersRestDTO("Accept", "*/*"));
 			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
 			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
-			params.add(new ParamsRestDTO("finder", "CurrencyRatesFinder;fromCurrency=" + fromCurrency + ",toCurrency=" + toCurrency + ",startDate=" + date + ",endDate=" + date + ",userConversionType=Fix _Exportacion"));
+			params.add(new ParamsRestDTO("finder", "CurrencyRatesFinder;fromCurrency=" + fromCurrency + ",toCurrency=" + toCurrency + ",startDate=" + date + ",endDate=" + date + ",userConversionType=Fix_Exportacion"));
 			params.add(new ParamsRestDTO("onlyData", true));
 			
 			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
@@ -484,6 +485,42 @@ public class RESTServiceImpl implements RESTService {
 			if(response != null) {
 				statusCode = (int) response.get("code");
 				responseRest = (CurrencyRates) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
+	
+
+	@Override
+	public StandardReceipts getStandardReceipts(String receiptNumber) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("fields", "sucursal,formaDePago"));
+			params.add(new ParamsRestDTO("onlyData", true));
+			
+			String urlEndpoint = AppConstants.URL_REST_STANDARDRECEIPTS.replace("{StandardReceiptId}", receiptNumber);
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					urlEndpoint, HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_STANDARD_RECEIPT);
+			
+			int statusCode;
+			StandardReceipts responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (StandardReceipts) response.get("response");
 				if(statusCode >= 200 && statusCode < 300) {
 					return responseRest;
 				}

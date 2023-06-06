@@ -11,6 +11,7 @@ import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByIt
 import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
+import com.smartech.invoicingprod.integration.json.standardReceipts.StandardReceipts;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
 import com.smartech.invoicingprod.model.Invoice;
 
@@ -29,4 +30,5 @@ public interface RESTService {
 	public ItemCosts getItemCostWitoutSerialNumber(String itemNumber);
 	public ReceivablesInvoices getInvoiceData(String transactionNumber);
 	public CurrencyRates getDailyCurrencyExportacion(String date, String fromCurrency, String toCurrency);
+	public StandardReceipts getStandardReceipts(String receiptNumber);
 }

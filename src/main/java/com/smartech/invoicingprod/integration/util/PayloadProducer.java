@@ -1129,6 +1129,48 @@ public class PayloadProducer {
 				"   </soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>";
 		
+		return soapRequest;		
+	}
+	
+	public static String receiptValidation(String sessionId, String receiptId) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v10=\"urn://oracle.bi.webservices/v10\">\n" + 
+				"   <soapenv:Header/>\n" + 
+				"   <soapenv:Body>\n" + 
+				"      <v10:executeSQLQuery>\n" + 
+				"         <v10:sql>\n" + 
+				"         SELECT\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"- Paying Customer Details\".\"Paying Customer Name\" s_1,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Business Unit\".\"Business Unit Name\" s_2,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Application Status\" s_3,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Applied Transaction Number\" s_4,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Apply Date\" s_5,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"Transaction to Receipt Conversion Rate\" s_6,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt ID\" s_7,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Number\" s_8,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt State\" s_9,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Document Currency\" s_10,\n" + 
+				"   DESCRIPTOR_IDOF(\"Receivables - Standard Receipts Application Details Real Time\".\"Business Unit\".\"Business Unit Name\") s_11,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application\".\"Applied To Entered Amount\" s_12,\n" + 
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipts\".\"Receipt Entered Amount\" s_13\n" + 
+				"FROM \"Receivables - Standard Receipts Application Details Real Time\"\n" + 
+				"WHERE\n" + 
+				"(\"Standard Receipt Details\".\"Receipt ID\" = '" + receiptId + "')\n" + 
+				"ORDER BY 3 ASC NULLS LAST, 12 ASC NULLS LAST, 9 ASC NULLS LAST, 8 ASC NULLS LAST, 2 ASC NULLS LAST, 11 ASC NULLS LAST, 10 ASC NULLS LAST, 4 ASC NULLS LAST, 6 ASC NULLS LAST, 7 ASC NULLS LAST, 5 ASC NULLS LAST\n" + 
+				"FETCH FIRST 75001 ROWS ONLY\n" + 
+				"         </v10:sql>\n" + 
+				"         <v10:outputFormat>XML</v10:outputFormat>\n" + 
+				"         <v10:executionOptions>\n" + 
+				"            <v10:async></v10:async>\n" + 
+				"            <v10:maxRowsPerPage></v10:maxRowsPerPage>\n" + 
+				"            <v10:refresh></v10:refresh>\n" + 
+				"            <v10:presentationInfo></v10:presentationInfo>\n" + 
+				"            <v10:type></v10:type>\n" + 
+				"         </v10:executionOptions>\n" + 
+				"         <v10:sessionID>" + sessionId + "</v10:sessionID>\n" + 
+				"      </v10:executeSQLQuery>\n" + 
+				"   </soapenv:Body>\n" + 
+				"</soapenv:Envelope>";
+		
 		return soapRequest;
 	}
 }

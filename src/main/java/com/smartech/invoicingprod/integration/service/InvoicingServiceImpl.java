@@ -46,6 +46,7 @@ import com.smartech.invoicingprod.integration.json.priceList.Item;
 import com.smartech.invoicingprod.integration.json.priceList.PriceLists;
 import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByItem;
 import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
+import com.smartech.invoicingprod.integration.json.standardReceipts.StandardReceipts;
 import com.smartech.invoicingprod.integration.json.unitCost.CostDetails;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
 import com.smartech.invoicingprod.integration.util.AppConstants;
@@ -2174,10 +2175,33 @@ public class InvoicingServiceImpl implements InvoicingService{
 									lista.setStatus(AppConstants.STATUS_PAYMENT_LIST_START);
 									lista.setPaymentForm(list.getPaymentForm());
 									isChange = true;
-								}else {
-									lista.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
-									isChange = false;
 									break;
+								}else {
+									//Proceso de obtener la forma de pago
+									StandardReceipts sReceipt = restService.getStandardReceipts(lista.getReceiptId());
+									if(sReceipt != null) {
+										if(sReceipt.getItems().get(0).getFormaDePago() != null && !sReceipt.getItems().get(0).getFormaDePago().isEmpty()) {
+											lista.setStatus(AppConstants.STATUS_PAYMENT_LIST_START);
+											lista.setPaymentForm(sReceipt.getItems().get(0).getFormaDePago());
+											for(Payments lap: lista.getPayments()) {
+												lap.setPaymentForm(sReceipt.getItems().get(0).getFormaDePago());
+												lap.setPaymentError(null);
+												lap.setPaymentStatus(AppConstants.STATUS_UPDUUID);
+												lap.setErrorActive(false);
+												paymentsService.updatePayment(lap);
+											}
+											isChange = true;
+											break;
+										}else {
+											lista.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+											isChange = false;
+											break;
+										}
+									}else {
+										lista.setStatus(AppConstants.STATUS_ERROR_DATA_PAY_LIST);
+										isChange = false;
+										break;
+									}									
 								}
 							}
 							if(isChange) {
@@ -2186,6 +2210,27 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 						dataList.add(lista.getReceiptNumber());
 					}					
+				}
+			}
+			//Recolectar pagos con error por falta de forma de pago
+			List<Payments> pListUnique = paymentsService.getPaymentsStatus(AppConstants.STATUS_ERROR_DATA_PAY);
+			List<String> dataListUnique = new ArrayList<String>();
+			if(pListUnique != null && !pListUnique.isEmpty()) {
+				for(Payments pal: pListUnique) {
+					if(!dataListUnique.contains(pal.getReceiptNumber())) {
+						boolean isChange = false;
+						StandardReceipts sReceiptUnique = restService.getStandardReceipts(pal.getReceiptId());
+						if(sReceiptUnique != null) {
+							if(sReceiptUnique.getItems().get(0).getFormaDePago() != null && !sReceiptUnique.getItems().get(0).getFormaDePago().isEmpty()) {
+								pal.setPaymentForm(sReceiptUnique.getItems().get(0).getFormaDePago());
+								pal.setPaymentError(null);
+								pal.setPaymentStatus(AppConstants.STATUS_PENDING);
+								pal.setErrorActive(false);
+								paymentsService.updatePayment(pal);
+							}
+						}
+						dataListUnique.add(pal.getReceiptNumber());
+					}
 				}
 			}
 			
@@ -5370,6 +5415,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 	@Override
 	public void recolectListPayments() {
 		try {
+			String eRateVal = "";
 			//Lista de pagos
 			List<PaymentsList> payListList = paymentsListService.getAllPayList(AppConstants.STATUS_PAYMENT_LIST_START);
 			List<PaymentsList> pl = new ArrayList<PaymentsList>();
@@ -5385,6 +5431,24 @@ public class InvoicingServiceImpl implements InvoicingService{
 					if(NullValidator.isNull(plist.getPaymentAmount()).length() == 0) {
 						continue;
 					}
+					//Proceso de validación 2
+					AnalyticsDTO analyticsVal = new AnalyticsDTO();
+					analyticsVal.setReceiptId(plist.getReceiptId());
+					Rowset rVal = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
+							AppConstants.SERVICE_AR_RECEIPTS_REPORTS_VALIDATION, analyticsVal);
+					if(!rVal.getRow().isEmpty()) {
+						plist.setPaymentAmount(rVal.getRow().get(0).getColumn12());
+						for(Row rowVal: rVal.getRow()) {
+							if(rowVal.getColumn5() == null) {
+								continue;
+							}
+							if(Double.parseDouble(plist.getExchangeRate()) > Double.parseDouble(rowVal.getColumn5())) {
+								eRateVal = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(rowVal.getColumn5()), 4));
+								plist.setExchangeRate(eRateVal);
+							}							
+						}
+					}
+					//Proceso de validación 2
 					AnalyticsDTO analytics = new AnalyticsDTO();
 					analytics.setReceiptNumber(plist.getReceiptNumber());
 					Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
@@ -5456,6 +5520,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public double createAmountWithDecimal(double value, int decimalpoint) {
+        value = value * Math.pow(10, decimalpoint);
+        value = Math.round(value);
+        value = value / Math.pow(10, decimalpoint);
+        return value;
 	}
 	
 	@SuppressWarnings("unused")
