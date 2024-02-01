@@ -21,5 +21,6 @@ public interface PaymentsService {
 	Payments getPaymentsByCusAndReceipt(String receiptNumber, String customerName);
 	List<Payments> getPaymentsListReceiptId(String receiptId);;
 	List<Payments> getPaymentsListCustomer(String uuid, String customerName, String folioRel);
+	Payments getPaymentByFolio(String folioPay);
 	
 }

@@ -19,4 +19,5 @@ public interface SOAPService {
 	public ItemGtinDTO getItemGTINData(String itemNumber, String orgCode, String partyNumber);
 	public String getItemId(String itemId);
 	public CustomerInformationDTO getEmaiAdress(String customerName, String customerPatyNumber);
+	public String getRegimenFiscal(String partyNumber);
 }

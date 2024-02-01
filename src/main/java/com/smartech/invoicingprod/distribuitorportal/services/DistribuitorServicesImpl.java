@@ -1,7 +1,12 @@
 package com.smartech.invoicingprod.distribuitorportal.services;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.smartech.invoicingprod.dao.InvoiceDao;
 import com.smartech.invoicingprod.dao.InvoiceDetailsDao;
+import com.smartech.invoicingprod.dao.PaymentsDao;
 import com.smartech.invoicingprod.dao.UdcDao;
 import com.smartech.invoicingprod.distribuitorportal.dto.FileInfoDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
@@ -25,7 +31,9 @@ import com.smartech.invoicingprod.integration.service.InvoicingServiceImpl;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
+import com.smartech.invoicingprod.model.Payments;
 import com.smartech.invoicingprod.model.Udc;
+import com.smartech.invoicingprod.service.PaymentsService;
 import com.smartech.invoicingprod.service.UdcService;
 import com.smartech.invoicingprod.util.AppConstantsUtil;
 import com.smartech.invoicingprod.util.NullValidator;
@@ -41,6 +49,8 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 	UdcDao udcDao;	
 	@Autowired
 	UdcService udcService;
+	@Autowired
+	PaymentsService paymentsService;
 
 	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());	
 	SimpleDateFormat sdfNoTime = new SimpleDateFormat("yyyy-MM-dd");
@@ -54,11 +64,12 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 			if(itemSerial != null && !itemSerial.isEmpty()) {
 				List<InvoiceDetails> invDetails2 = invoiceDetailsDao.searchBySerialNumber(itemSerial);
 				if(invDetails2 != null && invDetails2.size() > 0) {
+					log.warn("Proceso de obtención de datos para garantías: " + invDetails2.size());
 					List<InvoiceDetails> invDetails = new ArrayList<InvoiceDetails>();
 					for(InvoiceDetails invDetal: invDetails2) {
 						Invoice invDetalle = invoiceDao.getInvoiceIdFromInvoiceDetails(invDetal.getId());
 						String[] serialsNumberInvoice1 = invDetal.getItemSerial().split(",");
-						
+						log.warn("Proceso de obtención de datos para garantías: " + serialsNumberInvoice1);
 						for(String s: serialsNumberInvoice1) {
 							if((customerName.equals(invDetalle.getCustomerName()) && s.equals(itemSerial)) || (customerName.equals(invDetalle.getBranch().getName()) && s.equals(itemSerial))) {
 								invDetails.add(invDetal);
@@ -688,9 +699,55 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 		byte[] fileContent2;
 		byte[] fileContentZip;
 		String encodedFile;
-		
 		try {	
-			//Rutas donde estan guardados los archivos timbrados
+			//Rutas donde estan guardados los archivos timbrados Proceso Alejandro
+			String data = this.folioByData(invoiceNumber);
+			/*if(invoiceType.equals(AppConstants.ORDER_TYPE_FACTURA) || invoiceType.equals(AppConstants.ORDER_TYPE_NC)) {
+//				Invoice inv = invoiceDao.getSingleInvoiceByFolio(invoiceNumber, invoiceType);
+				data = this.folioByData(invoiceNumber);
+			}else if(invoiceType.equals(AppConstants.ORDER_TYPE_CPAGO)) {
+//				Payments paym = paymentsService.getPaymentByFolio(invoiceNumber);
+				data = this.folioByData(invoiceNumber);
+			}*/
+//			String data = "C:\\Produccion\\SCATemp\\2009\\ComprobantesPDF\\2023\\8\\MEFAC2368123.pdf,C:\\Produccion\\SCATemp\\2009\\ComprobantesXML\\2023\\8\\MEFAC2368123.xml";
+			if(data != null && !data.isEmpty()) {
+				String[] splitData = data.split(",");
+				file1 = new File(splitData[0]);
+				file2 = new File(splitData[1]);
+				if(file1.exists() || file2.exists()) {
+					fileName1 = invoiceNumber + ".pdf";
+					fileName2 = invoiceNumber + ".xml";
+					fileZip = new File(invoiceNumber + ".zip");
+					FileOutputStream out = new FileOutputStream(fileZip);
+					ZipOutputStream zipOut = new ZipOutputStream(out);
+					
+					if(file1.exists()) {
+						fileContent1 = FileUtils.readFileToByteArray(file1);
+						zipOut.putNextEntry(new ZipEntry(fileName1));
+						zipOut.write(fileContent1, 0, fileContent1.length);
+						zipOut.closeEntry();
+					}
+					
+					if(file2.exists()) {
+						fileContent2 = FileUtils.readFileToByteArray(file2);
+						zipOut.putNextEntry(new ZipEntry(fileName2));
+						zipOut.write(fileContent2, 0, fileContent2.length);
+						zipOut.closeEntry();
+					}
+
+					zipOut.close();
+					fileContentZip = FileUtils.readFileToByteArray(fileZip);
+					encodedFile = Base64.getEncoder().encodeToString(fileContentZip);
+					
+					fileInfo.setInvoiceNumber(invoiceNumber);
+					fileInfo.setInvoiceType(invoiceType);
+					fileInfo.setFileExt("zip");
+					fileInfo.setFileContent(encodedFile);
+					log.info("SE CREA ZIP CORRECTAMENTE.");
+					return fileInfo;
+				}
+			}
+			//Rutas donde estan guardados los archivos timbrados Proceso Fernando Tellez
 			List<Udc> udcPaths = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
 			for(Udc u: udcPaths) {
 				if(u.getStrValue1().equals(AppConstantsUtil.FILE_RESPONSE)) {
@@ -753,4 +810,68 @@ public class DistribuitorServicesImpl implements DistribuitorServices{
 		log.info("TERMINA PROCESO PORTAL DIST: NUMERO FACTURA " + invoiceNumber + " TIPO: " + invoiceType);
 		return fileInfo;
 	}
+	
+	public String folioByData (String folio) {
+		Connection cn = null;
+		try {
+//			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//			String url = "jdbc:sqlserver://localhost:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
+//			cn = DriverManager.getConnection(url, "sa", "1234");
+//			String url = "jdbc:sqlserver://base-de-datos:1433;databaseName=SCADB;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//Google
+//			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//Google
+//			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-D-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS TEST
+//			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS TEST
+			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS PROD
+			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS PROD
+			if(cn != null) {
+				String query = "Declare @Archivo varchar(100) = '" + folio + ".txt'\n" + 
+						"						select ISNULL(Serie,'') + ISNULL(Folio,'') + '.txt', RutaPDF , RutaXML, UUID, emisor.Rfc RFCE, emisor.Nombre NombreE, receptor.Rfc RFCR, receptor.Nombre NombreR\n" + 
+						"						from Comprobante Txt\n" + 
+						"						inner join FACT_Factura Archivos \n" + 
+						"						on\n" + 
+						"						txt.ClaveComprobante = Archivos.ClaveComprobante \n" + 
+						"						inner join TimbreFiscalDigital timbre\n" + 
+						"						on\n" + 
+						"						txt.ClaveComprobante = timbre.ClaveComprobante\n" + 
+						"						inner join ComprobanteEmisor emisor\n" + 
+						"						on\n" + 
+						"						txt.ClaveComprobante = emisor.ClaveComprobante\n" + 
+						"						inner join ComprobanteReceptor receptor\n" + 
+						"						on \n" + 
+						"						txt.ClaveComprobante = receptor.ClaveComprobante\n" + 
+						"						where (ISNULL(Serie,'') + ISNULL(Folio,'') + '.txt') =  @Archivo";
+				PreparedStatement pstmt = cn.prepareStatement(query);
+				ResultSet rs = pstmt.executeQuery();
+				while (rs.next()) {
+					String rutaArchivo = rs.getString(1);
+					String rutaPdf = rs.getString(2);
+					String rutaXml = rs.getString(3);
+					String uuidRs = rs.getString(4);
+					String rfcEmisor = rs.getString(5);
+					String nombreEmisor = rs.getString(6);
+					String rfcReceptor = rs.getString(7);
+					String nombreReceptor = rs.getString(8);
+					System.out.println("Revisar valor");
+					if(rutaPdf != null && rutaXml != null) {
+						rs.close();
+						return rutaPdf + "," + rutaXml;
+					}
+				}
+				rs.close();
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("Error en la obtención del registro: " + e);
+		}finally {
+            try {
+                if (cn != null && !cn.isClosed()) {
+                    cn.close();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+		return null;
+	}
+	
 }

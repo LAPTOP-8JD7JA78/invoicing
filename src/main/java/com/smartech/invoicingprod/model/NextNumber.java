@@ -11,7 +11,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity(name="NextNumber")
-@Table(name="nextNumber")
+@Table(name="nextnumber")
 public class NextNumber implements Serializable {
 	/**
 	 * 

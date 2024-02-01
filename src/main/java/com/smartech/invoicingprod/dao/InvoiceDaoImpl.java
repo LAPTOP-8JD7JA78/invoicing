@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -151,7 +152,9 @@ public class InvoiceDaoImpl implements InvoiceDao{
 	@Override
 	public List<Invoice> getInvoiceListByStatusCode(String status, String orderType) {
 		Session session = this.sessionFactory.getCurrentSession();
-		Criteria criteria = session.createCriteria(Invoice.class);
+		Criteria criteria = session.createCriteria(Invoice.class).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY).setFetchMode("InvoiceDetails", FetchMode.SELECT);
+		criteria.setFirstResult(0);
+		criteria.setMaxResults(1000);
 		try {
 			if(StringUtils.isNotBlank(status)) {
 				criteria.add(Restrictions.eq("status", status));
@@ -392,7 +395,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		String sql;
 		Session session = sessionFactory.getCurrentSession();	
 		try {
-			sql = "SELECT * FROM invoice_invoiceDetails where invoiceDetails_id = '" + id + "'";
+			sql = "SELECT * FROM invoice_invoicedetails where invoiceDetails_id = '" + id + "'";
 			query = session.createSQLQuery(sql);
 			query.setResultTransformer(Transformers.aliasToBean(InvoiceInvoiceDetailsDTO.class));
 			query.addScalar("invoice_id", new LongType());

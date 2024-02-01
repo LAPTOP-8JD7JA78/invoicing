@@ -482,6 +482,7 @@ public class SOAPServiceImpl implements SOAPService {
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
 										so.setCancelationReason(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "motivoDeCancelacion").toString()));
+										so.setRelationTypeCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "tipoRelacion").toString()));
 									}
 								}
 								
@@ -770,6 +771,7 @@ public class SOAPServiceImpl implements SOAPService {
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO")) {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
 										so.setCancelationReason(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "motivoDeCancelacion").toString()));
+										so.setRelationTypeCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "tipoRelacion").toString()));
 									}
 								}
 								
@@ -1407,6 +1409,48 @@ public class SOAPServiceImpl implements SOAPService {
 										item.setEmailAdress(emailLines);
 									}
 								}								
+							}															 
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER WS DE ITEMS_V2 - getItemDataByItemNumberOrgCode***************************", e);
+			}
+		}
+		return item;
+	}
+
+	@SuppressWarnings("unused")
+	@Override
+	public String getRegimenFiscal(String partyNumber) {
+		String item = null;
+		JSONObject xmlJSONObj;
+		JSONObject json;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((partyNumber != null && !"".contains(partyNumber))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_CUSTOMER_ACCOUNT, 
+																	PayloadProducer.searchTaxRegime2(partyNumber),AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);;
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findCustomerAccountResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findCustomerAccountResponse").getAsJsonObject().get("ns0:result").getAsJsonObject().has("ns2:Value")) {
+								JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findCustomerAccountResponse").getAsJsonObject().get("ns0:result").getAsJsonObject().get("ns2:Value").getAsJsonObject().get("ns2:CustAcctInformation").getAsJsonObject();
+								
+								if(!result.isJsonNull()) {
+									item = result.get("ns9:regimenFiscal").getAsString();
+								}
 							}															 
 						}
 					}

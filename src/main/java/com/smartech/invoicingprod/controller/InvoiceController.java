@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +25,7 @@ import com.smartech.invoicingprod.integration.service.InvoicingService;
 import com.smartech.invoicingprod.integration.service.MailService;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.Udc;
+import com.smartech.invoicingprod.scheduler.SchedulerService;
 import com.smartech.invoicingprod.service.UdcService;
 
 @RestController
@@ -40,6 +42,8 @@ public class InvoiceController {
 	ServletContext servletContext;
 	@Autowired
 	DistribuitorServices distribuitorServices;
+	
+	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	
 	@SuppressWarnings("unused")
 	@RequestMapping(value ="/integ/invoice/createInvoice", method = RequestMethod.POST)
@@ -80,7 +84,9 @@ public class InvoiceController {
 		}
 		WarrantyDataDTO array = new WarrantyDataDTO();
 		try {
+			log.warn("Proceso de obtención de datos para garantías: " + itemSerial + " " + customerName);
 			array = distribuitorServices.getDataInvoice(invoiceNumber, itemNumber, itemSerial, customerName);
+			log.warn("Resultados: " + array);
 			if(array != null ) {
 				if(array.getLinesWarranty() != null) {
 					if(array.getLinesWarranty().size()>0) {

@@ -93,4 +93,9 @@ public class PaymentsServiceImpl implements PaymentsService{
 	public List<Payments> getPaymentsListCustomer(String reference, String customerName, String folioRel) {
 		return paymentsDao.getPaymentsList(reference, customerName, folioRel);
 	}
+
+	@Override
+	public Payments getPaymentByFolio(String folioPay) {
+		return paymentsDao.getPayByFolio(folioPay);
+	}
 }

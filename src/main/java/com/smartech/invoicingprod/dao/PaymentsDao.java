@@ -22,4 +22,5 @@ public interface PaymentsDao {
 	Payments getPayByRecNumberAndCustomer(String receipt, String customerName);
 	List<Payments> getPaymentListReceitId(String receiptId);
 	List<Payments> getPaymentsListCustomer(String uuid, String customerName, String folioRel);
+	Payments getPayByFolio(String folio);
 }

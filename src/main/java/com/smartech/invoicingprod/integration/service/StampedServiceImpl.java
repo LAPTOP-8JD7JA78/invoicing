@@ -16,6 +16,7 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +38,11 @@ import com.smartech.invoicingprod.dao.InvoiceDao;
 import com.smartech.invoicingprod.distribuitorportal.dto.HeadersRestDTO;
 import com.smartech.invoicingprod.distribuitorportal.json.InvoiceJSON;
 import com.smartech.invoicingprod.distribuitorportal.services.HTTPRequestDistribuitorsService;
+import com.smartech.invoicingprod.integration.AnalyticsService;
+import com.smartech.invoicingprod.integration.SOAPService;
+import com.smartech.invoicingprod.integration.dto.AnalyticsDTO;
 import com.smartech.invoicingprod.integration.util.AppConstants;
+import com.smartech.invoicingprod.integration.xml.rowset.Rowset;
 import com.smartech.invoicingprod.model.Invoice;
 import com.smartech.invoicingprod.model.InvoiceDetails;
 import com.smartech.invoicingprod.model.NextNumber;
@@ -79,6 +84,12 @@ public class StampedServiceImpl implements StampedService{
 	
 	@Autowired
 	HTTPRequestDistribuitorsService hTTPRequestDistribuitorsService;
+	
+	@Autowired
+	AnalyticsService analyticsService;
+	
+	@Autowired
+	SOAPService soapService;
 	
 	static Logger log = Logger.getLogger(StampedServiceImpl.class.getName());
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -159,6 +170,15 @@ public class StampedServiceImpl implements StampedService{
 			getTaxes(i.getInvoiceDetails());
 			//Formato de fecha
 			String date = dateFormat.format(new Date());
+			if(i.getSerial().equals("MOFAC") || i.getSerial().equals("MONCR") || i.getSerial().equals("MOANT") || i.getSerial().equals("MOTR")) {
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(new Date());
+				Date tempDate = cal.getTime();
+				cal.set(Calendar.HOUR, cal.get(Calendar.HOUR)- 1);
+				cal.set(Calendar.MINUTE, cal.get(Calendar.MINUTE)- 1);
+				tempDate = cal.getTime();
+				date = dateFormat.format(tempDate);
+			}
 			//Cabecero txt
 			content = AppConstantsUtil.FILES_HEADER + AppConstantsUtil.FILES_SEPARATOR +
 					folio + AppConstantsUtil.FILES_SEPARATOR +
@@ -272,9 +292,12 @@ public class StampedServiceImpl implements StampedService{
 							NullValidator.isNull(i.getShippingInstruction()) + AppConstantsUtil.FILES_SEPARATOR +
 							NullValidator.isNull(i.getCompany().getBusinessUnitNameExtensive()) + AppConstantsUtil.FILES_SEPARATOR +
 							"\r\n";
+//					log.warn("ARCHIVO CREADO " + content);
+//					log.warn("ARCHIVO CREADO " + i.getInvoiceDetails().size());
 			for(InvoiceDetails id: i.getInvoiceDetails()) {
 				if(id != null) {
 					String lines = this.dataLines(id, i, n);
+//					log.warn("ARCHIVO CREADO " + lines);
 					if(lines == null) {
 						i.setStatus(AppConstants.STATUS_ERROR_CREATE_FILE);
 						invoiceDao.updateInvoice(i);
@@ -322,6 +345,7 @@ public class StampedServiceImpl implements StampedService{
 		String folio = "";
 //		String obImp = "02";
 		String obImp = "";
+		String tipoCambio = String.valueOf(i.getInvoiceExchangeRate());
 		try {
 			List<Udc> oType = udcService.searchBySystem(AppConstants.UDC_SYSTEM_OPERATIONTYPE);
 			List<Udc> pKey = udcService.searchBySystem(AppConstants.UDC_SYSTEM_PETITIONKEY);
@@ -374,7 +398,8 @@ public class StampedServiceImpl implements StampedService{
 					NullValidator.isNull(idet.getUomName()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(numberFormat.format(idet.getUnitPrice())) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(idet.getQuantity()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(idet.getExchangeRate()) + AppConstantsUtil.FILES_SEPARATOR +//10
+					NullValidator.isNull(tipoCambio) + AppConstantsUtil.FILES_SEPARATOR +//10
+					//NullValidator.isNull(idet.getExchangeRate()) + AppConstantsUtil.FILES_SEPARATOR +//10
 					NullValidator.isNull(idet.getItemNumber()) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(idet.getDatePetition()) + AppConstantsUtil.FILES_SEPARATOR +//Fecha de pedimento
 					NullValidator.isNull(idet.getCustomskey()) + AppConstantsUtil.FILES_SEPARATOR +//Aduana
@@ -406,8 +431,9 @@ public class StampedServiceImpl implements StampedService{
 							"" + AppConstantsUtil.FILES_SEPARATOR +
 							NullValidator.isNull(idet.getIncotermKey()) + AppConstantsUtil.FILES_SEPARATOR +//c_Incoterm 40
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Subdivison	
-							NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones	
-							NullValidator.isNull(idet.getExchangeRate()) + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
+							NullValidator.isNull(idet.getItemNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Observaciones								
+							NullValidator.isNull(tipoCambio) + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
+							//NullValidator.isNull(idet.getExchangeRate()) + AppConstantsUtil.FILES_SEPARATOR +//Tipo de cambio
 							NullValidator.isNull(idet.getTotalAmount()) + AppConstantsUtil.FILES_SEPARATOR +//Total venta moneda extranjera
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Curp del emisor
 							"" + AppConstantsUtil.FILES_SEPARATOR +//Número del registro fiscal
@@ -1405,7 +1431,7 @@ public class StampedServiceImpl implements StampedService{
 				Invoice inv = new Invoice();
 				inv = invD;
 				log.info(inv.getId() + " " + inv.getFolio());
-				String fName = inv.getSerial() + inv.getFolio() + ".txt";
+				String fName = inv.getSerial() + inv.getFolio();
 				String uuid = null;
 				//Obtener UUID
 				uuid = this.getUuidAlejandro(fName, inv.getCustomerTaxIdentifier());
@@ -1494,7 +1520,7 @@ public class StampedServiceImpl implements StampedService{
 			for(Payments payS: updatePayAle) {
 				Payments pay = new Payments();
 				pay = payS;
-				String fName = pay.getSerial() + pay.getFolio() + ".txt";
+				String fName = pay.getSerial() + pay.getFolio();
 				//log.warn(fName + " " + filePathPay );
 				String uuid = null;
 				uuid = this.getUuidAlejandro(fName, payS.getTaxIdentifier());
@@ -1741,6 +1767,11 @@ public class StampedServiceImpl implements StampedService{
 			if(i.getCatExportacion() == null) {
 				catExport = "01";
 			}
+			//Metodo para obtener el regimen fiscal
+			if(i.getCustomerTaxRegime().length() == 0) {
+				String regimenFiscal = soapService.getRegimenFiscal(i.getPartyNumber());
+				i.setCustomerTaxRegime(regimenFiscal);
+			}				
 //			float erateBase = Math.round(Double.parseDouble(i.getExchangeRate())*100.00);
 //			valorBase = Math.round((Math.round(Double.parseDouble(i.getPaymentAmount())*100.00)/100.00) * (Math.round(Double.parseDouble(i.getExchangeRate())*100.00)/100.00)*100.00)/100.00;
 			valorBase = Math.round((Math.round(Double.parseDouble(i.getPaymentAmount())*100.00)/100.00) * (Double.parseDouble(i.getExchangeRate()))*100.00)/100.00;
@@ -2120,7 +2151,7 @@ public class StampedServiceImpl implements StampedService{
 		String baseTotal08 = "";	String ivaTotal08 = "";			String tasa08 = "";			String baseTotal00 = "";
 		String ivaTotal00 = "";		String tasa00 = "";				String baseTotal = "";		String ivaTotal = "";
 		String tasa = "";			boolean changeCurrency = false;	String currency = "";		String excRate = "";
-		String catExport = "";
+		String catExport = "";		String regFiscal = "";
 		try {
 			//Obtener ruta para dejar los archivos
 			List<Udc> u = udcService.searchBySystem(AppConstantsUtil.RUTA_FILES);
@@ -2149,7 +2180,8 @@ public class StampedServiceImpl implements StampedService{
 				pagos16Base = "0"; pagos16Iva = "0";  pagos8Base = "0";  pagos8Iva = "0";	pagos0Base = "0";
 				pagos0Iva = "0";	  pagosExento = "0"; valorBase = 0;    baseTotal16 = "0"; ivaTotal = "0";
 				ivaTotal16 = "0";  tasa16 = "0";      baseTotal08 = "0"; ivaTotal08 = "0";  tasa = "";
-				tasa08 = "0"; 	  baseTotal00 = "0"; ivaTotal00 = "0";  tasa00 = "0";      baseTotal = "0";	 
+				tasa08 = "0"; 	  baseTotal00 = "0"; ivaTotal00 = "0";  tasa00 = "0";      baseTotal = "0";	regFiscal = "";
+
 				if(plist.getCurrency().equals(AppConstants.DEFAUL_CURRENCY)) {
 					valorBase = Math.round(Double.parseDouble(plist.getPaymentAmount())*100.00)/100.00;
 					excRate = "1.0";
@@ -2165,6 +2197,13 @@ public class StampedServiceImpl implements StampedService{
 					}
 				}
 				for(Payments bp: plist.getPayments()) {
+					//Metodo para obtener el regimen fiscal
+					if(bp.getCustomerTaxRegime().length() == 0) {
+						regFiscal = soapService.getRegimenFiscal(bp.getPartyNumber());
+						bp.setCustomerTaxRegime(regFiscal);
+					}else {
+						regFiscal = bp.getCustomerTaxRegime();
+					}
 					bp = reviewData(bp);
 					if(!changeCurrency) {//FACTURAS EN MISMA MONEDA
 						if(plist.getCurrency().equals(AppConstants.DEFAUL_CURRENCY)) {//PAGO CABECERO EN MXN; VALORES DE IMPUESTOS DEL PAGO EN MXN
@@ -2205,8 +2244,10 @@ public class StampedServiceImpl implements StampedService{
 											tasa16 = "0.160000";
 											break;
 										case AppConstants.COMP_PAGOS_FAC_8:
-											baseTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal08),6) + this.createAmountWithDecimal((bp.getBase() / Double.parseDouble(bp.getExchangeRate())), 6));
-											ivaTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal08),6) + this.createAmountWithDecimal((bp.getTaxAmount() / Double.parseDouble(bp.getExchangeRate())), 6));							
+											double baseTasa08 = this.createAmountWithDecimal(bp.getBase(), 2);
+											double taxTasa08 = this.createAmountWithDecimal(bp.getTaxAmount(), 2);
+											baseTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(baseTotal08),6) + this.createAmountWithDecimal((baseTasa08 / Double.parseDouble(bp.getExchangeRate())), 6));
+											ivaTotal08 = String.valueOf(this.createAmountWithDecimal(Double.parseDouble(ivaTotal08),6) + this.createAmountWithDecimal((taxTasa08 / Double.parseDouble(bp.getExchangeRate())), 6));							
 											tasa08 = "0.080000";
 											break;
 										case AppConstants.COMP_PAGOS_FAC_0:
@@ -2406,7 +2447,8 @@ public class StampedServiceImpl implements StampedService{
 						pay.get(0).getPartyNumber() + AppConstantsUtil.FILES_SEPARATOR +
 						pay.get(0).getCustomerEmail() + AppConstantsUtil.FILES_SEPARATOR +	
 						catExport  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Exportacion
-						plist.getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Regimen Fiscal
+						regFiscal + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Regimen Fiscal
+						//plist.getTaxRegime() + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Regimen Fiscal
 						plist.getCustomerZipCode() + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 Domicilio Fiscal
 						"0"  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 TotalRetencionesIVA Importe MXN
 						"0"  + AppConstantsUtil.FILES_SEPARATOR + //Pagos 2.0 TotalRetencionesISR Importe MXN
@@ -2440,6 +2482,13 @@ public class StampedServiceImpl implements StampedService{
 						((baseTotal16.equals("0")) ? "" : AppConstantsUtil.TAX_CODE_NAME) + AppConstantsUtil.FILES_SEPARATOR +
 						((baseTotal16.equals("0")) ? "" : tasa16) + AppConstantsUtil.FILES_SEPARATOR +
 						((baseTotal16.equals("0")) ? "" : ivaTotal16) + AppConstantsUtil.FILES_SEPARATOR +
+						"\r\n"+ // Pagos 2.0 SET PARA IVA 8
+						AppConstantsUtil.PAYMENT_PAYMENT_M + AppConstantsUtil.FILES_SEPARATOR +
+						((baseTotal08.equals("0")) ? "" : baseTotal08) + AppConstantsUtil.FILES_SEPARATOR +
+						((baseTotal08.equals("0")) ? "" : AppConstantsUtil.TAX_CODE) + AppConstantsUtil.FILES_SEPARATOR +
+						((baseTotal08.equals("0")) ? "" : AppConstantsUtil.TAX_CODE_NAME) + AppConstantsUtil.FILES_SEPARATOR +
+						((baseTotal08.equals("0")) ? "" : tasa08) + AppConstantsUtil.FILES_SEPARATOR +
+						((baseTotal08.equals("0")) ? "" : ivaTotal08) + AppConstantsUtil.FILES_SEPARATOR +
 						"\r\n"+ // Pagos 2.0 SET PARA IVA 0
 						AppConstantsUtil.PAYMENT_PAYMENT_M + AppConstantsUtil.FILES_SEPARATOR +
 						((baseTotal00.equals("0")) ? "" : baseTotal00) + AppConstantsUtil.FILES_SEPARATOR +
@@ -2553,26 +2602,48 @@ public class StampedServiceImpl implements StampedService{
 		try {
 			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 //			DriverManager.registerDriver(new com.microsoft.sqlserver.jdbc.SQLServerDriver());
-			String url = "jdbc:sqlserver://base-de-datos:1433;databaseName=SCADB;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
-			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");
+//			String url = "jdbc:sqlserver://localhost:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
+//			cn = DriverManager.getConnection(url, "sa", "1234");
+//			String url = "jdbc:sqlserver://base-de-datos:1433;databaseName=SCADB;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//Google
+//			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//Google
+			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-D-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS TEST
+			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS TEST
+//			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS PROD
+//			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS PROD
 			if(cn != null) {
 				System.out.println("Conectado");
-				String query = "Declare @Archivo varchar (100) = '" + fileName + "'\n" + 
-						"select RutaArchivo, RutaPDF , RutaXML, UUID, emisor.Rfc RFCE, emisor.Nombre NombreE, receptor.Rfc RFCR, receptor.Nombre NombreR  \n" + 
-						"from FACT_ComprobanteTXT Txt\n" + 
-						"inner join FACT_Factura Archivos\n" + 
-						"on\n" + 
-						"	txt.ClaveComprobante = Archivos.ClaveComprobante \n" + 
-						"inner join TimbreFiscalDigital timbre\n" + 
-						"on\n" + 
-						"	txt.ClaveComprobante = timbre.ClaveComprobante \n" + 
-						"inner join ComprobanteEmisor emisor\n" + 
-						"on\n" + 
-						"	txt.ClaveComprobante = emisor.ClaveComprobante \n" + 
-						"inner join ComprobanteReceptor receptor\n" + 
-						"on\n" + 
-						"	txt.ClaveComprobante = receptor.ClaveComprobante \n" + 
-						"where RutaArchivo like '%' + @Archivo and txt.EstatusEntidad = 6";
+				String query = "Declare @Archivo varchar(100) = '" + fileName +".txt'\n" + 
+						"						select ISNULL(Serie,'') + ISNULL(Folio,'') + '.txt', RutaPDF , RutaXML, UUID, emisor.Rfc RFCE, emisor.Nombre NombreE, receptor.Rfc RFCR, receptor.Nombre NombreR  \n" + 
+						"						from Comprobante Txt\n" + 
+						"						inner join FACT_Factura Archivos\n" + 
+						"						on\n" + 
+						"							txt.ClaveComprobante = Archivos.ClaveComprobante \n" + 
+						"						inner join TimbreFiscalDigital timbre\n" + 
+						"						on\n" + 
+						"							txt.ClaveComprobante = timbre.ClaveComprobante \n" + 
+						"						inner join ComprobanteEmisor emisor\n" + 
+						"						on\n" + 
+						"							txt.ClaveComprobante = emisor.ClaveComprobante \n" + 
+						"						inner join ComprobanteReceptor receptor\n" + 
+						"						on\n" + 
+						"							txt.ClaveComprobante = receptor.ClaveComprobante \n" + 
+						"						where (ISNULL(Serie,'') + ISNULL(Folio,'') + '.txt') =  @Archivo";
+//				String query = "Declare @Archivo varchar (100) = '" + fileName + "'\n" + 
+//						"select RutaArchivo, RutaPDF , RutaXML, UUID, emisor.Rfc RFCE, emisor.Nombre NombreE, receptor.Rfc RFCR, receptor.Nombre NombreR  \n" + 
+//						"from FACT_ComprobanteTXT Txt\n" + 
+//						"inner join FACT_Factura Archivos\n" + 
+//						"on\n" + 
+//						"	txt.ClaveComprobante = Archivos.ClaveComprobante \n" + 
+//						"inner join TimbreFiscalDigital timbre\n" + 
+//						"on\n" + 
+//						"	txt.ClaveComprobante = timbre.ClaveComprobante \n" + 
+//						"inner join ComprobanteEmisor emisor\n" + 
+//						"on\n" + 
+//						"	txt.ClaveComprobante = emisor.ClaveComprobante \n" + 
+//						"inner join ComprobanteReceptor receptor\n" + 
+//						"on\n" + 
+//						"	txt.ClaveComprobante = receptor.ClaveComprobante \n" + 
+//						"where RutaArchivo like '%' + @Archivo and txt.EstatusEntidad = 6";
 				PreparedStatement pstmt = cn.prepareStatement(query);
 				ResultSet rs = pstmt.executeQuery();
 				while (rs.next()) {

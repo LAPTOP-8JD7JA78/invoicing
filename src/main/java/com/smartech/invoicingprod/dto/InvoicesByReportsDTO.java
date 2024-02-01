@@ -97,6 +97,7 @@ public class InvoicesByReportsDTO {
 	private String regimenFiscal;
 	private String catExportacion;
 	private String catObjImp;
+	private String relationTypeManual;
 	
 	public String getCustomerName() {
 		return customerName;
@@ -663,6 +664,12 @@ public class InvoicesByReportsDTO {
 	}
 	public void setCatObjImp(String catObjImp) {
 		this.catObjImp = catObjImp;
+	}
+	public String getRelationTypeManual() {
+		return relationTypeManual;
+	}
+	public void setRelationTypeManual(String relationTypeManual) {
+		this.relationTypeManual = relationTypeManual;
 	}
 	
 }

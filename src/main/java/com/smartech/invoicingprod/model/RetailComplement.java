@@ -13,7 +13,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity(name="RetailComplement")
-@Table(name="retailComplement")
+@Table(name="retailcomplement")
 public class RetailComplement implements Serializable {
 
 	/**

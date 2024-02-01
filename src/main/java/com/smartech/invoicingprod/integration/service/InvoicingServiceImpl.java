@@ -347,7 +347,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 								Branch branch = new Branch();
 								NextNumber nNumber = new NextNumber();
 								if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_INVOICE)) {//Facturas tipo ingresos
-									if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+									if(invoice.getCompany().getName().equals("EQUIPO MARINO")) {
 										branch = branchService.getBranchByCode("CEDIS");
 										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
 									}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
@@ -356,6 +356,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 									}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
 										branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
 										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
+									}else if(invoice.getCompany().getName().equals("EQUIPO DEL MAR")) {
+										branch = branchService.getBranchByCode("CEDIS_IDEA");
+										nNumber = nextNumberService.getNumberCon(AppConstants.ORDER_TYPE_FACTURA, branch);
 									}
 									invoice.setSerial(nNumber.getSerie());
 									invoice.setInvoice(true);
@@ -363,6 +366,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 									invoice.setBranch(branch);
 									invoice.setStatus(AppConstants.STATUS_PENDING);
 									invoice.setFromSalesOrder(inv.getTransactionNumber());
+									invoice.setUUIDReference(inv.getUuidRelated());
+									invoice.setInvoiceRelationType(inv.getRelationTypeManual());
 									
 								}else if(inv.getTransactionClassCode().equals(AppConstants.INVOICING_CREDITMEMO) || inv.getTransactionClassCode().equals(AppConstants.INVOICING_ONACC)){//Facturas tipo egreso
 									String orderType = "";
@@ -378,7 +383,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 										invoice.setStatus(AppConstants.STATUS_PENDING);
 									}
 									
-									if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+									if(invoice.getCompany().getName().equals("EQUIPO MARINO")) {
 										branch = branchService.getBranchByCode("CEDIS");
 										nNumber = nextNumberService.getNumberCon(orderType, branch);
 									}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
@@ -386,6 +391,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 										nNumber = nextNumberService.getNumberCon(orderType, branch);
 									}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
 										branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
+										nNumber = nextNumberService.getNumberCon(orderType, branch);
+									}else if(invoice.getCompany().getName().equals("EQUIPO DEL MAR")) {
+										branch = branchService.getBranchByCode("CEDIS_IDEA");
 										nNumber = nextNumberService.getNumberCon(orderType, branch);
 									}
 									
@@ -436,7 +444,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 										orderType = AppConstants.ORDER_TYPE_CANCELATION;
 										invoice.setInvoiceType(orderType);
 										invoice.setStatus(AppConstants.STATUS_CANCELATION_BY_ORDER_NC);
-										if(invoice.getCompany().getName().equals("EQUIPO MARINO") || invoice.getCompany().getName().equals("EQUIPO MARINO IDEA")) {
+										if(invoice.getCompany().getName().equals("EQUIPO MARINO")) {
 											branch = branchService.getBranchByCode("CEDIS");
 											nNumber = nextNumberService.getNumberCon(orderType, branch);
 										}else if(invoice.getCompany().getName().equals("FABRICA DE LANCHAS")){
@@ -444,6 +452,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 											nNumber = nextNumberService.getNumberCon(orderType, branch);
 										}else if(invoice.getCompany().getName().equals("PRESTACION DE SERVICIOS")) {
 											branch = branchService.getBranchByCode("PRESTACIONES_SERVICIOS");
+											nNumber = nextNumberService.getNumberCon(orderType, branch);
+										}else if(invoice.getCompany().getName().equals("EQUIPO DEL MAR")) {
+											branch = branchService.getBranchByCode("CEDIS_IDEA");
 											nNumber = nextNumberService.getNumberCon(orderType, branch);
 										}
 										invoice.setSerial(nNumber.getSerie());
@@ -788,6 +799,8 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setUuidSustitution(NullValidator.isNull(r.getColumn76()));
 			invoice.setUuidSustitution(NullValidator.isNull(r.getColumn76()));
 			invoice.setCatObjImp(NullValidator.isNull(r.getColumn79()));// Fac 4.0
+			invoice.setCustomerEmail(NullValidator.isNull(r.getColumn84()));
+			invoice.setRelationTypeManual(r.getColumn85());
 			//Complemento detallista
 			if(r.getColumn43() != null) {
 				if(r.getColumn43().equals("Y")) {
@@ -944,10 +957,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 							incoterm = null;
 						}
 						//Buscar NumRegIdTrib FAC 4.0
+						String custName = "";
+						if(inv.getCustomerName().contains("&")) {
+							custName = inv.getCustomerName().replace("&", "&amp;");
+						}else {
+							custName = inv.getCustomerName();
+						}
 						AnalyticsDTO analytics = new AnalyticsDTO();
-						analytics.setCustomerName(inv.getCustomerName());
+//						analytics.setCustomerName(inv.getCustomerName());
+						analytics.setCustomerName(custName);
 						Rowset r = analyticsService.executeAnalyticsWS(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS, 
 								AppConstants.SERVICE_AR_REPORT_NUMREGIDTRIB, analytics);
+						if(r == null) {
+							continue;
+						}
 						if(!r.getRow().isEmpty()) {
 							inv.setCustomerTaxIdentifier(r.getRow().get(0).getColumn2());
 						}else {
@@ -1274,19 +1297,19 @@ public class InvoicingServiceImpl implements InvoicingService{
 //						}
 //					}
 					//Consulta de la dirreción del cliente de correo electrónico
-					if(inv.getCustomerEmail() == null || "".contains(NullValidator.isNull(inv.getCustomerEmail()))) {
-						CustomerInformationDTO ciDTO = soapService.getEmaiAdress(inv.getCustomerName(), inv.getCustomerPartyNumber());
-						if(ciDTO != null) {
-							if(ciDTO.getEmailAdress() != null) {
-								for(EmailAdressDTO eA: ciDTO.getEmailAdress()) {
-									if(!eA.getPartyName().contains("COSME MONGE")) {
-										inv.setCustomerEmail(eA.getObjectEmailAddress());
-										break;
-									}
-								}
-							}									
-						}
-					}
+//					if(inv.getCustomerEmail() == null || "".contains(NullValidator.isNull(inv.getCustomerEmail()))) {
+//						CustomerInformationDTO ciDTO = soapService.getEmaiAdress(inv.getCustomerName(), inv.getCustomerPartyNumber());
+//						if(ciDTO != null) {
+//							if(ciDTO.getEmailAdress() != null) {
+//								for(EmailAdressDTO eA: ciDTO.getEmailAdress()) {
+//									if(!eA.getPartyName().contains("COSME MONGE")) {
+//										inv.setCustomerEmail(eA.getObjectEmailAddress());
+//										break;
+//									}
+//								}
+//							}									
+//						}
+//					}
 					//Purchase Order
 					if(inco != null) {
 						if(inco.getItems().size() > 0) {
@@ -1302,9 +1325,21 @@ public class InvoicingServiceImpl implements InvoicingService{
 						inv.setSalesOrderType(so.getOrderType());
 					}
 					//Sustitución del CFDI
-					if(so.getSusticionCFDI() != null && !so.getSusticionCFDI().isEmpty()) {
+					/*if(so.getSusticionCFDI() != null && !so.getSusticionCFDI().isEmpty()) {
 						inv.setUUIDReference(so.getSusticionCFDI());
 						inv.setInvoiceRelationType("04");
+					}*/
+					//Cambios para "N" Cantidad de CFDI a relacionar
+					if(invStatus) {
+						if(so.getSusticionCFDI() != null && !so.getSusticionCFDI().isEmpty() && so.getRelationTypeCFDI() != null && !so.getRelationTypeCFDI().isEmpty()) {
+							if(inv.getUUIDReference() != null && !inv.getUUIDReference().isEmpty()) {
+								inv.setUUIDReference(inv.getUUIDReference() + "&" +so.getSusticionCFDI());
+								inv.setInvoiceRelationType(inv.getInvoiceRelationType() + "&" +so.getRelationTypeCFDI());
+							}else {
+								inv.setUUIDReference(so.getSusticionCFDI());
+								inv.setInvoiceRelationType(so.getRelationTypeCFDI());
+							}
+						}						
 					}
 					//SI ES NC
 					if(!inv.isInvoice()) {
@@ -1511,10 +1546,13 @@ public class InvoicingServiceImpl implements InvoicingService{
 											}
 										}
 									}	
+//									leyendas = "MOTOR: MODELO:";
 									if(leyendas != null && !leyendas.isEmpty()) {
 										if(inv.getLongDescription() != null && !inv.getLongDescription().isEmpty()) {
-											String leyCombos = inv.getLongDescription() + ", " + leyendas;
-											inv.setLongDescription(leyCombos);
+											if(!inv.getLongDescription().contains("MOTOR: MODELO:")) {
+												String leyCombos = inv.getLongDescription() + ", " + leyendas;
+												inv.setLongDescription(leyCombos);
+											}											
 										}else {
 											inv.setLongDescription(leyendas);
 										}
@@ -1555,8 +1593,10 @@ public class InvoicingServiceImpl implements InvoicingService{
 												for(TaxCodes tc: tcodesCombo) {
 													if(tc.getId() == 2) {
 														if(inv.getLongDescription() != null && !inv.getLongDescription().isEmpty()) {
-															String leyCombos = inv.getLongDescription() + ", " + AppConstants.LEY_LANCHAS;
-															inv.setLongDescription(leyCombos);
+															if(!inv.getLongDescription().contains(AppConstants.LEY_LANCHAS)){
+																String leyCombos = inv.getLongDescription() + ", " + AppConstants.LEY_LANCHAS;
+																inv.setLongDescription(leyCombos);
+															}															
 														}else {
 															inv.setLongDescription(AppConstants.LEY_LANCHAS);
 														}
@@ -1750,6 +1790,14 @@ public class InvoicingServiceImpl implements InvoicingService{
 											}
 										}else {
 											invLine.setUnitCost("0");
+										}
+										//referencia de equipo
+										if(invLine.getItemSerial() != null && !invLine.getItemSerial().isEmpty()) {
+											invLine.setEquipmentReference("E");
+											invLine.setItemDescription(invLine.getItemDescription() + " " + invLine.getItemNumber());
+										}else {
+											invLine.setEquipmentReference("R");
+											invLine.setSerialPdf(invLine.getItemNumber());
 										}
 									}								
 									
@@ -2246,7 +2294,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 			for(Row ro: r) {
 //				System.out.println(ro.getColumn23() + ","); //Fac 4.0
 				if(ro.getColumn29() != null) {
-					if(!ro.getColumn29().equals("0")) {
+					double valorPago = Double.parseDouble(ro.getColumn29());
+					if(valorPago > 0) {
+//					if(!ro.getColumn29().equals("0")) {
 						if(ro.getColumn40().contains("No")) {
 							continue;
 						}
@@ -2382,8 +2432,11 @@ public class InvoicingServiceImpl implements InvoicingService{
 			Date date = sdf.parse(r.getColumn45() + "T00:00:00");
 			String dateT = sdf.format(date);	
 			
-			Branch branchPago = new Branch();
 			Branch brar = new Branch();
+			Branch branchPago = new Branch();
+			if(r.getColumn39() != null && !r.getColumn39().isEmpty()) {
+				return null;
+			}
 			
 			Invoice inv = new Invoice();
 			if(r.getColumn12() != null && !r.getColumn12().isEmpty()) {
@@ -4752,7 +4805,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 						}
 					}
 				}
-			}else if(r.getColumn17().equals(AppConstants.IS_ADVANCE_PAYMENT)){//Saber si es anticipo	getReceiptById
+			}else if(NullValidator.isNull(r.getColumn17()).equals(AppConstants.IS_ADVANCE_PAYMENT)){//Saber si es anticipo	getReceiptById
 				if(r.getColumn17().equals(AppConstants.IS_ADVANCE_PAYMENT)) {
 //					Payments pSearch = paymentsService.getPayment(NullValidator.isNull(r.getColumn23())); 
 					Payments pSearch = paymentsService.getReceiptById(NullValidator.isNull(r.getColumn22())); 

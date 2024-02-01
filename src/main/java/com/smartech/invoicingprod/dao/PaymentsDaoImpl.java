@@ -296,4 +296,22 @@ public class PaymentsDaoImpl implements PaymentsDao{
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public Payments getPayByFolio(String folio) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Payments.class);
+//			criteria.add(Restrictions.eq("uuidReference", uuid));
+			criteria.add(Restrictions.eq("folio", folio));
+			List<Payments> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

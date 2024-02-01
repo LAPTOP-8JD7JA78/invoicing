@@ -43,6 +43,7 @@ public class SalesOrderDTO {
 	private String cancelationReason;
 	private String catExportacion;
 	private String regimenFiscal;
+	private String relationTypeCFDI;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -340,6 +341,14 @@ public class SalesOrderDTO {
 
 	public void setRegimenFiscal(String regimenFiscal) {
 		this.regimenFiscal = regimenFiscal;
+	}
+
+	public String getRelationTypeCFDI() {
+		return relationTypeCFDI;
+	}
+
+	public void setRelationTypeCFDI(String relationTypeCFDI) {
+		this.relationTypeCFDI = relationTypeCFDI;
 	}
 	
 }

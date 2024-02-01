@@ -19,7 +19,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 
 @Entity(name = "InvoiceDetails")
-@Table(name = "invoiceDetails")
+@Table(name = "invoicedetails")
 public class InvoiceDetails implements Serializable{
 	/**
 	 * 

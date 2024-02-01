@@ -11,7 +11,7 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 @Entity(name = "ErrorLog")
-@Table(name = "errorLog")
+@Table(name = "errorlog")
 public class ErrorLog implements Serializable{
 
 	/**

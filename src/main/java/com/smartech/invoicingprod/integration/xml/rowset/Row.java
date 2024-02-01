@@ -96,6 +96,12 @@ public class Row {
      protected String column84;
      protected String column85;
      
+     protected String column86;
+     protected String column87;
+     protected String column88;
+     protected String column89;
+     protected String column90;
+     
 	public String getColumn0() {
 		return column0;
 	}
@@ -853,6 +859,51 @@ public class Row {
 	@XmlElement(name = "Column85", required = true)
 	public void setColumn85(String column85) {
 		this.column85 = column85;
+	}
+
+	public String getColumn86() {
+		return column86;
+	}
+
+	@XmlElement(name = "Column86", required = true)
+	public void setColumn86(String column86) {
+		this.column86 = column86;
+	}
+
+	public String getColumn87() {
+		return column87;
+	}
+
+	@XmlElement(name = "Column87", required = true)
+	public void setColumn87(String column87) {
+		this.column87 = column87;
+	}
+
+	public String getColumn88() {
+		return column88;
+	}
+
+	@XmlElement(name = "Column88", required = true)
+	public void setColumn88(String column88) {
+		this.column88 = column88;
+	}
+
+	public String getColumn89() {
+		return column89;
+	}
+
+	@XmlElement(name = "Column89", required = true)
+	public void setColumn89(String column89) {
+		this.column89 = column89;
+	}
+
+	public String getColumn90() {
+		return column90;
+	}
+
+	@XmlElement(name = "Column90", required = true)
+	public void setColumn90(String column90) {
+		this.column90 = column90;
 	}
 		
 }

@@ -66,7 +66,7 @@ public class InvoiceDetailsDaoImpl implements InvoiceDetailsDao{
 	@Override
 	public List<InvoiceDetails> searchBySerialNumber(String itemSerial) {
 		Session session = this.sessionFactory.getCurrentSession();
-		Criteria criteria = session.createCriteria(InvoiceDetails.class);
+		Criteria criteria = session.createCriteria(InvoiceDetails.class).setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 		criteria.add(Restrictions.like("itemSerial", "%" + itemSerial + "%"));
 		criteria.add(Restrictions.isNotNull("lineType"));
 		criteria.addOrder(Order.desc("id"));

@@ -250,7 +250,9 @@ public class PayloadProducer {
 				"	\"Receivables - Transactions Real Time\".\"- Freight Details\".\"Ship To Location Province\" s_81,\r\n" + //Fac 4.0
 				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Identifying Address\".\"Bill-to Customer Province\" s_82,\r\n" + //Fac 4.0 
 				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"JE_RA_CUSTOMER_TRX_CFDIUNIQUEIDENTIFIER_\" s_83,\r\n" +
-				"   \"Receivables - Transactions Real Time\".\"- Additional Line Information\".\"Line Transaction Interface Flexfield Segment 5\" s_84\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Additional Line Information\".\"Line Transaction Interface Flexfield Segment 5\" s_84,\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_CUSTOMEREMAIL_\" s_85,\r\n" + 
+				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_TIMBRAR_\" s_86\r\n" +
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
 				"WHERE\r\n" +
 //				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))" + /*AND (CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Distributed Order Orchestration'  THEN 'Y'   ELSE CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Manual IMEMSA' and \"- General Information\".\"Transaction Class Code\" in ('INV','CM')" +/* AND \"- Transaction Distribution Details\".\"Accounted\" in ('Yes', 'Sí') THEN 'Y' ELSE 'N' END  END))" +*/
@@ -475,7 +477,8 @@ public class PayloadProducer {
 //				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "')/1)" +/* AND (\"Standard Receipt Application Details\".\"Accounted\" IN ('Sí', 'Yes')))" +*/
 //				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '" + date + "') AND (\"Standard Receipt Details\".\"JG_AR_CASH_RECEIPTS_DGTLTXRCPTSNGNTRNT_\" IS NULL))" +
 //				"((\"Standard Receipt Details\".\"Last Updated Date\" > timestamp '2021-01-01 00:00:00') AND (\"Standard Receipt Details\".\"Receipt Number\" IN ('PAGO01-231', 'PAGO01-304', 'PAGO01-308', 'PAGO01-343', 'PAGO01-344', 'PAGO01-362', 'PAGO01-370', 'PAGO01-371', 'PAGO01-381', 'PAGO01-534', 'PAGO01-935', 'PAGO01-939', 'REFBNTC00284734', 'TAP2109283', 'TAP2111294', 'VAL2109224')))" +
-				"((\"Standard Receipt Details\".\"JG_AR_CASH_RECEIPTS_DGTLTXRCPTSNGNTRNT_\" IS NULL) AND (\"Standard Receipt Application Details\".\"GL Posted Date\" >= date '" + date + "') AND (\"Standard Receipt Application Details\".\"GL Posted Date\" IS NOT NULL))" +
+//				"((\"Standard Receipt Details\".\"JG_AR_CASH_RECEIPTS_DGTLTXRCPTSNGNTRNT_\" IS NULL) AND (\"Standard Receipt Application Details\".\"GL Posted Date\" >= date '" + date + "') AND (\"Standard Receipt Application Details\".\"GL Posted Date\" IS NOT NULL))" +
+				"((\"Standard Receipt Application Details\".\"GL Posted Date\" >= date '" + date + "') AND (\"Standard Receipt Application Details\".\"GL Posted Date\" IS NOT NULL))" +
 //				"((\"Standard Receipt Details\".\"JG_AR_CASH_RECEIPTS_DGTLTXRCPTSNGNTRNT_\" IS NOT NULL) AND (\"Standard Receipt Application Details\".\"GL Posted Date\" >= date '" + date + "') AND (\"Standard Receipt Application Details\".\"GL Posted Date\" IS NOT NULL))" +
 				"Order by s_20 asc\r\n" +
 				"FETCH FIRST 75001 ROWS ONLY\r\n" + 
@@ -1168,6 +1171,36 @@ public class PayloadProducer {
 				"         </v10:executionOptions>\n" + 
 				"         <v10:sessionID>" + sessionId + "</v10:sessionID>\n" + 
 				"      </v10:executeSQLQuery>\n" + 
+				"   </soapenv:Body>\n" + 
+				"</soapenv:Envelope>";
+		
+		return soapRequest;
+	}
+	
+	public static String searchTaxRegime2 (String partyNumber) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">\n" + 
+				"   <soapenv:Header/>\n" + 
+				"   <soapenv:Body>\n" + 
+				"      <typ:findCustomerAccount>\n" + 
+				"         <typ:findCriteria>\n" + 
+				"            <typ1:fetchStart>0</typ1:fetchStart>\n" + 
+				"            <typ1:fetchSize>-1</typ1:fetchSize>\n" + 
+				"            <typ1:filter>\n" + 
+				"               <typ1:group>\n" + 
+				"                  <typ1:item>\n" + 
+				"                     <typ1:attribute>AccountNumber</typ1:attribute>\n" + 
+				"                     <typ1:operator>=</typ1:operator>\n" + 
+				"                     <typ1:value>" + partyNumber + "</typ1:value>\n" + 
+				"                  </typ1:item>\n" + 
+				"               </typ1:group>\n" + 
+				"            </typ1:filter>\n" + 
+				"            <typ1:findAttribute>CustAcctInformation</typ1:findAttribute>\n" + 
+				"            <typ1:childFindCriteria>\n" + 
+				"               <typ1:findAttribute>regimenFiscal</typ1:findAttribute>\n" + 
+				"               <typ1:childAttrName>CustAcctInformation</typ1:childAttrName>\n" + 
+				"            </typ1:childFindCriteria>\n" + 
+				"         </typ:findCriteria>\n" + 
+				"      </typ:findCustomerAccount>\n" + 
 				"   </soapenv:Body>\n" + 
 				"</soapenv:Envelope>";
 		
