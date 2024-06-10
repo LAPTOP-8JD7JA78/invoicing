@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
+import com.smartech.invoicingprod.dto.InvoiceInsertHeaderDTO;
+import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.dto.HeadersRestDTO;
 import com.smartech.invoicingprod.integration.dto.ParamsRestDTO;
 import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
@@ -521,6 +523,73 @@ public class RESTServiceImpl implements RESTService {
 			if(response != null) {
 				statusCode = (int) response.get("code");
 				responseRest = (StandardReceipts) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
+
+	@Override
+	public String insertInvoiceToCloud(InvoiceInsertHeaderDTO invoiceAr) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			//List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			
+			String urlEndpoint = AppConstants.URL_REST_INSERT_INVOICE_AR;
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					urlEndpoint, HttpMethod.POST, headers, null, invoiceAr, AppConstants.SERVICE_REST_INSERT_AR_INVOICE);
+			
+			int statusCode;
+			String responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (String) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
+
+	@Override
+	public ReceivablesInvoices getInvoiceData2(String invoiceFolio) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("q", "CustomerTransactionId=" + invoiceFolio));
+			params.add(new ParamsRestDTO("fields", "InvoiceCurrencyCode,TransactionNumber,TransactionType,ConversionRateType,EnteredAmount,InvoiceBalanceAmount,BillToCustomerName,BillToCustomerNumber,BillToContact"));
+			params.add(new ParamsRestDTO("onlyData", true));
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					AppConstants.URL_REST_RECEIVABLES_INVOICES , HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_RECEIVABLES_INVOICES);
+			
+			int statusCode;
+			ReceivablesInvoices responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (ReceivablesInvoices) response.get("response");
 				if(statusCode >= 200 && statusCode < 300) {
 					return responseRest;
 				}

@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -800,7 +801,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 			invoice.setUuidSustitution(NullValidator.isNull(r.getColumn76()));
 			invoice.setCatObjImp(NullValidator.isNull(r.getColumn79()));// Fac 4.0
 			invoice.setCustomerEmail(NullValidator.isNull(r.getColumn84()));
-			invoice.setRelationTypeManual(r.getColumn85());
+			//invoice.setRelationTypeManual(r.getColumn85());
 			//Complemento detallista
 			if(r.getColumn43() != null) {
 				if(r.getColumn43().equals("Y")) {
@@ -1296,20 +1297,20 @@ public class InvoicingServiceImpl implements InvoicingService{
 //							log.warn("PARA LA ORDEN " + inv.getFolio() + " ERROR AL VALIDAR EL USO CFDI CON EL REGIMEN FISCAL");
 //						}
 //					}
-					//Consulta de la dirreción del cliente de correo electrónico
-//					if(inv.getCustomerEmail() == null || "".contains(NullValidator.isNull(inv.getCustomerEmail()))) {
-//						CustomerInformationDTO ciDTO = soapService.getEmaiAdress(inv.getCustomerName(), inv.getCustomerPartyNumber());
-//						if(ciDTO != null) {
-//							if(ciDTO.getEmailAdress() != null) {
-//								for(EmailAdressDTO eA: ciDTO.getEmailAdress()) {
-//									if(!eA.getPartyName().contains("COSME MONGE")) {
-//										inv.setCustomerEmail(eA.getObjectEmailAddress());
-//										break;
-//									}
-//								}
-//							}									
-//						}
-//					}
+					//Consulta de la dirrección del cliente de correo electrónico
+					if(inv.getCustomerEmail() == null || "".contains(NullValidator.isNull(inv.getCustomerEmail()))) {
+						CustomerInformationDTO ciDTO = soapService.getEmaiAdress(inv.getCustomerName(), inv.getCustomerPartyNumber());
+						if(ciDTO != null) {
+							if(ciDTO.getEmailAdress() != null) {
+								for(EmailAdressDTO eA: ciDTO.getEmailAdress()) {
+									if(!eA.getPartyName().contains("COSME MONGE")) {
+										inv.setCustomerEmail(eA.getObjectEmailAddress());
+										break;
+									}
+								}
+							}									
+						}
+					}
 					//Purchase Order
 					if(inco != null) {
 						if(inco.getItems().size() > 0) {
@@ -6231,11 +6232,11 @@ public class InvoicingServiceImpl implements InvoicingService{
 				if(inv.getStatus().equals(AppConstants.STATUS_CANCEL_CLOSE)) {
 					continue;
 				}
-				if(inv.getCancelationReason().equals("01")) {
-					inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
-					invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
-					continue;
-				}
+//				if(inv.getCancelationReason().equals("01")) {
+//					inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
+//					invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
+//					continue;
+//				}
 				if(inv.getOrderSource().equals("Manual IMEMSA")) {
 					content = NullValidator.isNull(inv.getUUIDReference()) + AppConstantsUtil.FILES_SEPARATOR +
 							NullValidator.isNull(inv.getCancelationReason()) + AppConstantsUtil.FILES_SEPARATOR +
@@ -6260,12 +6261,25 @@ public class InvoicingServiceImpl implements InvoicingService{
 					invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
 				}else {
 					Invoice invRel = invoiceDao.getSingleInvoiceByFolioLike(inv.getInvoiceReferenceTransactionNumber(), AppConstants.ORDER_TYPE_FACTURA);
-					if(invRel != null) {					
+					if(invRel != null) {
 						content = invRel.getUUID();
+						String uuidToCancel = "";
+						List<Invoice> invoiceRelatedToCancel = invoiceDao.getInvoiceByUuidReference(invRel.getUUID());
+						if(!invoiceRelatedToCancel.isEmpty()) {
+							
+							List<String> names = invoiceRelatedToCancel.stream().map(Invoice::getUUID).collect(Collectors.toList());							
+							String resultado = names.stream().collect(Collectors.joining(","));							
+							uuidToCancel = (inv.getCancelationReason().equals("01")) ? resultado : resultado + "," + invRel.getUUID();
+							
+						}else {
+							uuidToCancel = invRel.getUUID();
+						}
+						
 						//Nombrar archivo
-						content = NullValidator.isNull(invRel.getUUID()) + AppConstantsUtil.FILES_SEPARATOR +
+						content = NullValidator.isNull(uuidToCancel) + AppConstantsUtil.FILES_SEPARATOR +
 								NullValidator.isNull(inv.getCancelationReason()) + AppConstantsUtil.FILES_SEPARATOR +
 								NullValidator.isNull(inv.getSustitutionUuid()) + AppConstantsUtil.FILES_SEPARATOR;
+						
 						//Crear archivo en la ruta deseada
 						try {
 							File file = new File(pathForCancel + (inv.getSerial() + inv.getFolio()) + AppConstantsUtil.RUTA_FILES_EXTENSION);
@@ -6278,6 +6292,7 @@ public class InvoicingServiceImpl implements InvoicingService{
 				            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
 				            out.write(content);
 				            out.close();
+				            
 						}catch(Exception e) {
 							log.info("ERROR AL CANCELAR FACTURA: " + inv.getFolio() + e);
 							continue;
@@ -6285,6 +6300,9 @@ public class InvoicingServiceImpl implements InvoicingService{
 						inv.setUUIDReference(invRel.getUUID());
 						inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
 						invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación
+					}else{
+						inv.setStatus(AppConstants.STATUS_CANCEL_CLOSE);				
+						invoiceDao.updateInvoice(inv);//Actualizar la factura de cancelación						
 					}
 				}								
 			}

@@ -251,8 +251,8 @@ public class PayloadProducer {
 				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Identifying Address\".\"Bill-to Customer Province\" s_82,\r\n" + //Fac 4.0 
 				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"JE_RA_CUSTOMER_TRX_CFDIUNIQUEIDENTIFIER_\" s_83,\r\n" +
 				"   \"Receivables - Transactions Real Time\".\"- Additional Line Information\".\"Line Transaction Interface Flexfield Segment 5\" s_84,\r\n" +
-				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_CUSTOMEREMAIL_\" s_85,\r\n" + 
-				"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_TIMBRAR_\" s_86\r\n" +
+				"   \"Receivables - Transactions Real Time\".\"- Bill-to Customer Descriptive Flexfields\".\"HZ_CUST_ACCOUNTS_CUSTOMEREMAIL_\" s_85\r\n" + 
+				//"   \"Receivables - Transactions Real Time\".\"- General Information\".\"RA_CUSTOMER_TRX_TIMBRAR_\" s_86\r\n" +
 				"FROM \"Receivables - Transactions Real Time\"\r\n" + 
 				"WHERE\r\n" +
 //				"((\"- Reference Information\".\"Last Update Date\" > timestamp '" + date + "') AND (\"- Tax Details\".\"Tax Classification Code\" IS NOT NULL) AND (\"- Line Information\".\"Unit Of Measure Code\" IS NOT NULL))" + /*AND (CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Distributed Order Orchestration'  THEN 'Y'   ELSE CASE WHEN \"- General Information\".\"Transaction Source Name\" = 'Manual IMEMSA' and \"- General Information\".\"Transaction Class Code\" in ('INV','CM')" +/* AND \"- Transaction Distribution Details\".\"Accounted\" in ('Yes', 'Sí') THEN 'Y' ELSE 'N' END  END))" +*/
@@ -470,7 +470,8 @@ public class PayloadProducer {
 				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_CAT_EXPORTACION_\" s_45,\r\n" +//Fac 4.0
 				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Deposit Date\" s_46,\r\n" +
 				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_UUID_7_\" s_47,\r\n" +//USO CFDI
-				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"GL Posted Date\" s_48\r\n" +
+				"	\"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Application Details\".\"GL Posted Date\" s_48,\r\n" +
+				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"Receipt Key\" s_49\r\n" +
 //				"   \"Receivables - Standard Receipts Application Details Real Time\".\"Standard Receipt Details\".\"AR_CASH_RECEIPTS_USO_CFDI_\" s_47\r\n" + // Fac 4.0 
 				"FROM \"Receivables - Standard Receipts Application Details Real Time\"\r\n" + 
 				"WHERE\r\n" + 
@@ -1199,6 +1200,80 @@ public class PayloadProducer {
 				"               <typ1:findAttribute>regimenFiscal</typ1:findAttribute>\n" + 
 				"               <typ1:childAttrName>CustAcctInformation</typ1:childAttrName>\n" + 
 				"            </typ1:childFindCriteria>\n" + 
+				"         </typ:findCriteria>\n" + 
+				"      </typ:findCustomerAccount>\n" + 
+				"   </soapenv:Body>\n" + 
+				"</soapenv:Envelope>";
+		
+		return soapRequest;
+	}
+	
+	public static String getCustomerInfo(String customerName) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">\r\n" + 
+				"   <soapenv:Header/>\r\n" + 
+				"   <soapenv:Body>\r\n" + 
+				"      <typ:findOrganization>\r\n" + 
+				"         <typ:findCriteria>\r\n" + 
+				"            <typ1:fetchStart>0</typ1:fetchStart>\r\n" + 
+				"            <typ1:fetchSize>-1</typ1:fetchSize>\r\n" + 
+				"            <typ1:filter>\r\n" + 
+				"               <typ1:group>\r\n" + 
+				"                  <typ1:item>\r\n" + 
+				"                     <typ1:attribute>OrganizationProfile</typ1:attribute>\r\n" + 
+				"                     <typ1:nested>\r\n" + 
+				"                        <typ1:group>\r\n" + 
+				"                           <typ1:item>\r\n" + 
+				"                              <typ1:conjunction>And</typ1:conjunction>\r\n" + 
+				"                              <typ1:attribute>OrganizationName</typ1:attribute>\r\n" + 
+				"                              <typ1:operator>CONTAINS</typ1:operator>\r\n" + 
+				"                              <typ1:value>" + customerName + "</typ1:value>\r\n" + 
+				"                           </typ1:item>\r\n" + 
+//				"                           <typ1:item>\r\n" + 
+//				"                              <typ1:conjunction>And</typ1:conjunction>\r\n" + 
+//				"                              <typ1:attribute>PartyNumber</typ1:attribute>\r\n" + 
+//				"                              <typ1:operator>=</typ1:operator>\r\n" + 
+//				"                              <typ1:value>" + customerPartyNumber + "</typ1:value>\r\n" + 
+//				"                           </typ1:item>\r\n" + 
+				"                        </typ1:group>\r\n" + 
+				"                     </typ1:nested>\r\n" + 
+				"                  </typ1:item>\r\n" + 
+				"               </typ1:group>\r\n" + 
+				"            </typ1:filter>\r\n" + 
+				"            <typ1:findAttribute>PartyName</typ1:findAttribute>\r\n" + 
+				"            <typ1:findAttribute>PartyNumber</typ1:findAttribute>\r\n" + 
+				"            <typ1:findAttribute>PartyId</typ1:findAttribute>\r\n" + 
+//				"            <typ1:findAttribute>Relationship</typ1:findAttribute>\r\n" + 
+//				"            <typ1:childFindCriteria>\r\n" + 
+//				"            	<typ1:findAttribute>PartyName</typ1:findAttribute>\r\n" + 
+//				"               <typ1:findAttribute>PartyNumber</typ1:findAttribute>\r\n" + 
+//				"               <typ1:childAttrName>Relationship</typ1:childAttrName>\r\n" + 
+//				"            </typ1:childFindCriteria>\r\n" + 
+				"         </typ:findCriteria>\r\n" + 
+				"      </typ:findOrganization>\r\n" + 
+				"   </soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>";
+		
+		return soapRequest;
+	}
+	
+	public static String getCustomerAccount(String customerId) {
+		String soapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:typ=\"http://xmlns.oracle.com/apps/cdm/foundation/parties/customerAccountService/applicationModule/types/\" xmlns:typ1=\"http://xmlns.oracle.com/adf/svc/types/\">\n" + 
+				"   <soapenv:Header/>\n" + 
+				"   <soapenv:Body>\n" + 
+				"      <typ:findCustomerAccount>\n" + 
+				"         <typ:findCriteria>\n" + 
+				"            <typ1:fetchStart>0</typ1:fetchStart>\n" + 
+				"            <typ1:fetchSize>-1</typ1:fetchSize>\n" + 
+				"            <typ1:filter>\n" + 
+				"               <typ1:group>\n" + 
+				"                  <typ1:item>\n" + 
+				"                     <typ1:attribute>PartyId</typ1:attribute>\n" + 
+				"                     <typ1:operator>=</typ1:operator>\n" + 
+				"                     <typ1:value>" + customerId + "</typ1:value>\n" + 
+				"                  </typ1:item>\n" + 
+				"               </typ1:group>\n" + 
+				"            </typ1:filter>\n" + 
+				"            <typ1:findAttribute>AccountNumber</typ1:findAttribute>\n" + 
 				"         </typ:findCriteria>\n" + 
 				"      </typ:findCustomerAccount>\n" + 
 				"   </soapenv:Body>\n" + 

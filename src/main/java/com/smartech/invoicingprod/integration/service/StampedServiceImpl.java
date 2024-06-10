@@ -1477,6 +1477,25 @@ public class StampedServiceImpl implements StampedService{
 								
 								//Enviar a Portal de Distribuidores
 								createDistPortalInvoice(inv);
+							}else if(inv.getInvoiceRelationType().contains(advPay)){
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+								//this.createAdvPayNC(inv);
+								invoiceDao.updateInvoice(inv);
+								
+								//Actualiza NC generadas a partir de anticipos
+								for(Invoice nc : updateNCAle) {
+									if(inv.getFromSalesOrder().equals(nc.getFromSalesOrder()) && nc.getUUIDReference() == null) {
+										nc.setUUIDReference(uuid);
+										nc.setStatus(AppConstants.STATUS_PENDING);
+										invoiceDao.updateInvoice(nc);
+									}
+								}
+								
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
+								
 							}
 							break;
 						case AppConstants.ORDER_TYPE_NC:
@@ -2604,10 +2623,10 @@ public class StampedServiceImpl implements StampedService{
 //			DriverManager.registerDriver(new com.microsoft.sqlserver.jdbc.SQLServerDriver());
 //			String url = "jdbc:sqlserver://localhost:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
 //			cn = DriverManager.getConnection(url, "sa", "1234");
-//			String url = "jdbc:sqlserver://base-de-datos:1433;databaseName=SCADB;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//Google
-//			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//Google
+			
 			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-D-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS TEST
 			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS TEST
+//			
 //			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS PROD
 //			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS PROD
 			if(cn != null) {

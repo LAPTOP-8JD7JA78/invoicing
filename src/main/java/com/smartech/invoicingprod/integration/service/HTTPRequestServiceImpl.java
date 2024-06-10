@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
+import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.dto.HeadersRestDTO;
 import com.smartech.invoicingprod.integration.dto.ParamsRestDTO;
 import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
@@ -265,6 +266,21 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 					map.put("code", respS12.getStatusCode().value());
 					map.put("response", respS12.hasBody()?respS12.getBody():null);
 					map.put("httpResponse", respS12.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_INSERT_AR_INVOICE:
+//					Object respS13 = rt.exchange(url, method, re, Object.class);
+//					System.out.print("Hola");
+					ResponseEntity<responseInsertInvoiceDTO> respS13 = rt.exchange(url, method, re, responseInsertInvoiceDTO.class);
+//					String var1 = respS13.toString();
+					map.put("code", respS13.getStatusCode().value());
+					map.put("response", respS13.toString() != null?respS13.toString():null);
+					map.put("httpResponse", respS13.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_RECEIVABLES_INVOICES2:
+					ResponseEntity<responseInsertInvoiceDTO> respS14 = rt.exchange(url, method, re, responseInsertInvoiceDTO.class);
+					map.put("code", respS14.getStatusCode().value());
+					map.put("response", respS14.hasBody()?respS14.getBody():null);
+					map.put("httpResponse",respS14.getHeaders());
 					break;
 			}		
 		}catch(Exception e) {

@@ -19,8 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.smartech.invoicingprod.distribuitorportal.dto.FileInfoDTO;
 import com.smartech.invoicingprod.distribuitorportal.services.DistribuitorServices;
+import com.smartech.invoicingprod.dto.InsertInvoiceCloudBodyDTO;
+import com.smartech.invoicingprod.dto.ResponseInvoiceCloudBodyDTO;
 import com.smartech.invoicingprod.integration.dto.InsertDataDTO;
 import com.smartech.invoicingprod.integration.dto.WarrantyDataDTO;
+import com.smartech.invoicingprod.integration.service.InsertInvoiceService;
+import com.smartech.invoicingprod.integration.service.InsertInvoiceServiceImpl;
 import com.smartech.invoicingprod.integration.service.InvoicingService;
 import com.smartech.invoicingprod.integration.service.MailService;
 import com.smartech.invoicingprod.model.Invoice;
@@ -42,6 +46,8 @@ public class InvoiceController {
 	ServletContext servletContext;
 	@Autowired
 	DistribuitorServices distribuitorServices;
+	@Autowired
+	InsertInvoiceService insertInvoiceService;
 	
 	static Logger log = Logger.getLogger(SchedulerService.class.getName());
 	
@@ -120,6 +126,19 @@ public class InvoiceController {
 		return inData;
 	}
 	
+
+	@SuppressWarnings("unused")
+	@RequestMapping(value ="/integ/insert/invoice/cloud", method = RequestMethod.POST)
+	ResponseInvoiceCloudBodyDTO insertInvoiceCloud(@RequestBody (required=false) InsertInvoiceCloudBodyDTO data ){
+		Map<String,Object> mapOKInsertInvoice = new HashMap<String,Object>(2);
+		ResponseInvoiceCloudBodyDTO val = new ResponseInvoiceCloudBodyDTO();
+		if(data != null) {
+			val = insertInvoiceService.createInvoice(data);
+			return val;
+		}
+		return null;
+	}
+	
 	@RequestMapping(value = "/warranty/retreiveAllData", method = RequestMethod.GET)
 	 public List<WarrantyDataDTO> retrieveDataWithoutWarranty(@RequestParam String dataSearch) {	
 		if(dataSearch == null || dataSearch.isEmpty()) {
@@ -135,6 +154,14 @@ public class InvoiceController {
 	}
 	
 	public Map<String, Object> mapOK(WarrantyDataDTO list, int total) {
+		Map<String, Object> modelMap = new HashMap<String, Object>(3);
+		modelMap.put("total", total);
+		modelMap.put("data", list);
+		modelMap.put("success", true);
+		return modelMap;
+	}
+	
+	public Map<String, Object> mapOKInsertInvoice(ResponseInvoiceCloudBodyDTO list, int total) {
 		Map<String, Object> modelMap = new HashMap<String, Object>(3);
 		modelMap.put("total", total);
 		modelMap.put("data", list);

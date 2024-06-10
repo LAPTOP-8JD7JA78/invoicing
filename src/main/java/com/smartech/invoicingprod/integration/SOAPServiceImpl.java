@@ -20,6 +20,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.smartech.invoicingprod.dto.CatAttachmentDTO;
 import com.smartech.invoicingprod.dto.CategoryDTO;
+import com.smartech.invoicingprod.dto.CustomerAccountDTO;
+import com.smartech.invoicingprod.dto.CustomerInformation2DTO;
+import com.smartech.invoicingprod.dto.CustomerInformation2P1DTO;
 import com.smartech.invoicingprod.dto.CustomerInformationDTO;
 import com.smartech.invoicingprod.dto.EmailAdressDTO;
 import com.smartech.invoicingprod.dto.ItemGtinDTO;
@@ -1451,6 +1454,109 @@ public class SOAPServiceImpl implements SOAPService {
 								if(!result.isJsonNull()) {
 									item = result.get("ns9:regimenFiscal").getAsString();
 								}
+							}															 
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER WS DE ITEMS_V2 - getItemDataByItemNumberOrgCode***************************", e);
+			}
+		}
+		return item;
+	}
+	
+	@Override
+	public com.smartech.invoicingprod.dto.CustomerInformation2DTO getDataCustomer(String customerName) {
+		CustomerInformation2DTO item = new CustomerInformation2DTO();
+		CustomerInformation2P1DTO item2 = new CustomerInformation2P1DTO();
+		JSONObject xmlJSONObj;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((customerName != null && !"".contains(customerName))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_FOUNDATION_PARTIES, 
+																	PayloadProducer.getCustomerInfo(customerName),AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);;
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findOrganizationResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject().has("ns2:Value")) {
+								JsonObject op = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject();
+								if(op.toString().contains("ns2:Value")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:findOrganizationResponse").getAsJsonObject().get("ns3:result").getAsJsonObject();
+									JsonElement soapEnvelope = result.get("ns2:Value");
+									if(soapEnvelope instanceof JsonArray) {
+										JsonArray jsonarray = soapEnvelope.getAsJsonArray();
+										for (int i = 0; i < jsonarray.size(); i++) {
+											JsonElement op2 = jsonarray.get(i).getAsJsonObject();
+											String name =  String.valueOf(op2.getAsJsonObject().get("ns2:PartyName")).replaceAll("\"", "");
+											if(name.equals(customerName)) {
+												item2.setPartyName(name);
+												item2.setPartyNumber(String.valueOf(op2.getAsJsonObject().get("ns2:PartyNumber")).replaceAll("\"", ""));
+												item2.setPartyId(String.valueOf(soapEnvelope.getAsJsonObject().get("ns2:PartyId")).replaceAll("\"", ""));
+												item.setCustInformation(item2);
+												break;
+											}
+										}
+									}else {
+										item2.setPartyName(String.valueOf(soapEnvelope.getAsJsonObject().get("ns2:PartyName")).replaceAll("\"", ""));
+										item2.setPartyNumber(String.valueOf(soapEnvelope.getAsJsonObject().get("ns2:PartyNumber")).replaceAll("\"", ""));
+										item2.setPartyId(String.valueOf(soapEnvelope.getAsJsonObject().get("ns2:PartyId")).replaceAll("\"", ""));
+										item.setCustInformation(item2);
+									}
+								}								
+							}															 
+						}
+					}
+				}
+			}catch(Exception e) {
+				e.printStackTrace();
+				log.error("ERROR AL OBTENER WS DE ITEMS_V2 - getItemDataByItemNumberOrgCode***************************", e);
+			}
+		}
+		return item;
+	}
+
+	@Override
+	public CustomerAccountDTO getDataCustomerAccount(String customerId) {
+		CustomerAccountDTO item = new CustomerAccountDTO();
+		JSONObject xmlJSONObj;
+		JsonElement jelement;
+		JsonObject jobject;
+		if((customerId != null && !"".contains(customerId))) {
+			try {
+				Map<String, Object> request1 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_CUSTOMER_ACCOUNT, 
+																	PayloadProducer.getCustomerAccount(customerId),AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);;
+				String strResponse1 = (String) request1.get("response");
+				int codeResponse1 = (int) request1.get("code");
+				String strHttpResponse1 = (String) request1.get("httpResponse");
+				
+				if(codeResponse1 >= 200 && codeResponse1 < 300) {
+					if(strResponse1 != null && !"".contains(strResponse1)) {
+						xmlJSONObj = XML.toJSONObject(strResponse1, true);
+						jelement = new JsonParser().parse(xmlJSONObj.toString());
+						jobject = jelement.getAsJsonObject();
+						if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject().has("ns0:findCustomerAccountResponse")) {
+							if(jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+									.get("ns0:findCustomerAccountResponse").getAsJsonObject().get("ns0:result").getAsJsonObject().has("ns2:Value")) {
+								JsonObject op = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+										.get("ns0:findCustomerAccountResponse").getAsJsonObject().get("ns0:result").getAsJsonObject();
+								if(op.toString().contains("ns2:Value")) {
+									JsonObject result = jobject.get("env:Envelope").getAsJsonObject().get("env:Body").getAsJsonObject()
+											.get("ns0:findCustomerAccountResponse").getAsJsonObject().get("ns0:result").getAsJsonObject();
+									JsonElement soapEnvelope = result.get("ns2:Value");
+									item.setAccountNumber(String.valueOf(soapEnvelope.getAsJsonObject().get("ns2:AccountNumber")).replaceAll("\"", ""));
+								}								
 							}															 
 						}
 					}

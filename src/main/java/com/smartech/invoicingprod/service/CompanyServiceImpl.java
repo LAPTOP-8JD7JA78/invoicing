@@ -62,4 +62,9 @@ public class CompanyServiceImpl implements CompanyService{
 	public Company getCompanyByLegalEntity(String legalEntity) {
 		return companyDao.getCompanyByLegalEntity(legalEntity);
 	}
+	
+	@Override
+	public Company getCompanyByTaxId(String taxId) {
+		return companyDao.getCompanyByTaxId(taxId);
+	}
 }

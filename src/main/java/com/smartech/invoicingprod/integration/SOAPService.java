@@ -1,6 +1,8 @@
 package com.smartech.invoicingprod.integration;
 
 import com.smartech.invoicingprod.dto.CategoryDTO;
+import com.smartech.invoicingprod.dto.CustomerAccountDTO;
+import com.smartech.invoicingprod.dto.CustomerInformation2DTO;
 import com.smartech.invoicingprod.dto.CustomerInformationDTO;
 import com.smartech.invoicingprod.dto.ItemGtinDTO;
 import com.smartech.invoicingprod.dto.ItemsDTO;
@@ -20,4 +22,6 @@ public interface SOAPService {
 	public String getItemId(String itemId);
 	public CustomerInformationDTO getEmaiAdress(String customerName, String customerPatyNumber);
 	public String getRegimenFiscal(String partyNumber);
+	public CustomerInformation2DTO getDataCustomer(String customerName);
+	public CustomerAccountDTO getDataCustomerAccount(String customerId);
 }

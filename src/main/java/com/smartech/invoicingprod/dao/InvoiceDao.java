@@ -31,4 +31,5 @@ public interface InvoiceDao {
 	Invoice getInvoiceIdFromInvoiceDetails(long id);
 	Invoice getSingleInvoiceByFolioCustomer(String folio, String invType, String customer);
 	Invoice getSingleInvoiceByFolioCustomerLike(String folio, String invType, String customer);
+	List<Invoice> getInvoiceByUuidReference(String uuidReference);
 }

@@ -457,4 +457,23 @@ public class InvoiceDaoImpl implements InvoiceDao{
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Invoice> getInvoiceByUuidReference(String uuid) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.like("UUIDReference", "%" + uuid + "%"));
+			criteria.add( Restrictions.isNotNull("UUID"));	
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list;
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 }

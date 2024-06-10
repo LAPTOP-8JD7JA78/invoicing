@@ -1,5 +1,7 @@
 package com.smartech.invoicingprod.integration;
 
+import com.smartech.invoicingprod.dto.InvoiceInsertHeaderDTO;
+import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
 import com.smartech.invoicingprod.integration.json.dailyRates.CurrencyRates;
 import com.smartech.invoicingprod.integration.json.inventoryItemSerialNumbers.InventoryItemSerialNumbers;
@@ -31,4 +33,6 @@ public interface RESTService {
 	public ReceivablesInvoices getInvoiceData(String transactionNumber);
 	public CurrencyRates getDailyCurrencyExportacion(String date, String fromCurrency, String toCurrency);
 	public StandardReceipts getStandardReceipts(String receiptNumber);
+	public String insertInvoiceToCloud(InvoiceInsertHeaderDTO invoiceAr);
+	public ReceivablesInvoices getInvoiceData2(String invoiceFolio);
 }

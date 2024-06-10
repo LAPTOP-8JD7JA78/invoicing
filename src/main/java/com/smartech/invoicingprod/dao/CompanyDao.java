@@ -14,4 +14,5 @@ public interface CompanyDao {
 	Company getCompanyByName(String companyName);
 	Company getCompanyByBook(String assetBook);
 	Company getCompanyByLegalEntity(String legalEntity);
+	Company getCompanyByTaxId(String taxId);
 }

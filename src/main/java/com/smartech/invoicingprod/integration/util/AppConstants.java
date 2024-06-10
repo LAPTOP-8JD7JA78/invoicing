@@ -49,11 +49,13 @@ public class AppConstants {
 	public static final String SERVICE_REST_ITEM_SERIAL_NUMBER = "SERVICE_ITEM_SERIAL_NUMBER";
 	public static final String SERVICE_REST_ITEM_COSTS = "ITEM_COSTS";
 	public static final String SERVICE_REST_RECEIVABLES_INVOICES = "RECEIVABLES_INVOICES";
+	public static final String SERVICE_REST_RECEIVABLES_INVOICES2 = "RECEIVABLES_INVOICES_2";
 	public static final String SERVICE_AR_RECEIPTS_REPORTS_HELP = "RECEIPTS_HELP";
 	public static final String SERVICE_AR_REPORT_TAX_REGIME = "AR_REPORT_TAX_REGIME";
 	public static final String SERVICE_AR_REPORT_GET_UUID = "AR_REPORT_GET_UUID";
 	public static final String SERVICE_AR_RECEIPTS_REPORTS_VALIDATION = "RECEIPTS_VALIDATION";
 	public static final String SERVICE_REST_STANDARD_RECEIPT = "REST_STANDARD_RECEIPT";
+	public static final String SERVICE_REST_INSERT_AR_INVOICE = "INSERT_AR_INVOICE";
 	//REST API
 	public static final String URL_REST_INVORG = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryOrganizations";
 	public static final String URL_REST_SALESORDER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
@@ -66,6 +68,7 @@ public class AppConstants {
 	public static final String URL_REST_ITEM_COSTS = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/itemCosts";
 	public static final String URL_REST_RECEIVABLES_INVOICES = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/receivablesInvoices";
 	public static final String URL_REST_STANDARDRECEIPTS = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/standardReceipts/{StandardReceiptId}/child/standardReceiptDFF";
+	public static final String URL_REST_INSERT_INVOICE_AR = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/receivablesInvoices";
 	//SOAP SERVICE
 	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + ":443/fscmService/ItemServiceV2?invoke=";
 	public static final String URL_SOAP_DFFFIN =  ORACLE_URL + "/fscmService/ErpObjectDFFUpdateService?invoke=";

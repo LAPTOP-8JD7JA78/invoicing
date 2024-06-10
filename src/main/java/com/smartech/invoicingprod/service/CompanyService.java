@@ -13,4 +13,5 @@ public interface CompanyService {
 	boolean delete(int id);
 	Company getCompanyByBook(String book);
 	Company getCompanyByLegalEntity(String legalEntity);
+	Company getCompanyByTaxId(String taxId);
 }
