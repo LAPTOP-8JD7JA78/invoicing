@@ -2,6 +2,7 @@ package com.smartech.invoicingprod.dao;
 
 import java.util.List;
 
+import com.smartech.invoicingprod.dto.WarrantyDataProcessDTO;
 import com.smartech.invoicingprod.model.Invoice;
 
 public interface InvoiceDao {
@@ -32,4 +33,8 @@ public interface InvoiceDao {
 	Invoice getSingleInvoiceByFolioCustomer(String folio, String invType, String customer);
 	Invoice getSingleInvoiceByFolioCustomerLike(String folio, String invType, String customer);
 	List<Invoice> getInvoiceByUuidReference(String uuidReference);
+	Invoice getSingleInvoiceByFromSalesOrderAndType(String fromSalesOrder, String orderType);
+	public List<WarrantyDataProcessDTO> getInvoiceForWarranty();
+	List<Invoice> getInvoicesByFolio(String folio);
+	List<Invoice> getInvoiceByDates(String startDate, String endDate);
 }

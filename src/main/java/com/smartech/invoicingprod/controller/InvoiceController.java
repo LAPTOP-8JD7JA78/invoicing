@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.smartech.invoicingprod.distribuitorportal.dto.FileInfoDTO;
 import com.smartech.invoicingprod.distribuitorportal.services.DistribuitorServices;
+import com.smartech.invoicingprod.dto.CustomeResponseDTO;
 import com.smartech.invoicingprod.dto.InsertInvoiceCloudBodyDTO;
 import com.smartech.invoicingprod.dto.ResponseInvoiceCloudBodyDTO;
 import com.smartech.invoicingprod.integration.dto.InsertDataDTO;
@@ -83,7 +84,7 @@ public class InvoiceController {
 	}
 	
 	@RequestMapping(value = "/distribuitors/warranty", method = RequestMethod.GET)
-	 public @ResponseBody Map<String, Object> getDataForWarranty(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String customerName) {
+	public @ResponseBody Map<String, Object> getDataForWarranty(@RequestParam String invoiceNumber, String itemNumber, String itemSerial, String customerName) {
 		
 		if(itemSerial == null || itemSerial.isEmpty() || customerName == null || customerName.isEmpty()) {
 			return mapError("Porfavor de agregar el valor del número de la factura");
@@ -126,7 +127,6 @@ public class InvoiceController {
 		return inData;
 	}
 	
-
 	@SuppressWarnings("unused")
 	@RequestMapping(value ="/integ/insert/invoice/cloud", method = RequestMethod.POST)
 	ResponseInvoiceCloudBodyDTO insertInvoiceCloud(@RequestBody (required=false) InsertInvoiceCloudBodyDTO data ){
@@ -151,6 +151,26 @@ public class InvoiceController {
 	 public @ResponseBody FileInfoDTO getInvoiceFiles(@RequestParam String invoiceNumber, @RequestParam String invoiceType) {
 		FileInfoDTO fileInfo = distribuitorServices.getFileInfo(invoiceNumber, invoiceType);		
 		return fileInfo;
+	}
+	
+	//Actualizacion de BD
+	@SuppressWarnings("unused")
+	@RequestMapping(value ="/imemsa/cloud/password", method = RequestMethod.GET)
+	CustomeResponseDTO updatePasswordDistribuitorPortal(@RequestParam String password, @RequestParam String user){
+		Map<String,Object> mapOKInsertInvoice = new HashMap<String,Object>(2);
+		CustomeResponseDTO response = new CustomeResponseDTO();
+		response = insertInvoiceService.updatePwdDistPortal(password, user);
+		return response;
+	}
+	
+	//Actualizacion de BD
+	@SuppressWarnings("unused")
+	@RequestMapping(value ="/imemsa/cloud/sendinvoices", method = RequestMethod.GET)
+	CustomeResponseDTO sendInvoiceToDistribuitorPortal(@RequestParam String invoices, @RequestParam String initialDate, @RequestParam String endDate){
+		Map<String,Object> mapOKInsertInvoice = new HashMap<String,Object>(2);
+		CustomeResponseDTO response = new CustomeResponseDTO();
+		response = insertInvoiceService.sendInvToDisPortal(invoices, initialDate, endDate);
+		return response;
 	}
 	
 	public Map<String, Object> mapOK(WarrantyDataDTO list, int total) {

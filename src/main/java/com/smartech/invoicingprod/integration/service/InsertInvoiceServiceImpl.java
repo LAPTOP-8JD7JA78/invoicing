@@ -10,6 +10,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.smartech.invoicingprod.dao.InvoiceDao;
+import com.smartech.invoicingprod.dto.CustomeResponseDTO;
 import com.smartech.invoicingprod.dto.CustomerAccountDTO;
 import com.smartech.invoicingprod.dto.CustomerInformation2DTO;
 import com.smartech.invoicingprod.dto.InsertInvoiceCloudBodyDTO;
@@ -19,24 +21,28 @@ import com.smartech.invoicingprod.dto.ReceivablesInvoiceGdfDTO;
 import com.smartech.invoicingprod.dto.ReceivablesInvoiceLineDTO;
 import com.smartech.invoicingprod.dto.ReceivablesInvoiceLineTaxLineDTO;
 import com.smartech.invoicingprod.dto.ResponseInvoiceCloudBodyDTO;
-import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.RESTService;
 import com.smartech.invoicingprod.integration.SOAPService;
+import com.smartech.invoicingprod.integration.json.InvoicesPortalDist.Invoices;
 import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Company;
-import com.smartech.invoicingprod.model.Payments;
+import com.smartech.invoicingprod.model.Invoice;
+import com.smartech.invoicingprod.model.Udc;
 import com.smartech.invoicingprod.service.CompanyService;
 import com.smartech.invoicingprod.service.UdcService;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 
 @Service("insertInvoiceService")
 public class InsertInvoiceServiceImpl implements InsertInvoiceService {
@@ -52,6 +58,9 @@ public class InsertInvoiceServiceImpl implements InsertInvoiceService {
 	
 	@Autowired
 	RESTService restService;
+	
+	@Autowired
+	InvoiceDao invoiceDao;
 
 	@SuppressWarnings("unused")
 	@Override
@@ -487,6 +496,190 @@ public class InsertInvoiceServiceImpl implements InsertInvoiceService {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+		return null;
+	}
+
+	@Override
+	public CustomeResponseDTO updatePwdDistPortal(String pwd, String user) {
+		CustomeResponseDTO response = new CustomeResponseDTO();
+		boolean error = false;
+		String error_msg = "";
+		try {
+			//Validacion de que la contrasena no este en blanco
+			if(pwd.isEmpty() || pwd == null || user.isEmpty() || user == null) {
+				response.setStatus(false);
+				response.setMessage("Favor de ingresar una contraseña y/o el nombre de usuario.");
+				return response;
+			}
+			//Actualizacion de la contraseña
+			if(!pwd.isEmpty() && pwd != null) {
+				//Validando que exista la udc que se desea actualizar
+				Udc getdata = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_PORTAL, AppConstants.UDC_KEY_PORTAL_PWD);
+				if(getdata == null){
+					error = true;
+					error_msg = "No existe el registro que se esta buscando respecto a la contraseña.";
+				}else {
+					getdata.setStrValue1(pwd);	
+					boolean pwd_status = udcService.update(getdata, new Date(), "SYSTEM");
+					if(!pwd_status) {
+						error = true;
+						error_msg = error_msg + " Error al actualizar la Contraseña.";
+					}
+				}
+				
+			}
+			//Actualizacion del usuario
+			if(!user.isEmpty() && user != null) {
+				//Validando que exista la udc que se desea actualizar
+				Udc getdata = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_PORTAL, AppConstants.UDC_KEY_PORTAL_USER);
+				if(getdata == null){
+					error = true;
+					error_msg = error_msg + "No existe el registro que se esta buscando respecto al Usuario.";
+				}else {
+					getdata.setStrValue1(user);	
+					boolean user_status = udcService.update(getdata, new Date(), "SYSTEM");
+					if(!user_status) {
+						error = true;
+						error_msg = error_msg + " Error al actualizar el usuario.";
+					}
+				}
+				
+			}
+			
+			if(error) {
+				response.setStatus(false);
+				response.setMessage(error_msg + ". Favor de contactar con el administrador de la aplicación.");
+			}else {
+				response.setStatus(true);
+				response.setMessage("Registro(s) actualizado(s) correctamente");
+			}
+			
+			return response;
+		}catch(Exception e) {
+			response.setStatus(false);
+			response.setMessage("Existe un error: " + e);
+		}
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CustomeResponseDTO sendInvToDisPortal(String invoices, String initialDate, String endDate) {
+		CustomeResponseDTO response = new CustomeResponseDTO();
+		String type = "";
+		String Lista= "LISTA";
+		String Fechas= "FECHAS";
+		String errorMsg = "";
+		try {
+			//Validacion de parametros de entrada
+			if(invoices.isEmpty() || invoices == null) {
+				if(initialDate.isEmpty() || initialDate == null || endDate.isEmpty() || endDate == null) {
+					response.setStatus(false);
+					response.setMessage("Favor de ingresar un listado de facturas o fechas correspondientes.");
+					return response;
+				}else {
+					type = Fechas;
+				}
+			}else {
+				type = Lista;
+			}
+			Udc getdataUser = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_PORTAL, AppConstants.UDC_KEY_PORTAL_USER);
+			Udc getdataPwd = udcService.searchBySystemAndKey(AppConstants.UDC_SYSTEM_PORTAL, AppConstants.UDC_KEY_PORTAL_PWD);
+			String user_portal = getdataUser.getStrValue1();
+			String pwd_portal = getdataPwd.getStrValue1();
+			//Proceso de busqueda de datos
+			if(type == Lista) {// Proceso de lista
+				String[] invList = invoices.split(",");
+				for(String s: invList) {
+					List<Invoice> inv = invoiceDao.getInvoicesByFolio(s.trim());
+					if(inv == null || inv.size() == 0) {//Validacion de que regrese datos
+						errorMsg = errorMsg + " La transacción con folio '" + s.trim() + "' no se encuentra en el sistema." ;
+						continue;
+					}
+					//Si hay datos para continuar con el proceso
+					for(Invoice i: inv) {
+						//Validar que sea un registro
+						if(i.getUUID() == null || i.getUUID().isEmpty()) {
+							errorMsg = errorMsg + " La transacción con folio '" + s.trim() + "' no tiene UUID por lo que no se puede actualizar, favor de intentarlo mas tarde." ;
+							continue;
+						}
+						//Validar que no exista el registro en el portal de distribuidores
+						Invoices portalInvoices = restService.getInvoicesFromPortalDist(i.getUUID(), user_portal, pwd_portal);
+						if(portalInvoices == null) {
+							errorMsg = errorMsg + " La transacción con folio '" + s.trim() + "' tuvo un error al momento de consultar el registro en el portal de distribuidores." ;
+							continue;
+						}
+						if(portalInvoices.getItems().size() > 0) {
+							errorMsg = errorMsg + " La transacción con folio '" + s.trim() + "' Ya existe en el portal de distribuidores." ;
+							continue;
+						}
+						//Actualizar registro
+						i.setStatus(AppConstants.STATUS_UPDUUID);
+						boolean update_invoice = invoiceDao.updateInvoice(i);
+						if(!update_invoice) {
+							errorMsg = errorMsg + " La transacción con folio '" + s.trim() + "' no se logro actualizar correctamente, favor de intentarlo mas tarde." ;
+						}
+					}
+				}
+			}else {//Proce de fechas
+				//Procesar fechas
+				DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		        DateTimeFormatter formatoSalida  = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		        
+		        LocalDate fechaInicial = LocalDate.parse(initialDate, formatoFecha);
+		        LocalDateTime fechaInicio = fechaInicial.minusDays(1).atTime(0, 0, 0);
+		        
+		        LocalDate fechaFinal = LocalDate.parse(endDate, formatoFecha);
+		        LocalDateTime fechaFin = fechaFinal.plusDays(1).atTime(23, 59, 59);
+		        
+		        String fechaInicioStr = fechaInicio.format(formatoSalida);
+		        String fechaFinStr = fechaFin.format(formatoSalida);
+		        
+				List<Invoice> inv = invoiceDao.getInvoiceByDates(fechaInicioStr, fechaFinStr);
+				if(inv == null || inv.size() == 0) {
+					errorMsg = errorMsg + " Error al buscar las transacciones en el rango de fechas ingresadas." ;
+				}else {
+					for(Invoice i: inv) {
+						//Validar que sea un registro
+						if(i.getUUID().isEmpty() || i.getUUID() == null) {
+							errorMsg = errorMsg + " La transacción con folio '" + i.getFolio().trim() + "' no tiene UUID por lo que no se puede actualizar, favor de intentarlo mas tarde." ;
+							continue;
+						}
+						//Validar que no exista el registro en el portal de distribuidores
+						Invoices portalInvoices = restService.getInvoicesFromPortalDist(i.getUUID(), user_portal, pwd_portal);
+						if(portalInvoices == null) {
+							errorMsg = errorMsg + " La transacción con folio '" + i.getFolio().trim() + "' tuvo un error al momento de consultar el registro en el portal de distribuidores." ;
+							continue;
+						}
+						if(portalInvoices.getItems().size() > 0) {
+							errorMsg = errorMsg + " La transacción con folio '" + i.getFolio().trim() + "' Ya existe en el portal de distribuidores." ;
+							continue;
+						}
+						//Actualizar registro
+						i.setStatus(AppConstants.STATUS_UPDUUID);
+						boolean update_invoice = invoiceDao.updateInvoice(i);
+						if(!update_invoice) {
+							errorMsg = errorMsg + " La transacción con folio '" + i.getFolio().trim() + "' no se logro actualizar correctamente, favor de intentarlo mas tarde." ;
+						}
+					}
+				}
+			}
+			
+			//Escritura del mensaje de exito o error
+			if(errorMsg.length() == 0) {
+				response.setStatus(true);
+				response.setMessage("Registro(s) actualizado(s) correctamente.");
+			}else {
+				response.setStatus(false);
+				response.setMessage("Existieron el o los siguiente(s) mensaje(s) de error: " + errorMsg);
+			}
+			
+			return response;
+		}catch(Exception e) {
+			response.setStatus(false);
+			response.setMessage("Existio un error en el proceso: " + e + ". Favor de contactor con el administrador");
+		}
+		// TODO Auto-generated method stub
 		return null;
 	}
 	

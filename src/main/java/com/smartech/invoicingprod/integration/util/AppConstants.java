@@ -6,12 +6,16 @@ public class AppConstants {
 	public static final String ORACLE_PASS = "Mexico$2020";
 	
 //	Ambientes de test
-	public static final String ORACLE_URL = "https://fa-epog-test-saasfaprod1.fa.ocs.oraclecloud.com";
-	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/auth/data";
-
+//	public static final String ORACLE_URL = "https://fa-epog-test-saasfaprod1.fa.ocs.oraclecloud.com";
+//	public static final String DIST_PORTAL_URL = "https://oic-vbcs-integraciontest-vb-axvdt1gojzpc.builder.us-phoenix-1.ocp.oraclecloud.com/ic/builder/rt/Portal_test_Security/live/resources/data/invoice";
+//	public static final String URL_DATABASE_ALEJANDRO = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-D-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
+//	public static final String AMBIENTE = "PRUEBAS";
+	
 //	Ambientes de producción
-//	public static final String ORACLE_URL = "https://fa-epog-saasfaprod1.fa.ocs.oraclecloud.com";
-//	public static final String DIST_PORTAL_URL = "https://integracionprod-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/rt/Portal_de_Distribuidores/live/resources/auth/data";
+	public static final String ORACLE_URL = "https://fa-epog-saasfaprod1.fa.ocs.oraclecloud.com";
+	public static final String DIST_PORTAL_URL = "https://oic-vbcs-integracionprod-vb-axvdt1gojzpc.builder.us-phoenix-1.ocp.oraclecloud.com/ic/builder/rt/Portal_de_Distribuidores/live/resources/data";
+	public static final String URL_DATABASE_ALEJANDRO = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
+	public static final String AMBIENTE = "PRODUCTIVO";
 	
 	//Ambientes de prueba
 //	public static final String DIST_PORTAL_URL = "https://integraciontest-axvdt1gojzpc-px.integration.ocp.oraclecloud.com/ic/builder/design/Portal_test_Security/1.0.16/resources/data";
@@ -56,6 +60,8 @@ public class AppConstants {
 	public static final String SERVICE_AR_RECEIPTS_REPORTS_VALIDATION = "RECEIPTS_VALIDATION";
 	public static final String SERVICE_REST_STANDARD_RECEIPT = "REST_STANDARD_RECEIPT";
 	public static final String SERVICE_REST_INSERT_AR_INVOICE = "INSERT_AR_INVOICE";
+	public static final String SERVICE_REST_STANDARD_RECEIPT_FOR_ADVPAY = "REST_STANDARD_RECEIPT_FOR_ADVPAY";
+	public static final String SERVICE_REST_DISTRIBUITOR_PORTAL_INVOICES = "DISTRIBUITOR_PORTAL_INVOICES";
 	//REST API
 	public static final String URL_REST_INVORG = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/inventoryOrganizations";
 	public static final String URL_REST_SALESORDER = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/salesOrdersForOrderHub";
@@ -69,14 +75,23 @@ public class AppConstants {
 	public static final String URL_REST_RECEIVABLES_INVOICES = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/receivablesInvoices";
 	public static final String URL_REST_STANDARDRECEIPTS = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/standardReceipts/{StandardReceiptId}/child/standardReceiptDFF";
 	public static final String URL_REST_INSERT_INVOICE_AR = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/receivablesInvoices";
+	public static final String URL_REST_STANDARDRECEIPTS_FOR_ADVPAY = ORACLE_URL + "/fscmRestApi/resources/11.13.18.05/standardReceipts";
 	//SOAP SERVICE
-	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + ":443/fscmService/ItemServiceV2?invoke=";
+	/*public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + ":443/fscmService/ItemServiceV2?invoke=";
 	public static final String URL_SOAP_DFFFIN =  ORACLE_URL + "/fscmService/ErpObjectDFFUpdateService?invoke=";
 	public static final String URL_SOAP_SALESORDERINFO =  ORACLE_URL + ":443/fscmService/OrderInformationService?invoke=";
 	public static final String URL_SOAP_ITEMRELATIONSHIP = ORACLE_URL + "/fscmService/ItemRelationshipService?invoke=";
 	public static final String URL_SOAP_ITEMCATALOG = ORACLE_URL + "/fscmService/ItemCatalogService?invoke=";
 	public static final String URL_SOAP_FOUNDATION_PARTIES = ORACLE_URL + "/crmService/FoundationPartiesOrganizationService?invoke=";
-	public static final String URL_SOAP_CUSTOMER_ACCOUNT = ORACLE_URL + ":443/crmService/CustomerAccountService?invoke=";
+	public static final String URL_SOAP_CUSTOMER_ACCOUNT = ORACLE_URL + ":443/crmService/CustomerAccountService?invoke=";*/
+	
+	public static final String URL_SOAP_ITEMSV2 = ORACLE_URL + ":443/fscmService/ItemServiceV2";
+	public static final String URL_SOAP_DFFFIN =  ORACLE_URL + "/fscmService/ErpObjectDFFUpdateService";
+	public static final String URL_SOAP_SALESORDERINFO =  ORACLE_URL + ":443/fscmService/OrderInformationService";
+	public static final String URL_SOAP_ITEMRELATIONSHIP = ORACLE_URL + "/fscmService/ItemRelationshipService";
+	public static final String URL_SOAP_ITEMCATALOG = ORACLE_URL + "/fscmService/ItemCatalogService";
+	public static final String URL_SOAP_FOUNDATION_PARTIES = ORACLE_URL + "/crmService/FoundationPartiesOrganizationService";
+	public static final String URL_SOAP_CUSTOMER_ACCOUNT = ORACLE_URL + ":443/crmService/CustomerAccountService";
 	
 	//Estado de facturacion
 	public static final String STATUS_START = "START";
@@ -198,6 +213,9 @@ public class AppConstants {
 	public static final String UDC_KEY_CANCELATION_TRANSACTION_TYPE = "CANCELATION";
 	public static final String UDC_KEY_SUSTITUTION = "SUSTITUCION";
 	public static final String UDC_SYSTEM_CFDIUSE = "USOCFDI";
+	public static final String UDC_SYSTEM_PORTAL = "PORTALDIST";
+	public static final String UDC_KEY_PORTAL_PWD = "PWD";
+	public static final String UDC_KEY_PORTAL_USER = "USER";
 	
 	//Complemento detallista
 	public static final String LIVERPOOL_INVOICE = "INVOICE";

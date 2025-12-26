@@ -18,4 +18,5 @@ public interface InvoicingService {
 	void recolectListPayments();
 	boolean createInvoiceByInitialCharge(List<Row> r);
 	boolean debitMemoProcess(List<Row> r);
+	void recoverDataWarranty() throws ParseException;
 }

@@ -73,6 +73,33 @@ public class Branch implements Serializable {
 	
 	@Column(name = "taxRegime", nullable=true)
     private String taxRegime;
+	
+	@Column(name = "nameTransfer", nullable=true)
+	private String nameTransfer;
+	
+	@Column(name = "addressTransfer", nullable=true)
+    private String addressTransfer;
+	
+	@Column(name = "colonyTransfer", nullable=true)
+    private String colonyTransfer;
+	
+	@Column(name = "cityTransfer", nullable=true)
+    private String cityTransfer;
+	
+	@Column(name = "stateTransfer", nullable=true)
+    private String stateTransfer;
+	
+	@Column(name = "countryTransfer", nullable=true)
+    private String countryTransfer;
+	
+	@Column(name = "zipTransfer", nullable=true)
+    private String zipTransfer;
+	
+	@Column(name = "cellPhoneNumberTransfer", nullable=true)
+    private String cellPhoneNumberTransfer;
+	
+	@Column(name = "zipAddressPdfTransfer", nullable=true)
+    private String zipAddressPdfTransfer;
 
 	public long getId() {
 		return id;
@@ -216,6 +243,78 @@ public class Branch implements Serializable {
 
 	public void setTaxRegime(String taxRegime) {
 		this.taxRegime = taxRegime;
+	}
+
+	public String getNameTransfer() {
+		return nameTransfer;
+	}
+
+	public void setNameTransfer(String nameTransfer) {
+		this.nameTransfer = nameTransfer;
+	}
+
+	public String getAddressTransfer() {
+		return addressTransfer;
+	}
+
+	public void setAddressTransfer(String addressTransfer) {
+		this.addressTransfer = addressTransfer;
+	}
+
+	public String getColonyTransfer() {
+		return colonyTransfer;
+	}
+
+	public void setColonyTransfer(String colonyTransfer) {
+		this.colonyTransfer = colonyTransfer;
+	}
+
+	public String getCityTransfer() {
+		return cityTransfer;
+	}
+
+	public void setCityTransfer(String cityTransfer) {
+		this.cityTransfer = cityTransfer;
+	}
+
+	public String getStateTransfer() {
+		return stateTransfer;
+	}
+
+	public void setStateTransfer(String stateTransfer) {
+		this.stateTransfer = stateTransfer;
+	}
+
+	public String getCountryTransfer() {
+		return countryTransfer;
+	}
+
+	public void setCountryTransfer(String countryTransfer) {
+		this.countryTransfer = countryTransfer;
+	}
+
+	public String getZipTransfer() {
+		return zipTransfer;
+	}
+
+	public void setZipTransfer(String zipTransfer) {
+		this.zipTransfer = zipTransfer;
+	}
+
+	public String getCellPhoneNumberTransfer() {
+		return cellPhoneNumberTransfer;
+	}
+
+	public void setCellPhoneNumberTransfer(String cellPhoneNumberTransfer) {
+		this.cellPhoneNumberTransfer = cellPhoneNumberTransfer;
+	}
+
+	public String getZipAddressPdfTransfer() {
+		return zipAddressPdfTransfer;
+	}
+
+	public void setZipAddressPdfTransfer(String zipAddressPdfTransfer) {
+		this.zipAddressPdfTransfer = zipAddressPdfTransfer;
 	}
 		
 }

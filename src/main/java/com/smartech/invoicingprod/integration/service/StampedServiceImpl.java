@@ -228,7 +228,7 @@ public class StampedServiceImpl implements StampedService{
 					NullValidator.isNull(i.getCustomerPartyNumber()) + AppConstantsUtil.FILES_SEPARATOR;//Número de cuenta del cliente
 					if((i.getShipToaddress() != null && !i.getShipToaddress().isEmpty())) {
 						content = content + 
-								i.getCustomerName() + AppConstantsUtil.FILES_SEPARATOR +
+								(i.getShipToName() == null ? i.getCustomerName() : i.getShipToName()) + AppConstantsUtil.FILES_SEPARATOR +
 								i.getCustomerTaxIdentifier() + AppConstantsUtil.FILES_SEPARATOR +
 								""  + AppConstantsUtil.FILES_SEPARATOR +
 								i.getShipToaddress() + AppConstantsUtil.FILES_SEPARATOR +
@@ -264,14 +264,13 @@ public class StampedServiceImpl implements StampedService{
 					foreignTax + AppConstantsUtil.FILES_SEPARATOR +//taxId Extranjero
 					i.getCFDIUse() + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getNotes()) + AppConstantsUtil.FILES_SEPARATOR +//Notes	
-					NullValidator.isNull(i.getBranch().getCity()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getAddress()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getColony()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getState()) + AppConstantsUtil.FILES_SEPARATOR +
-//					NullValidator.isNull(i.getBranch().getZip()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getZipAddressPdf()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getCountry()) + AppConstantsUtil.FILES_SEPARATOR +
-					NullValidator.isNull(i.getBranch().getCellPhoneNumber()) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getCityTransfer()): NullValidator.isNull(i.getBranch().getCity()) ) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getAddressTransfer()): NullValidator.isNull(i.getBranch().getAddress()) ) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getColonyTransfer()): NullValidator.isNull(i.getBranch().getColony()) ) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getStateTransfer()): NullValidator.isNull(i.getBranch().getState()) ) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getZipAddressPdfTransfer()): NullValidator.isNull(i.getBranch().getZipAddressPdf()) ) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getCountryTransfer()): NullValidator.isNull(i.getBranch().getCountry()) ) + AppConstantsUtil.FILES_SEPARATOR +
+					( i.getInvoiceType().equals(AppConstants.ORDER_TYPE_TRANS) ? NullValidator.isNull(i.getBranch().getCellPhoneNumberTransfer()): NullValidator.isNull(i.getBranch().getCellPhoneNumber()) ) + AppConstantsUtil.FILES_SEPARATOR +
 					NullValidator.isNull(i.getLongDescription()).replaceAll("\n", "").replaceAll("\r", "") + AppConstantsUtil.FILES_SEPARATOR;
 					for(int h=0; h<impH2.length; h++) {
 						content = content + NullValidator.isNull(impH2[h]) + AppConstantsUtil.FILES_SEPARATOR;
@@ -1496,6 +1495,15 @@ public class StampedServiceImpl implements StampedService{
 								//Enviar a Portal de Distribuidores
 								createDistPortalInvoice(inv);
 								
+							}else {
+								log.warn(uuid + " " + inv.getFolio());
+								inv.setUUID(uuid);
+								inv.setErrorMsg(null);
+								inv.setStatus(AppConstants.STATUS_INVOICED);
+								invoiceDao.updateInvoice(inv);
+								
+								//Enviar a Portal de Distribuidores
+								createDistPortalInvoice(inv);
 							}
 							break;
 						case AppConstants.ORDER_TYPE_NC:
@@ -2624,11 +2632,16 @@ public class StampedServiceImpl implements StampedService{
 //			String url = "jdbc:sqlserver://localhost:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";
 //			cn = DriverManager.getConnection(url, "sa", "1234");
 			
-			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-D-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS TEST
-			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS TEST
+			String url = AppConstants.URL_DATABASE_ALEJANDRO;
+			
+//			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-D-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS TEST
+//			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS TEST
 //			
 //			String url = "jdbc:sqlserver://EC2AMAZ-MHT40UR:1433;databaseName=SCADB-P-IMEMSA;integratedSecurity=false;encrypt=true;trustServerCertificate=true";//AWS PROD
 //			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//AWS PROD
+			
+			cn = DriverManager.getConnection(url, "sa", "ScG990720Rf1.$");//Credenciales de conexión a la BD de SQL Server
+			
 			if(cn != null) {
 				System.out.println("Conectado");
 				String query = "Declare @Archivo varchar(100) = '" + fileName +".txt'\n" + 

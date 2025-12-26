@@ -15,6 +15,7 @@ import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.dto.HeadersRestDTO;
 import com.smartech.invoicingprod.integration.dto.ParamsRestDTO;
 import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
+import com.smartech.invoicingprod.integration.json.InvoicesPortalDist.Invoices;
 import com.smartech.invoicingprod.integration.json.dailyRates.CurrencyRates;
 import com.smartech.invoicingprod.integration.json.inventoryItemSerialNumbers.InventoryItemSerialNumbers;
 import com.smartech.invoicingprod.integration.json.invitemlot.InventoryItemLots;
@@ -30,6 +31,7 @@ import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
 import com.smartech.invoicingprod.integration.service.HTTPRequestService;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
+import com.smartech.invoicingprod.model.Udc;
 
 @Service("restService")
 public class RESTServiceImpl implements RESTService {
@@ -288,7 +290,6 @@ public class RESTServiceImpl implements RESTService {
 			
 			return null;
 		}catch(Exception e) {
-			e.printStackTrace();
 			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
 			return null;
 		}
@@ -599,6 +600,79 @@ public class RESTServiceImpl implements RESTService {
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
+	
+
+	@Override
+	public com.smartech.invoicingprod.integration.json.standardReceiptsForAdvPay.StandardReceipts getStandardReceiptsForAdvPay(String receiptNumber) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("onlyData", true));
+			params.add(new ParamsRestDTO("q", "ReceiptNumber = " + receiptNumber + ""));
+			params.add(new ParamsRestDTO("expand", "standardReceiptGdf"));
+			
+			String urlEndpoint = AppConstants.URL_REST_STANDARDRECEIPTS_FOR_ADVPAY;
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(AppConstants.ORACLE_USER, AppConstants.ORACLE_PASS,
+					urlEndpoint, HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_STANDARD_RECEIPT_FOR_ADVPAY);
+			
+			int statusCode;
+			com.smartech.invoicingprod.integration.json.standardReceiptsForAdvPay.StandardReceipts responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (com.smartech.invoicingprod.integration.json.standardReceiptsForAdvPay.StandardReceipts) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInventoryLot ****************************", e);
+			return null;
+		}
+	}
+
+	@Override
+	public Invoices getInvoicesFromPortalDist(String uuid, String user, String pwd) {
+		try {
+			List<HeadersRestDTO> headers = new ArrayList<HeadersRestDTO>();
+			headers.add(new HeadersRestDTO("Content-Type", "application/json"));
+			headers.add(new HeadersRestDTO("Accept", "*/*"));
+			headers.add(new HeadersRestDTO("User-Agent", "Java Client"));
+			List<ParamsRestDTO> params = new ArrayList<ParamsRestDTO>();
+			params.add(new ParamsRestDTO("q", "uuid = '" + uuid + "'"));
+			params.add(new ParamsRestDTO("fields", "uuid,folio,customerTaxId"));
+			params.add(new ParamsRestDTO("onlyData", true));
+			
+			//String url_portal = AppConstants.DIST_PORTAL_URL + "?q=uuid = '" + i.getUUID() +"'&onlyData=true&fields=uuid,folio,customerTaxId";
+			
+			Map<String, Object> response = httpRequestService.httpRESTRequest(user, pwd,
+					AppConstants.DIST_PORTAL_URL , HttpMethod.GET, headers, params, null, AppConstants.SERVICE_REST_DISTRIBUITOR_PORTAL_INVOICES);
+			
+			int statusCode;
+			Invoices responseRest;
+			
+			if(response != null) {
+				statusCode = (int) response.get("code");
+				responseRest = (Invoices) response.get("response");
+				if(statusCode >= 200 && statusCode < 300) {
+					return responseRest;
+				}
+			}
+			
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			log.error("REST API SERVICE FAIL getInvoicesFromPortalDist ****************************", e);
 			return null;
 		}
 	}

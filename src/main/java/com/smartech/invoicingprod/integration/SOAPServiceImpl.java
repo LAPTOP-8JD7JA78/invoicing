@@ -248,7 +248,7 @@ public class SOAPServiceImpl implements SOAPService {
 						String[] foliosNumber = folios.split("-");
 						for(String f: foliosNumber) {
 							Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
-									PayloadProducer.setARRegionalFlexfield(folios, inv.getErrorMsg(), "", "", inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+									PayloadProducer.setARRegionalFlexfield(folios, inv.getErrorMsg().substring(0, 100), "", "", inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
 							String strResponse2 = (String) request2.get("response");
 							int codeResponse2 = (int) request2.get("code");
 							String strHttpResponse2 = (String) request2.get("httpResponse");
@@ -282,7 +282,7 @@ public class SOAPServiceImpl implements SOAPService {
 						}
 					}else {
 						Map<String, Object> request2 = httpRequestService.httpXMLRequest(AppConstants.URL_SOAP_DFFFIN, 
-								PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getErrorMsg(), "", "", inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
+								PayloadProducer.setARRegionalFlexfield(inv.getFolio(), inv.getErrorMsg().substring(0, 100), "", "", inv.getOrderSource(), inv.getSetName()), AppConstants.ORACLE_USER + ":" + AppConstants.ORACLE_PASS);
 						String strResponse2 = (String) request2.get("response");
 						int codeResponse2 = (int) request2.get("code");
 						String strHttpResponse2 = (String) request2.get("httpResponse");
@@ -453,8 +453,7 @@ public class SOAPServiceImpl implements SOAPService {
 								so.setSalesOrderNumber(NullValidator.isNull(op.getAsJsonObject().get("ns0:OrderNumber").toString()));
 								
 								if(op.getAsJsonObject().has("ns0:AdditionalOrderInformationCategories")) {
-									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");
-									//Ambiente productivo
+									JsonElement opFlex = op.getAsJsonObject().get("ns0:AdditionalOrderInformationCategories");									
 									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO")) {
 										so.setMetodoPago(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "metodopago").toString()));
 										so.setUsoCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBFACTURACIONprivateVO").getAsJsonObject().get(udc.getStrValue2() + "usocfdi").toString()));
@@ -486,6 +485,19 @@ public class SOAPServiceImpl implements SOAPService {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
 										so.setCancelationReason(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "motivoDeCancelacion").toString()));
 										so.setRelationTypeCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "tipoRelacion").toString()));
+									}
+									//Requerimiento: Direccion Alterna
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO")) {
+										so.setDa_customer(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "customer").toString()));
+										so.setDa_address(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "address").toString()));
+										so.setDa_statecode(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "stateCode").toString()));
+										so.setDa_citycode(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cityCode").toString()));
+										so.setDa_colony(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "colony").toString()));
+										so.setDa_zipcode(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "zipCode").toString()));
+										so.setDa_contact(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contact").toString()));
+										so.setDa_email(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
+										so.setDa_telephone(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "telephone").toString()));
+										so.setDa_shippingmethod(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "shippingMethod").toString()));
 									}
 								}
 								
@@ -775,6 +787,19 @@ public class SOAPServiceImpl implements SOAPService {
 										so.setSusticionCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "uuidOriginal").toString()));
 										so.setCancelationReason(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "motivoDeCancelacion").toString()));
 										so.setRelationTypeCFDI(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBSUBCFDIprivateVO").getAsJsonObject().get(udc.getStrValue2() + "tipoRelacion").toString()));
+									}
+									//Requerimiento: Direccion Alterna
+									if(opFlex.getAsJsonObject().has(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO")) {
+										so.setDa_customer(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "customer").toString()));
+										so.setDa_address(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "address").toString()));
+										so.setDa_statecode(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "stateCode").toString()));
+										so.setDa_citycode(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "cityCode").toString()));
+										so.setDa_colony(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "colony").toString()));
+										so.setDa_zipcode(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "zipCode").toString()));
+										so.setDa_contact(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "contact").toString()));
+										so.setDa_email(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "email").toString()));
+										so.setDa_telephone(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "telephone").toString()));
+										so.setDa_shippingmethod(NullValidator.isNull(opFlex.getAsJsonObject().get(udc.getStrValue1() + "HeaderEffBDIRECCIONALTERNAprivateVO").getAsJsonObject().get(udc.getStrValue2() + "shippingMethod").toString()));
 									}
 								}
 								

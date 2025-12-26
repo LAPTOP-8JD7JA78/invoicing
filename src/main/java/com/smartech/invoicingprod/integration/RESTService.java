@@ -3,6 +3,7 @@ package com.smartech.invoicingprod.integration;
 import com.smartech.invoicingprod.dto.InvoiceInsertHeaderDTO;
 import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
+import com.smartech.invoicingprod.integration.json.InvoicesPortalDist.Invoices;
 import com.smartech.invoicingprod.integration.json.dailyRates.CurrencyRates;
 import com.smartech.invoicingprod.integration.json.inventoryItemSerialNumbers.InventoryItemSerialNumbers;
 import com.smartech.invoicingprod.integration.json.invitemlot.InventoryItemLots;
@@ -13,7 +14,6 @@ import com.smartech.invoicingprod.integration.json.priceListByItem.PriceListByIt
 import com.smartech.invoicingprod.integration.json.receivablesInvoices.ReceivablesInvoices;
 import com.smartech.invoicingprod.integration.json.salesorder.SalesOrder;
 import com.smartech.invoicingprod.integration.json.salesorderai.SalesOrderAI;
-import com.smartech.invoicingprod.integration.json.standardReceipts.StandardReceipts;
 import com.smartech.invoicingprod.integration.json.unitCost.ItemCosts;
 import com.smartech.invoicingprod.model.Invoice;
 
@@ -32,7 +32,9 @@ public interface RESTService {
 	public ItemCosts getItemCostWitoutSerialNumber(String itemNumber);
 	public ReceivablesInvoices getInvoiceData(String transactionNumber);
 	public CurrencyRates getDailyCurrencyExportacion(String date, String fromCurrency, String toCurrency);
-	public StandardReceipts getStandardReceipts(String receiptNumber);
+	public com.smartech.invoicingprod.integration.json.standardReceipts.StandardReceipts getStandardReceipts(String receiptNumber);
 	public String insertInvoiceToCloud(InvoiceInsertHeaderDTO invoiceAr);
 	public ReceivablesInvoices getInvoiceData2(String invoiceFolio);
+	public com.smartech.invoicingprod.integration.json.standardReceiptsForAdvPay.StandardReceipts getStandardReceiptsForAdvPay(String receiptNumber);
+	public Invoices getInvoicesFromPortalDist(String uuid, String user, String pwd);
 }

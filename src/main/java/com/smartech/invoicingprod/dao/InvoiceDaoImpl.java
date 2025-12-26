@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.SQLQuery;
@@ -14,19 +15,23 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.LongType;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartech.invoicingprod.dto.InvoicePayments;
+import com.smartech.invoicingprod.dto.WarrantyDataProcessDTO;
 import com.smartech.invoicingprod.integration.dto.InvoiceInvoiceDetailsDTO;
+import com.smartech.invoicingprod.integration.service.InvoicingServiceImpl;
 import com.smartech.invoicingprod.integration.util.AppConstants;
 import com.smartech.invoicingprod.model.Invoice;
 
 @Repository("invoiceDao")
 @Transactional
 public class InvoiceDaoImpl implements InvoiceDao{
+	
+	static Logger log = Logger.getLogger(InvoicingServiceImpl.class.getName());
+	
 	@Autowired
 	SessionFactory sessionFactory;
 	
@@ -269,7 +274,7 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			return null;
 		}catch(Exception e) {
 			e.printStackTrace();
-			Log.error("ERROR AL TRAER LA FACTURA PARA EL CPAGO: " + id + e);
+			log.error("ERROR AL TRAER LA FACTURA PARA EL CPAGO: " + id + e);
 			return null;
 		}
 	}
@@ -474,6 +479,85 @@ public class InvoiceDaoImpl implements InvoiceDao{
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Invoice getSingleInvoiceByFromSalesOrderAndType(String fromSalesOrder, String orderType) {
+		try {			
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);	
+			criteria.add( Restrictions.like("fromSalesOrder",  fromSalesOrder ));
+			criteria.add( Restrictions.eq("invoiceType", orderType));
+			List<Invoice> list =  criteria.list();
+			if(!list.isEmpty()){
+				return list.get(0);
+			}
+			return null;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@SuppressWarnings({ "unused", "unchecked" })
+	public List<WarrantyDataProcessDTO> getInvoiceForWarranty() {
+		try {
+			Invoice invoice = new Invoice();
+			SQLQuery query;
+			String sql;
+			Session session = sessionFactory.getCurrentSession();				
+//			sql = "SELECT i.id AS missing_invoice_id, i.customerName, i.folio, i.productType FROM im_recolectapd.invoice i LEFT JOIN im_recolectapd.invoice_invoicedetails iid ON i.id = iid.invoice_id WHERE iid.invoice_id IS NULL and i.invoicetype not in (\"NOTA CREDITO\") and i.status not in (\"CANCEL\") and i.id > 40764 and i.productType in (\"MOTORES FUERA DE BORDA\", \"GENERADORES\", \"SEA SCOOTER\", \"MOTOBOMBAS\", \"EMBARCACION\", \"LANCHAS FIBRA DE VIDRIO\", \"HIELERAS\", \"ACUAMOTOS\", \"REMOLQUES IMPORTADOS\", \"REMOLQUES IMPORTADOS, MOTORES FUERA DE BORDA\", \"MOTORES MULTI-USO\", \"LANCHAS FIBRA DE VIDRIO, MOTORES FUERA DE BORDA, REFACCIONES DE MOTORES\", \"SEMITERMINADOS\", \"REFACCIONES DE MOTORES, LANCHAS FIBRA DE VIDRIO, MOTORES FUERA DE BORDA\", \"LANCHAS FIBRA DE VIDRIO, SEMITERMINADOS\", \"LANCHAS FIBRA DE VIDRIO, HIELERAS\", \"LANCHA VALOR AGREGADO\", \"REFACCIONES DE MOTORES, MOTORES FUERA DE BORDA\") limit 50000;";
+			sql = "SELECT i.id AS missing_invoice_id, i.customerName, i.folio, i.productType FROM im_recolectapd.invoice i LEFT JOIN im_recolectapd.invoice_invoicedetails iid ON i.id = iid.invoice_id WHERE iid.invoice_id IS NULL and i.invoicetype not in (\"NOTA CREDITO\") and i.status not in (\"CANCEL\") and i.id > 50467 and i.productType in (\"MOTORES FUERA DE BORDA\", \"GENERADORES\", \"SEA SCOOTER\", \"MOTOBOMBAS\", \"EMBARCACION\", \"LANCHAS FIBRA DE VIDRIO\", \"HIELERAS\", \"ACUAMOTOS\", \"REMOLQUES IMPORTADOS\", \"REMOLQUES IMPORTADOS, MOTORES FUERA DE BORDA\", \"MOTORES MULTI-USO\", \"LANCHAS FIBRA DE VIDRIO, MOTORES FUERA DE BORDA, REFACCIONES DE MOTORES\", \"SEMITERMINADOS\", \"REFACCIONES DE MOTORES, LANCHAS FIBRA DE VIDRIO, MOTORES FUERA DE BORDA\", \"LANCHAS FIBRA DE VIDRIO, SEMITERMINADOS\", \"LANCHAS FIBRA DE VIDRIO, HIELERAS\", \"LANCHA VALOR AGREGADO\", \"REFACCIONES DE MOTORES, MOTORES FUERA DE BORDA\") limit 50000;";
+//			sql = "SELECT i.id AS missing_invoice_id, i.customerName, i.folio, i.productType FROM im_recolectapd.invoice i LEFT JOIN im_recolectapd.invoice_invoicedetails iid ON i.id = iid.invoice_id WHERE i.customerName = \"P M A DE SINALOA\" and iid.invoice_id IS NULL and i.invoicetype not in (\"NOTA CREDITO\") and i.status not in (\"CANCEL\") and i.id > 40764 and i.productType in (\"MOTORES FUERA DE BORDA\", \"GENERADORES\", \"SEA SCOOTER\", \"MOTOBOMBAS\", \"EMBARCACION\", \"LANCHAS FIBRA DE VIDRIO\", \"HIELERAS\", \"ACUAMOTOS\", \"REMOLQUES IMPORTADOS\", \"REMOLQUES IMPORTADOS, MOTORES FUERA DE BORDA\", \"MOTORES MULTI-USO\", \"LANCHAS FIBRA DE VIDRIO, MOTORES FUERA DE BORDA, REFACCIONES DE MOTORES\", \"SEMITERMINADOS\", \"REFACCIONES DE MOTORES, LANCHAS FIBRA DE VIDRIO, MOTORES FUERA DE BORDA\", \"LANCHAS FIBRA DE VIDRIO, SEMITERMINADOS\", \"LANCHAS FIBRA DE VIDRIO, HIELERAS\", \"LANCHA VALOR AGREGADO\", \"REFACCIONES DE MOTORES, MOTORES FUERA DE BORDA\") limit 50000;";
+			query = session.createSQLQuery(sql);
+			query.setResultTransformer(Transformers.aliasToBean(WarrantyDataProcessDTO.class));
+			query.addScalar("missing_invoice_id", new IntegerType());
+			List<WarrantyDataProcessDTO> invL = query.list();
+			return invL;
+			/*if(!invL.isEmpty()) {
+				return this.getSingleInvoiceById(invL.get(0).getInvoice_id());
+			}
+			return null;*/
+		}catch(Exception e) {
+			log.error(e);
+			return null;
+		}
+	}
+
+	@Override
+	public List<Invoice> getInvoicesByFolio(String folio) {
+		try {
+			Session session = this.sessionFactory.getCurrentSession();
+			Criteria criteria = session.createCriteria(Invoice.class);
+			criteria.add( Restrictions.eq("folio",  folio ));
+			List<Invoice> list =  criteria.list();
+			return list;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public List<Invoice> getInvoiceByDates(String startDate, String endDate) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");		
+		Session session = this.sessionFactory.getCurrentSession();
+		Criteria criteria = session.createCriteria(Invoice.class);
+		try {
+			if(StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {			
+				criteria.add(Restrictions.between("creationDate", sdf.parse(startDate), sdf.parse(endDate)));
+			}
+			if(StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {			
+				criteria.add(Restrictions.between("updatedDate", sdf.parse(startDate), sdf.parse(endDate)));
+			}
+			criteria.addOrder(Order.desc("folio"));
+			return criteria.list();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
+		return null;
 	}
 	
 }

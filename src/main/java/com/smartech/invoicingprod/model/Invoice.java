@@ -36,6 +36,7 @@ public class Invoice implements Serializable{
 	@Column(name = "UUID", nullable=true)
 	private String UUID;
 	
+	@Lob
 	@Column(name = "UUIDReference", nullable=true)
 	private String UUIDReference;
 	

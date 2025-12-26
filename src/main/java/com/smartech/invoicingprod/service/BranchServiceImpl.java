@@ -57,10 +57,14 @@ public class BranchServiceImpl implements BranchService{
 		return branchDao.getBranchByCode(code);
 	}
 	
-	
 	@Override
 	public Branch getBranchByName(String name) {
 		return branchDao.getBranchByName(name);
+	}
+	
+	@Override
+	public Branch getBranchByNameTransfer(String name) {
+		return branchDao.getBranchByNameTransfer(name);
 	}
 	
 }

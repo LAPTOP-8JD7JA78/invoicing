@@ -29,6 +29,7 @@ import com.smartech.invoicingprod.dto.responseInsertInvoiceDTO;
 import com.smartech.invoicingprod.integration.dto.HeadersRestDTO;
 import com.smartech.invoicingprod.integration.dto.ParamsRestDTO;
 import com.smartech.invoicingprod.integration.json.IncotermByRest.IncotermByRest;
+import com.smartech.invoicingprod.integration.json.InvoicesPortalDist.Invoices;
 import com.smartech.invoicingprod.integration.json.dailyRates.CurrencyRates;
 import com.smartech.invoicingprod.integration.json.inventoryItemSerialNumbers.InventoryItemSerialNumbers;
 import com.smartech.invoicingprod.integration.json.invitemlot.InventoryItemLots;
@@ -281,6 +282,18 @@ public class HTTPRequestServiceImpl implements HTTPRequestService {
 					map.put("code", respS14.getStatusCode().value());
 					map.put("response", respS14.hasBody()?respS14.getBody():null);
 					map.put("httpResponse",respS14.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_STANDARD_RECEIPT_FOR_ADVPAY:
+					ResponseEntity<com.smartech.invoicingprod.integration.json.standardReceiptsForAdvPay.StandardReceipts> respS15 = rt.exchange(url, method, re, com.smartech.invoicingprod.integration.json.standardReceiptsForAdvPay.StandardReceipts.class);
+					map.put("code", respS15.getStatusCode().value());
+					map.put("response", respS15.hasBody()?respS15.getBody():null);
+					map.put("httpResponse", respS15.getHeaders());
+					break;
+				case AppConstants.SERVICE_REST_DISTRIBUITOR_PORTAL_INVOICES:
+					ResponseEntity<Invoices> respS16 = rt.exchange(url, method, re, Invoices.class);
+					map.put("code", respS16.getStatusCode().value());
+					map.put("response", respS16.hasBody()?respS16.getBody():null);
+					map.put("httpResponse", respS16.getHeaders());
 					break;
 			}		
 		}catch(Exception e) {

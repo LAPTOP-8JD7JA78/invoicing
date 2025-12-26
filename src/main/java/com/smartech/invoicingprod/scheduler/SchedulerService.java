@@ -78,7 +78,6 @@ public class SchedulerService {
 		log.info("\'testSchedule\' is finished*******");
 	}
 	
-	
 //	@Scheduled(fixedDelay=1000, initialDelay=1000)
 	public void testEmail() {
 //		String date = sdfTime.format(new Date());
@@ -93,7 +92,8 @@ public class SchedulerService {
 	@Scheduled(fixedDelay = 180000, initialDelay = 30000)
 	public void InvoicesSchedule() throws ParseException {
 		log.info("\'InvoicesSchedule\' is started*******");	
-		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));		
+		log.info(AppConstants.AMBIENTE);
+		//sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		String nextSearch = sdf.format(new Date());
 		AnalyticsDTO analytics = new AnalyticsDTO();
 		String errors = "";
@@ -140,7 +140,7 @@ public class SchedulerService {
 		log.info("\'InvoicesSchedule\' is finished*******");
 	}
 	
-	@Scheduled(fixedDelay = 180001, initialDelay = 4500)
+	@Scheduled(fixedDelay = 180001, initialDelay = 45000)
 	public void getDataForNewOrders() {
 		log.info("\'getDataForNewOrders\' is started*******");
 		try {
@@ -392,6 +392,13 @@ public class SchedulerService {
 			log.error("ERROR EN LA BUSQUEDA DE LA UDC (INVOICES) PARA LAS FECHAS DEL REPORTE");
 		}
 		log.info("\'DebitMemoSchedule\' is finished*******");
+	}
+	
+//	@Scheduled(fixedDelay = 240000, initialDelay = 6000)
+	public void recoverDataWarranty() throws ParseException {
+		log.info("\'recoverDataWarranty\' is started*******");	
+		invoicingService.recoverDataWarranty();
+		log.info("\'recoverDataWarranty\' is finished*******");
 	}
 	
 //	@Scheduled(fixedDelay = 3600000, initialDelay = 60000)

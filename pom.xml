@@ -302,11 +302,11 @@
 			<version>1.7</version>
 		</dependency>
 
-		<dependency>
+		<!--<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 			<version>6.0.0</version>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>ca.juliusdavies</groupId>
 			<artifactId>not-yet-commons-ssl</artifactId>
@@ -348,7 +348,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-war-plugin</artifactId>
-					<version>3.0.0</version>
+					<version>3.3.1</version>
 					<configuration>
 						<warSourceDirectory>WebContent</warSourceDirectory>
 					</configuration>

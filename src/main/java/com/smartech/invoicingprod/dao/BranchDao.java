@@ -14,4 +14,5 @@ public interface BranchDao {
 	public boolean updateBranch(Branch branch);
 	public Branch getBranchByCode(String code);
 	Branch getBranchByName(String name);
+	Branch getBranchByNameTransfer(String name);
 }

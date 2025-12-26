@@ -44,6 +44,17 @@ public class SalesOrderDTO {
 	private String catExportacion;
 	private String regimenFiscal;
 	private String relationTypeCFDI;
+	//Requerimiento: Direccion Alterna
+	private String da_customer;
+	private String da_address;
+	private String da_statecode;
+	private String da_citycode;
+	private String da_colony;
+	private String da_zipcode;
+	private String da_contact;
+	private String da_email;
+	private String da_telephone;
+	private String da_shippingmethod;
 	
 	private List<SalesOrderLinesDTO> lines;
 
@@ -349,6 +360,87 @@ public class SalesOrderDTO {
 
 	public void setRelationTypeCFDI(String relationTypeCFDI) {
 		this.relationTypeCFDI = relationTypeCFDI;
+	}
+	//Requerimiento: Direccion Alterna
+
+	public String getDa_customer() {
+		return da_customer;
+	}
+
+	public void setDa_customer(String da_customer) {
+		this.da_customer = da_customer;
+	}
+
+	public String getDa_address() {
+		return da_address;
+	}
+
+	public void setDa_address(String da_address) {
+		this.da_address = da_address;
+	}
+
+	public String getDa_statecode() {
+		return da_statecode;
+	}
+
+	public void setDa_statecode(String da_statecode) {
+		this.da_statecode = da_statecode;
+	}
+
+	public String getDa_citycode() {
+		return da_citycode;
+	}
+
+	public void setDa_citycode(String da_citycode) {
+		this.da_citycode = da_citycode;
+	}
+
+	public String getDa_colony() {
+		return da_colony;
+	}
+
+	public void setDa_colony(String da_colony) {
+		this.da_colony = da_colony;
+	}
+
+	public String getDa_zipcode() {
+		return da_zipcode;
+	}
+
+	public void setDa_zipcode(String da_zipcode) {
+		this.da_zipcode = da_zipcode;
+	}
+
+	public String getDa_contact() {
+		return da_contact;
+	}
+
+	public void setDa_contact(String da_contact) {
+		this.da_contact = da_contact;
+	}
+
+	public String getDa_email() {
+		return da_email;
+	}
+
+	public void setDa_email(String da_email) {
+		this.da_email = da_email;
+	}
+
+	public String getDa_telephone() {
+		return da_telephone;
+	}
+
+	public void setDa_telephone(String da_telephone) {
+		this.da_telephone = da_telephone;
+	}
+
+	public String getDa_shippingmethod() {
+		return da_shippingmethod;
+	}
+
+	public void setDa_shippingmethod(String da_shippingmethod) {
+		this.da_shippingmethod = da_shippingmethod;
 	}
 	
 }

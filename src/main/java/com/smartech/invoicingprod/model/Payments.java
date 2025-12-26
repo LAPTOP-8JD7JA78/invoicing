@@ -530,11 +530,16 @@ public class Payments implements Serializable{
 		this.customerZipCode = customerZipCode;
 	}
 
+	
 	public String getTaxCode() {
 		return taxCode;
 	}
 
 	public void setTaxCode(String taxCode) {
+		this.taxCode = taxCode;
+	}
+
+	public void taxAmountValue16(String taxCode) {
 		this.taxCode = taxCode;
 	}
 
